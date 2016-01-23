@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include "ftd2xx.h"
+#include "../ftdi_lib/ftd2xx.h"
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>
