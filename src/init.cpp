@@ -16,13 +16,28 @@ int checkModules(){
     return -1;
 }
 
+int CheckLog(){
+    //not implemented;
+    return -1;
+}
+
+int CheckCron(){
+    //not implemented;
+    return -1;
+}
+
+int OpenDevice(){
+    //not implemented, FT_OpenEx, set communication
+    return -1;
+}
+
 int init(){
+    checkModules();
     addVidPid();
     
     FT_STATUS ft_status;
     unsigned int numdevs = 0;
     ft_status =  FT_CreateDeviceInfoList(&numdevs);
-    
     
     //not implemented yet
     return -1;
