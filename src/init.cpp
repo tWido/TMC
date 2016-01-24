@@ -31,6 +31,16 @@ int OpenDevice(){
     return -1;
 }
 
+int CheckEndianess(){
+    //not implemented, lscpu, messages in little endian
+    return -1;
+}
+
+int LoadRestrictions(){
+    //not implemented
+    return -1;
+}
+
 int init(){
     checkModules();
     addVidPid();
