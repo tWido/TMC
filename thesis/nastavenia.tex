@@ -75,12 +75,12 @@ intuícií vypnúť príkazom rmmod pri každom pripojení zariadenia alebo modu
 s inými zariadeniami. Príkaz rmmod vyžaduje prístupové práva používateľa root, preto je vhodné vytvoriť spustiteľný skript,
 ktorý bude mať zvýšené práva a moduly odstráni. Ak problém stále pretrváva, program nerozozná zariadanie a treba upraviť
 zdrojový kód o inštrukciu FT\textunderscore SetVIDPID s príslušnými parametrami. V našom prípade je VID = 0x0403 a PID = 0xFAF0. 
-TODO kde vytiahnut vid pid pre rozne distribucie, automatizovat v programe
+TODO kde vytiahnut vid pid pre rozne distribucie, automatizovat v programe, dmesg || /var/log/kern.log
 
 
 \subsection{Prehľad funkcií}
 V tejto časti sú uvedené knižničné funkcie špecifické pre komunikáciu s chipom, ktoré su v programe využité. 
-TODO - opisat WORD, doubleWORD...? ,  pridat pouzite funkcie a vymazat nepouzite \newline
+TODO -  pridat pouzite funkcie a vymazat nepouzite \newline
 
 \textbf{\large FT\textunderscore SetVIDPID}
 \begin{description} \itemsep1pt \parskip0pt \parsep0pt
@@ -124,15 +124,6 @@ TODO - opisat WORD, doubleWORD...? ,  pridat pouzite funkcie a vymazat nepouzite
 				SerialNumber - smerník na začiatok pola znakov pre uloženie sériového čísla, ukončené ako bežný cstring \newline
 				Description - smerník na začiatok pola znakov pre uloženie popisu, ukončené ako bežný cstring \newline
 				*ft\textunderscore handle - smerník na uloženie handle pre ďalšie narábanie so zariadením
-  \item[Návratová hodnota] \hfill \\ FT\textunderscore OK alebo chybový kód v prípade zlyhania.
-\end{description} 
-\hfill \break
-
-\textbf{\large FT\textunderscore Open}
-\begin{description} \itemsep1pt \parskip0pt \parsep0pt
-  \item[Definícia] \hfill \\	FT\textunderscore STATUS FT\textunderscore SetVIDPID ( int iDevice, FT\textunderscore HANDLE *handle )
-  \item[Popis] 	\hfill \\ Pripojí zariadenie a uloží handle.
-  \item[Parametre]  \hfill \\ iDevice - index zariadenia \newline *handle  - smerník na uloženie handle 
   \item[Návratová hodnota] \hfill \\ FT\textunderscore OK alebo chybový kód v prípade zlyhania.
 \end{description} 
 \hfill \break
