@@ -167,27 +167,27 @@ enum {
 
 class Message{
 public:
-    Message(char* buffer, unsigned int buffer_size){
-        bytes = (char *) malloc(buffer_size);
-        bytes = strncpy(bytes, buffer, buffer_size);
+    Message(uint8_t* buffer, unsigned int buffer_size){
+        bytes = (uint8_t *) malloc(buffer_size);
+        bytes = (uint8_t *) memcpy(bytes, buffer, buffer_size);
         length = buffer_size;
     }
     
     Message(size_t in_size){
-        bytes = (char *) malloc(in_size);
+        bytes = (uint8_t *) malloc(in_size);
     }
     
     ~Message(){
         free(bytes);
     }
  
-    char* data(){ return bytes; }
+    uint8_t* data(){ return bytes; }
     
     unsigned int msize(){ return length; }
     
 protected:
     unsigned int length;
-    char *bytes;
+    uint8_t *bytes;
 };
 
 
@@ -197,25 +197,11 @@ public:
      * For incoming messages.
      * @param header_bytes
      */
-    MessageHeader(char *header_bytes): Message(header_bytes, HEADER_SIZE){}
+    MessageHeader(uint8_t *header_bytes): Message(header_bytes, HEADER_SIZE){}
+    
     
     /**
-     * For long messages.
-     * @param type
-     * @param size
-     * @param dest
-     * @param source
-     */
-    MessageHeader(uint16_t type, uint16_t size, uint8_t dest, uint8_t source):Message(HEADER_SIZE){
-        *((uint16_t *) &bytes[0]) = type;
-        *((uint16_t *) &bytes[2]) = size;
-        bytes[4] = dest;
-        bytes[5] = source;
-        header_only = true;
-    }
-    
-    /**
-     * For header only messages.
+     * For sending messages.
      * @param type
      * @param param1
      * @param param2
@@ -228,10 +214,8 @@ public:
         bytes[3] = param2;
         bytes[4] = dest;
         bytes[5] = source;
-        header_only = false;
     }
     
-    bool IsHeaderOnly(){ return header_only; };
     void Getparams(uint8_t *p1, uint8_t *p2){
         *p1 =(uint8_t) bytes[2];
         *p2 =(uint8_t) bytes[3];
@@ -242,30 +226,43 @@ public:
         bytes[3] = p2;
     }
     
-    uint16_t GetPacketLength(){
-        return *((uint16_t *) &bytes[2]);
-    }
-    
-    void SetPacketLength(uint16_t size){
-        *((uint16_t *) &bytes[2]) = size;
-    }
-    
     uint8_t GetSource(){ return bytes[5]; }
     void SetSource(uint8_t source){ bytes[5] = source; } 
 
     uint8_t GetDest(){ return bytes[4]; }
     void SetDest(uint8_t dest){
-        if (header_only) bytes[4] = dest;
-        else { bytes[4] = (dest | 0x80); }
+       bytes[4] = dest;
     }
-    
-    void SetHeader(bool toset){ header_only = toset;}
     
     uint16_t GetType(){ return *((uint16_t *) &bytes[0]) ;}
     
-private: 
-    bool header_only;
 };
+
+class LongMessage: Message{
+public:
+    LongMessage(uint8_t *input_bytes, unsigned int buffer_size):Message(input_bytes, buffer_size){};
+    
+    LongMessage(uint16_t type, uint16_t size, uint8_t dest, uint8_t source):Message(HEADER_SIZE + size){
+        *((uint16_t *) &bytes[0]) = type;
+        *((uint16_t *) &bytes[2]) = size;
+        bytes[4] = dest;
+        bytes[5] = source;
+    }
+    
+    void SetDest(uint8_t dest){ bytes[4] = (dest | 0x80); }
+    uint8_t GetDest(){ return bytes[4]; }
+
+    uint8_t GetSource(){ return bytes[5]; }
+    void SetSource(uint8_t source){ bytes[5] = source; } 
+    
+    uint16_t GetPacketLength(){ return *((uint16_t *) &bytes[2]);}
+    void SetPacketLength(uint16_t size){ *((uint16_t *) &bytes[2]) = size;}
+    
+};
+
+
+
+
 
 int SendMessage(Message message, FT_HANDLE &handle){
     FT_STATUS wrStatus;
