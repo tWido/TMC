@@ -1,6 +1,6 @@
 CC = g++
 
-CFLAGS = -Wextra -Wall
+CFLAGS = -Wextra -Wall -g
 
 LIBS = -lpthread -lftd2xx
 
@@ -10,9 +10,11 @@ MAIN = thorlabs_controller
 
 BUILD_DIR = build
 
+LINK_DIR=/usr/local/lib
+
 all: $(SRCS)
 	mkdir -p $(BUILD_DIR)
-	$(CC) $(SRCS) $(LIBS) $(CFLAGS) -o $(BUILD_DIR)/$(MAIN)
+	$(CC) $(SRCS) $(LIBS) $(CFLAGS) -o $(BUILD_DIR)/$(MAIN) -Wl,-rpath=$(LINK_DIR)
 
 clean:
 		rm $(BUILD_DIR)/$(MAIN)
