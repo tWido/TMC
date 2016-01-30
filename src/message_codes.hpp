@@ -24,7 +24,7 @@ enum {
     MOD_REQ_DIGOUTPUTS = 0x0214,
     MOD_GET_DIGOUTPUTS = 0x0215,
     
-    //Motor controll messages
+    //Motor control messages
     HW_YES_FLASH_PROGRAMMING = 0x0017,
     HW_NO_FLASH_PROGRAMMING = 0x0018,
     

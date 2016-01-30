@@ -3,6 +3,7 @@
  */
 #include "../ftdi_lib/ftd2xx.h"
 #include "message_codes.hpp"
+#include <endian.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -41,7 +42,7 @@ public:
     MessageHeader(uint8_t *header_bytes): Message(header_bytes, HEADER_SIZE){}
     
     MessageHeader(uint16_t type, uint8_t param1, uint8_t param2 ,uint8_t dest, uint8_t source):Message(HEADER_SIZE){
-        *((uint16_t *) &bytes[0]) = type;
+        *((uint16_t *) &bytes[0]) = htole16(type);
         bytes[2] = param1;
         bytes[3] = param2;
         bytes[4] = dest;
@@ -69,7 +70,7 @@ public:
        bytes[4] = dest;
     }
     
-    uint16_t GetType(){ return *((uint16_t *) &bytes[0]) ;}
+    uint16_t GetType(){ return le16toh(*((uint16_t *) &bytes[0])) ;}
     
 };
 
@@ -78,8 +79,8 @@ public:
     LongMessage(uint8_t *input_bytes, unsigned int buffer_size):Message(input_bytes, buffer_size){};
     
     LongMessage(uint16_t type, uint16_t data_size, uint8_t dest, uint8_t source):Message(HEADER_SIZE + data_size){
-        *((uint16_t *) &bytes[0]) = type;
-        *((uint16_t *) &bytes[2]) = data_size;
+        *((uint16_t *) &bytes[0]) = htole16(type);
+        *((uint16_t *) &bytes[2]) = htole16(data_size);
         bytes[4] = dest;
         bytes[5] = source;
     }
@@ -90,10 +91,10 @@ public:
     uint8_t GetSource(){ return bytes[5]; }
     void SetSource(uint8_t source){ bytes[5] = source; } 
     
-    uint16_t GetPacketLength(){ return *((uint16_t *) &bytes[2]);}
-    void SetPacketLength(uint16_t size){ *((uint16_t *) &bytes[2]) = size;}
+    uint16_t GetPacketLength(){ return le16toh(*((uint16_t *) &bytes[2]));}
+    void SetPacketLength(uint16_t size){ *((uint16_t *) &bytes[2]) = htole16(size);}
     
-    uint16_t GetType(){ return *((uint16_t *) &bytes[0]) ;}
+    uint16_t GetType(){ return le16toh(*((uint16_t *) &bytes[0])) ;}
 
 };
 
@@ -122,7 +123,7 @@ public:
 
 /** Enable or disable drive channel. */
 class SetChannelState:MessageHeader{
-    SetChannelState():MessageHeader(SET_CHANENABLESTATE, 0, 0, 0x50, 0x01){};
+    SetChannelState(uint8_t chanID = 0x01, uint8_t ableState = 0 ):MessageHeader(SET_CHANENABLESTATE, chanID, ableState, 0x50, 0x01){};
     
     /**
      * @brief Set channel id to change state. 
@@ -139,7 +140,7 @@ class SetChannelState:MessageHeader{
 
 /** Asks for information about specified channel. */
 class ReqChannelState:MessageHeader{
-    ReqChannelState():MessageHeader(REQ_CHANENABLESTATE, 0, 0, 0x50, 0x01){};
+    ReqChannelState(uint8_t chanID = 0x01):MessageHeader(REQ_CHANENABLESTATE, chanID, 0, 0x50, 0x01){};
    
     /** 
      * @brief Set channel id which info is required. 
@@ -169,16 +170,70 @@ class HwResponse:MessageHeader{
     HwResponse(uint8_t *mess):MessageHeader(mess){}
 };
 
+/** Sent from device to specify error. */
 class HwResponseInfo:LongMessage{
     HwResponseInfo(uint8_t *mess):LongMessage(mess, 74){}
     
-   uint16_t GetMsgID(){ return *((uint16_t *) &bytes[6]); }
+    /**
+     * @return ID of message that caused error 
+     */
+    uint16_t GetMsgID(){ return le16toh(*((uint16_t *) &bytes[6])); }
     
-    uint16_t GetCode(){ return *((uint16_t *) &bytes[8]); }
+    /**
+     * @return Thorlabs specific error code 
+     */
+    uint16_t GetCode(){ return le16toh(*((uint16_t *) &bytes[8])); }
     
+    /**
+     * @return  Closer description of error. ASCII string terminated with '\0'.
+     */
     char* GetDescription(){
         return (char*) &bytes[10];
     }
 };
 
+class StartUpdateMessages:MessageHeader{
+    StartUpdateMessages(uint8_t rate = 0):MessageHeader(HW_START_UPDATEMSGS, rate, 0, 0x50, 0x01){};
+    
+    void SetUpdaterate(uint8_t rate){ SetFirstParam(rate); }
+};
 
+class StopUpdateMessages:MessageHeader{
+    StopUpdateMessages():MessageHeader(HW_STOP_UPDATEMSGS, 0, 0, 0x50, 0x01){}
+};
+
+class ReqHwInfo:MessageHeader{
+    ReqHwInfo():MessageHeader(HW_REQ_INFO, 0, 0, 0x50, 0x01){}
+};
+
+class HwInfo:LongMessage{
+    HwInfo(uint8_t *mess):LongMessage(mess, 90){}
+    
+    int32_t SerialNumber(){ return le32toh(*((int32_t*) &bytes[6])) ; }
+    
+    std::string ModelNumber(){ 
+        std::string ret;
+        ret.assign((char*) &bytes[10], 8);
+        return ret;
+    }
+    
+    /**
+     * @return 44 = brushless DC controller, 45 multi channel motherboard 
+     */
+    uint16_t HWType(){ return le16toh(*((uint16_t*) &bytes[18])) ;}
+    
+    std::string Notes(){
+        std::string ret;
+        ret.assign((char*) &bytes[24], 48);
+        return ret;
+    }
+    
+    uint16_t HwVersion(){ return le16toh(*((uint16_t*) &bytes[84])); }
+    
+    uint16_t ModState(){ return le16toh(*((uint16_t*) &bytes[86])); }
+    
+    uint16_t NumChannels(){ return le16toh(*((uint16_t*) &bytes[88])); };
+  
+    
+    
+};
