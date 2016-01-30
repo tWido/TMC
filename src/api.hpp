@@ -60,7 +60,10 @@ public:
     }
     
     void SetFirstParam(uint8_t param){ bytes[2] = param; }
+    uint8_t GetFirstParam(){return bytes[2] ;}
+    
     void SetSecondParam(uint8_t param){ bytes[3] = param; }
+    uint8_t GetSecondParam(){return bytes[3] ;}
     
     uint8_t GetSource(){ return bytes[5]; }
     void SetSource(uint8_t source){ bytes[5] = source; } 
@@ -112,18 +115,18 @@ int SendMessage(Message message, FT_HANDLE &handle){
     return -1;
 }
 
-
+// Generic messages -------------------------------------------------------------
 
 /** Flash front panel LED. */
 class IdentifyMs: public MessageHeader{
 public:
-    IdentifyMs():MessageHeader(IDENTIFY, 0, 0, 0x50, 0x01){}
+    IdentifyMs(uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(IDENTIFY, 0, 0, dest, source){}
 };
 
 
 /** Enable or disable drive channel. */
 class SetChannelState:MessageHeader{
-    SetChannelState(uint8_t chanID = 0x01, uint8_t ableState = 0 ):MessageHeader(SET_CHANENABLESTATE, chanID, ableState, 0x50, 0x01){};
+    SetChannelState(uint8_t chanID = 0x01, uint8_t ableState = 0 , uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(SET_CHANENABLESTATE, chanID, ableState, dest, source){};
     
     /**
      * @brief Set channel id to change state. 
@@ -140,7 +143,7 @@ class SetChannelState:MessageHeader{
 
 /** Asks for information about specified channel. */
 class ReqChannelState:MessageHeader{
-    ReqChannelState(uint8_t chanID = 0x01):MessageHeader(REQ_CHANENABLESTATE, chanID, 0, 0x50, 0x01){};
+    ReqChannelState(uint8_t chanID = 0x01, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(REQ_CHANENABLESTATE, chanID, 0, dest, source){};
    
     /** 
      * @brief Set channel id which info is required. 
@@ -162,7 +165,7 @@ class ChannelStateInfo:MessageHeader{
 };
 
 class HwDisconnect:MessageHeader{
-    HwDisconnect():MessageHeader( HW_DISCONNECT, 0, 0, 0x50, 0x01){}
+    HwDisconnect(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader( HW_DISCONNECT, 0, 0, dest, source){}
 };
 
 /** Sent from device to notify of unexpected event. */
@@ -193,17 +196,17 @@ class HwResponseInfo:LongMessage{
 };
 
 class StartUpdateMessages:MessageHeader{
-    StartUpdateMessages(uint8_t rate = 0):MessageHeader(HW_START_UPDATEMSGS, rate, 0, 0x50, 0x01){};
+    StartUpdateMessages(uint8_t rate = 0, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(HW_START_UPDATEMSGS, rate, 0, dest, source){};
     
     void SetUpdaterate(uint8_t rate){ SetFirstParam(rate); }
 };
 
 class StopUpdateMessages:MessageHeader{
-    StopUpdateMessages():MessageHeader(HW_STOP_UPDATEMSGS, 0, 0, 0x50, 0x01){}
+    StopUpdateMessages(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(HW_STOP_UPDATEMSGS, 0, 0, dest, source){}
 };
 
 class ReqHwInfo:MessageHeader{
-    ReqHwInfo():MessageHeader(HW_REQ_INFO, 0, 0, 0x50, 0x01){}
+    ReqHwInfo(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(HW_REQ_INFO, 0, 0, dest, source){}
 };
 
 class HwInfo:LongMessage{
@@ -235,5 +238,34 @@ class HwInfo:LongMessage{
     uint16_t NumChannels(){ return le16toh(*((uint16_t*) &bytes[88])); };
   
     
+    class ReqRackBayUsed:MessageHeader{
+        ReqRackBayUsed(uint8_t bayID, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(RACK_REQ_BAYUSED, bayID, 0 , dest, source){}
+        
+        void SetBayIdent(uint8_t bayID){ SetFirstParam(bayID); }
+    };
+    
+    class GetRackBayUsed:MessageHeader{
+        GetRackBayUsed(uint8_t *mess):MessageHeader(mess){}
+        
+        uint8_t GetBayID(){ return GetFirstParam(); }
+        
+        /**
+         * @return Baystates: 0x01 - bay occupied, 0x02 - bay empty 
+         */
+        uint8_t GetBayState(){ return GetSecondParam(); }
+    };
+    
+    class ReqHubBayUsed:MessageHeader{
+        ReqHubBayUsed(uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(HUB_REQ_BAYUSED, 0, 0, dest, source){}
+    };
+    
+    class GetBayUsed:MessageHeader{
+        GetBayUsed(uint8_t *mess):MessageHeader(mess){}
+        
+        uint8_t GetBayID(){ return GetFirstParam(); }
+    };
+    
+    
+    //Motor control messages ---------------------------------------------------
     
 };
