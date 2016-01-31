@@ -126,6 +126,7 @@ public:
 
 /** Enable or disable drive channel. */
 class SetChannelState:MessageHeader{
+public:
     SetChannelState(uint8_t chanID = 0x01, uint8_t ableState = 0 , uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(SET_CHANENABLESTATE, chanID, ableState, dest, source){};
     
     /**
@@ -143,6 +144,7 @@ class SetChannelState:MessageHeader{
 
 /** Asks for information about specified channel. */
 class ReqChannelState:MessageHeader{
+public:
     ReqChannelState(uint8_t chanID = 0x01, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(REQ_CHANENABLESTATE, chanID, 0, dest, source){};
    
     /** 
@@ -154,6 +156,7 @@ class ReqChannelState:MessageHeader{
 
 /** Info sent from device. */
 class ChannelStateInfo:MessageHeader{
+public:
     ChannelStateInfo(uint8_t *mess):MessageHeader(mess){}
     
     /**
@@ -165,16 +168,19 @@ class ChannelStateInfo:MessageHeader{
 };
 
 class HwDisconnect:MessageHeader{
+public:
     HwDisconnect(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader( HW_DISCONNECT, 0, 0, dest, source){}
 };
 
 /** Sent from device to notify of unexpected event. */
 class HwResponse:MessageHeader{
+public:
     HwResponse(uint8_t *mess):MessageHeader(mess){}
 };
 
 /** Sent from device to specify error. */
 class HwResponseInfo:LongMessage{
+public:
     HwResponseInfo(uint8_t *mess):LongMessage(mess, 74){}
     
     /**
@@ -196,20 +202,24 @@ class HwResponseInfo:LongMessage{
 };
 
 class StartUpdateMessages:MessageHeader{
+public:
     StartUpdateMessages(uint8_t rate = 0, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(HW_START_UPDATEMSGS, rate, 0, dest, source){};
     
     void SetUpdaterate(uint8_t rate){ SetFirstParam(rate); }
 };
 
 class StopUpdateMessages:MessageHeader{
+public:
     StopUpdateMessages(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(HW_STOP_UPDATEMSGS, 0, 0, dest, source){}
 };
 
 class ReqHwInfo:MessageHeader{
+public:
     ReqHwInfo(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(HW_REQ_INFO, 0, 0, dest, source){}
 };
 
 class HwInfo:LongMessage{
+public:
     HwInfo(uint8_t *mess):LongMessage(mess, 90){}
     
     int32_t SerialNumber(){ return le32toh(*((int32_t*) &bytes[6])) ; }
@@ -239,12 +249,14 @@ class HwInfo:LongMessage{
 };
     
 class ReqRackBayUsed:MessageHeader{
+public:
     ReqRackBayUsed(uint8_t bayID, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(RACK_REQ_BAYUSED, bayID, 0 , dest, source){}
 
     void SetBayIdent(uint8_t bayID){ SetFirstParam(bayID); }
 };
 
 class GetRackBayUsed:MessageHeader{
+public:
     GetRackBayUsed(uint8_t *mess):MessageHeader(mess){}
 
     uint8_t GetBayID(){ return GetFirstParam(); }
@@ -256,10 +268,12 @@ class GetRackBayUsed:MessageHeader{
 };
 
 class ReqHubBayUsed:MessageHeader{
+public:
     ReqHubBayUsed(uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(HUB_REQ_BAYUSED, 0, 0, dest, source){}
 };
 
 class GetBayUsed:MessageHeader{
+public:
     GetBayUsed(uint8_t *mess):MessageHeader(mess){}
 
     uint8_t GetBayID(){ return GetFirstParam(); }
@@ -269,16 +283,19 @@ class GetBayUsed:MessageHeader{
 //Motor control messages ---------------------------------------------------
 
 class YesFlashProg:MessageHeader{
+public:
     YesFlashProg(uint8_t dest =  0x50, uint8_t source = 0x01):MessageHeader(HW_YES_FLASH_PROGRAMMING, 0, 0, dest, source){};
 };
 
 /* Part of initialization. Notifies device of addresses. */
 class NoFlashProg:MessageHeader{
+public:
     NoFlashProg(uint8_t dest =  0x50, uint8_t source = 0x01):MessageHeader(HW_NO_FLASH_PROGRAMMING, 0, 0, dest, source){};
 };
 
 
 class SetPos:LongMessage{
+public:
     SetPos(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID  = 1, uint32_t pos = 0 ):LongMessage(SET_POSCOUNTER, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanID);
         *((uint32_t *) &bytes[8]) = htole32(pos);
@@ -290,10 +307,12 @@ class SetPos:LongMessage{
 };
 
 class ReqPos:MessageHeader{
+public:
     ReqPos(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_POSCOUNTER, chanId, 0, dest, source){}
 };
 
 class GetPos:LongMessage{
+public:
     GetPos(uint8_t *mess):LongMessage(mess,12){};
 
     uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
@@ -302,6 +321,7 @@ class GetPos:LongMessage{
 };
 
 class SetEncCount:LongMessage{
+public:
     SetEncCount(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID  = 1, uint32_t enc_count = 0):LongMessage(SET_ENCCOUNTER, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanID);
         *((uint32_t *) &bytes[8]) = htole32(enc_count);
@@ -309,10 +329,12 @@ class SetEncCount:LongMessage{
 };
 
 class ReqEncCount:MessageHeader{
+public:
     ReqEncCount(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_ENCCOUNTER, chanId, 0, dest, source){}
 };
 
 class GetEncCount:LongMessage{
+public:
     GetEncCount(uint8_t *mess):LongMessage(mess, 12){}
 
     uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
@@ -321,4 +343,33 @@ class GetEncCount:LongMessage{
 
 };
 
+class SetVelocityParams:LongMessage{
+public:
+    SetVelocityParams(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanId = 1, uint32_t min_vel = 0, uint32_t acc = 0, uint32_t max_vel = 0 )
+            :LongMessage(SET_VELPARAMS, 14, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint32_t *) &bytes[8]) = htole32(min_vel);
+        *((uint32_t *) &bytes[12]) = htole32(acc);
+        *((uint32_t *) &bytes[16]) = htole32(max_vel);
+    };
+    
+    void SetChanID(uint16_t chanID){ *((uint16_t *) &bytes[6]) = htole16(chanID); }
+    void SetMinVel(uint32_t min){ *((uint32_t *) &bytes[8]) = htole32(min); }
+    void SetMaxVel(uint32_t max){ *((uint32_t *) &bytes[12]) = htole32(max); }
+    void SetAcceleration(uint32_t acc){ *((uint32_t *) &bytes[16]) = htole32(acc); }
+};
 
+class ReqVelocityParams:MessageHeader{
+public:
+    ReqVelocityParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_VELPARAMS, chanId, 0, dest, source){}
+};
+
+class GetVelocityParams:LongMessage{
+public:
+    GetVelocityParams(uint8_t *mess):LongMessage(mess, 14){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint32_t GetMinVel(){ return le32toh(*((uint32_t*) &bytes[8])); }
+    uint32_t GetMaxVel(){ return le32toh(*((uint32_t*) &bytes[12])); }
+    uint32_t GetAcceleration(){ return le32toh(*((uint32_t*) &bytes[16])); }
+};
