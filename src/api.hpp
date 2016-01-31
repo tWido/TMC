@@ -236,89 +236,89 @@ class HwInfo:LongMessage{
     uint16_t ModState(){ return le16toh(*((uint16_t*) &bytes[86])); }
     
     uint16_t NumChannels(){ return le16toh(*((uint16_t*) &bytes[88])); };
-  
-    
-    class ReqRackBayUsed:MessageHeader{
-        ReqRackBayUsed(uint8_t bayID, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(RACK_REQ_BAYUSED, bayID, 0 , dest, source){}
-        
-        void SetBayIdent(uint8_t bayID){ SetFirstParam(bayID); }
-    };
-    
-    class GetRackBayUsed:MessageHeader{
-        GetRackBayUsed(uint8_t *mess):MessageHeader(mess){}
-        
-        uint8_t GetBayID(){ return GetFirstParam(); }
-        
-        /**
-         * @return Baystates: 0x01 - bay occupied, 0x02 - bay empty 
-         */
-        uint8_t GetBayState(){ return GetSecondParam(); }
-    };
-    
-    class ReqHubBayUsed:MessageHeader{
-        ReqHubBayUsed(uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(HUB_REQ_BAYUSED, 0, 0, dest, source){}
-    };
-    
-    class GetBayUsed:MessageHeader{
-        GetBayUsed(uint8_t *mess):MessageHeader(mess){}
-        
-        uint8_t GetBayID(){ return GetFirstParam(); }
-    };
-    
-    
-    //Motor control messages ---------------------------------------------------
-    
-    class YesFlashProg:MessageHeader{
-        YesFlashProg(uint8_t dest =  0x50, uint8_t source = 0x01):MessageHeader(HW_YES_FLASH_PROGRAMMING, 0, 0, dest, source){};
-    };
-    
-    /* Part of initialization. Notifies device of addresses. */
-    class NoFlashProg:MessageHeader{
-        NoFlashProg(uint8_t dest =  0x50, uint8_t source = 0x01):MessageHeader(HW_NO_FLASH_PROGRAMMING, 0, 0, dest, source){};
-    };
-    
-    
-    class SetPos:LongMessage{
-        SetPos(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID  = 1, uint32_t pos = 0 ):LongMessage(SET_POSCOUNTER, 6, dest, source){
-            *((uint16_t *) &bytes[6]) = htole16(chanID);
-            *((uint32_t *) &bytes[8]) = htole32(pos);
-        }
-        
-        void SetChanID(uint16_t chanID){ *((uint16_t *) &bytes[6]) = htole16(chanID); }
-        
-        void SetPosition(uint32_t pos){ *((uint32_t *) &bytes[8]) = htole32(pos); }
-    };
-    
-    class ReqPos:MessageHeader{
-        ReqPos(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_POSCOUNTER, chanId, 0, dest, source){}
-    };
-    
-    class GetPos:LongMessage{
-        GetPos(uint8_t *mess):LongMessage(mess,12){};
-        
-        uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
-        
-        uint32_t GetPosition(){ return le32toh(*((uint16_t*) &bytes[8])); }
-    };
-    
-    class SetEncCount:LongMessage{
-        SetEncCount(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID  = 1, uint32_t enc_count = 0):LongMessage(SET_ENCCOUNTER, 6, dest, source){
-            *((uint16_t *) &bytes[6]) = htole16(chanID);
-            *((uint32_t *) &bytes[8]) = htole32(enc_count);
-        }
-    };
-    
-    class ReqEncCount:MessageHeader{
-        ReqEncCount(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_ENCCOUNTER, chanId, 0, dest, source){}
-    };
-    
-    class GetEncCount:LongMessage{
-        GetEncCount(uint8_t *mess):LongMessage(mess, 12){}
-        
-        uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
-        
-        uint32_t GetEncCounter(){ return le32toh(*((uint16_t*) &bytes[8])); }
-        
-    };
-    
 };
+    
+class ReqRackBayUsed:MessageHeader{
+    ReqRackBayUsed(uint8_t bayID, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(RACK_REQ_BAYUSED, bayID, 0 , dest, source){}
+
+    void SetBayIdent(uint8_t bayID){ SetFirstParam(bayID); }
+};
+
+class GetRackBayUsed:MessageHeader{
+    GetRackBayUsed(uint8_t *mess):MessageHeader(mess){}
+
+    uint8_t GetBayID(){ return GetFirstParam(); }
+
+    /**
+     * @return Baystates: 0x01 - bay occupied, 0x02 - bay empty 
+     */
+    uint8_t GetBayState(){ return GetSecondParam(); }
+};
+
+class ReqHubBayUsed:MessageHeader{
+    ReqHubBayUsed(uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(HUB_REQ_BAYUSED, 0, 0, dest, source){}
+};
+
+class GetBayUsed:MessageHeader{
+    GetBayUsed(uint8_t *mess):MessageHeader(mess){}
+
+    uint8_t GetBayID(){ return GetFirstParam(); }
+};
+
+
+//Motor control messages ---------------------------------------------------
+
+class YesFlashProg:MessageHeader{
+    YesFlashProg(uint8_t dest =  0x50, uint8_t source = 0x01):MessageHeader(HW_YES_FLASH_PROGRAMMING, 0, 0, dest, source){};
+};
+
+/* Part of initialization. Notifies device of addresses. */
+class NoFlashProg:MessageHeader{
+    NoFlashProg(uint8_t dest =  0x50, uint8_t source = 0x01):MessageHeader(HW_NO_FLASH_PROGRAMMING, 0, 0, dest, source){};
+};
+
+
+class SetPos:LongMessage{
+    SetPos(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID  = 1, uint32_t pos = 0 ):LongMessage(SET_POSCOUNTER, 6, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanID);
+        *((uint32_t *) &bytes[8]) = htole32(pos);
+    }
+
+    void SetChanID(uint16_t chanID){ *((uint16_t *) &bytes[6]) = htole16(chanID); }
+
+    void SetPosition(uint32_t pos){ *((uint32_t *) &bytes[8]) = htole32(pos); }
+};
+
+class ReqPos:MessageHeader{
+    ReqPos(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_POSCOUNTER, chanId, 0, dest, source){}
+};
+
+class GetPos:LongMessage{
+    GetPos(uint8_t *mess):LongMessage(mess,12){};
+
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+
+    uint32_t GetPosition(){ return le32toh(*((uint16_t*) &bytes[8])); }
+};
+
+class SetEncCount:LongMessage{
+    SetEncCount(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID  = 1, uint32_t enc_count = 0):LongMessage(SET_ENCCOUNTER, 6, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanID);
+        *((uint32_t *) &bytes[8]) = htole32(enc_count);
+    }
+};
+
+class ReqEncCount:MessageHeader{
+    ReqEncCount(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_ENCCOUNTER, chanId, 0, dest, source){}
+};
+
+class GetEncCount:LongMessage{
+    GetEncCount(uint8_t *mess):LongMessage(mess, 12){}
+
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+
+    uint32_t GetEncCounter(){ return le32toh(*((uint16_t*) &bytes[8])); }
+
+};
+
+
