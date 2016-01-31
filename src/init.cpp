@@ -3,6 +3,7 @@
  */
 #include "../ftdi_lib/ftd2xx.h"
 #include <stdint.h>
+#include <stdio.h>
 
 
 int addVidPid(){
@@ -48,6 +49,7 @@ int init(){
     FT_STATUS ft_status;
     unsigned int numdevs = 0;
     ft_status =  FT_CreateDeviceInfoList(&numdevs);
+    if ( ft_status != FT_OK ) printf("FAIL\n");
     
     //not implemented yet
     return -1;
