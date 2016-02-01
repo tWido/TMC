@@ -373,3 +373,56 @@ public:
     uint32_t GetMaxVel(){ return le32toh(*((uint32_t*) &bytes[12])); }
     uint32_t GetAcceleration(){ return le32toh(*((uint32_t*) &bytes[16])); }
 };
+
+class SetJogParams: public LongMessage{
+public:
+    SetJogParams(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID = 1, uint16_t mode =1, uint32_t stepSize = 0, 
+            uint32_t minVel = 0, uint32_t acc = 0, uint32_t maxVel = 0, uint16_t stopMode = 2)
+            :LongMessage(SET_JOGPARAMS, 28, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint16_t *) &bytes[8]) = htole16(mode);
+        *((uint32_t *) &bytes[10]) = htole32(stepSize);
+        *((uint32_t *) &bytes[14]) = htole32(minVel);
+        *((uint32_t *) &bytes[18]) = htole32(acc);
+        *((uint32_t *) &bytes[22]) = htole32(maxVel);
+        *((uint16_t *) &bytes[24]) = htole16(stopMode);       
+        }
+            
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    /**
+     * @param mode 1 for continuous jogging, 2 for single step
+     */
+    void SetJogMode(uint16_t mode){ *((uint16_t *) &bytes[8]) = htole16(mode); }
+    void SetStepSize(uint32_t size){ *((uint32_t *) &bytes[10]) = htole32(stepSize); }
+    void SetMinVelocity(uint32_t velocity){ *((uint32_t *) &bytes[14]) = htole32(velocity); }
+    void SetMaxVelocity(uint32_t velocity){ *((uint32_t *) &bytes[22]) = htole32(maxVel); }
+    void SetAcceleration(uint32_t acceleration){ *((uint32_t *) &bytes[18]) = htole32(acc); }
+    /**
+     * @param mode 1 for immediate stop, 2 for profiled stop
+     */
+    void SetStopMode(uint16_t mode){ *((uint16_t *) &bytes[26]) = htole16(stopMode); }
+            
+};
+
+class ReqJogParams: public MessageHeader{
+    ReqJogParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_JOGPARAMS, chanId, 0, dest, source){}
+};
+
+class GetJogParams: public LongMessage{
+    GetJogParams(uint8_t *mess):LongMessage(mess, 28){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    /**
+     * @return 1 for continuous jogging, 2 for single step 
+     */
+    uint16_t GetJogMode(){ return le16toh(*((uint16_t*) &bytes[8])); }
+    uint32_t GetStepSize(){ return le32toh(*((uint32_t*) &bytes[10])); }
+    uint32_t GetMinVel(){ return le32toh(*((uint32_t*) &bytes[14])); }
+    uint32_t GetAcceleration(){ return le32toh(*((uint32_t*) &bytes[18])); }
+    uint32_t GetMaxVel(){ return le32toh(*((uint32_t*) &bytes[22])); }
+    /** 
+     * @return 1 for immediate stop, 2 for profiled stop 
+     */
+    uint16_t GetStopMode(){ return le16toh(*((uint16_t*) &bytes[126])); }
+};
+
