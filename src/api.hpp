@@ -405,10 +405,12 @@ public:
 };
 
 class ReqJogParams: public MessageHeader{
+public:
     ReqJogParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_JOGPARAMS, chanId, 0, dest, source){}
 };
 
 class GetJogParams: public LongMessage{
+public:
     GetJogParams(uint8_t *mess):LongMessage(mess, 28){}
     
     uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
@@ -425,4 +427,35 @@ class GetJogParams: public LongMessage{
      */
     uint16_t GetStopMode(){ return le16toh(*((uint16_t*) &bytes[126])); }
 };
+
+class ReqADCInputs: public MessageHeader{
+public:
+    ReqADCInputs(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_ADCINPUTS, chanId, 0, dest, source){}
+};
+
+class GetADCInputs: public LongMessage{
+public:
+    GetADCInputs(uint8_t *mess):LongMessage(mess, 10){}
+    /**
+     * @return values between 0 and 32768, corresponds to 0V and 5V
+     */
+    uint16_t GetADCInput(){ return le16toh(*((uint16_t*) &bytes[6])); }
+};
+
+class SetPowerParams: public LongMessage{
+public:
+    SetPowerParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId, uint16_t RestFactor, uint16_t Movefactor )
+            :LongMessage(SET_POWERPARAMS, 12, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint16_t *) &bytes[8]) = htole16(RestFactor);
+        *((uint16_t *) &bytes[10]) = htole16(MoveFactor);
+            }
+};
+
+class ReqPowerParams: public MessageHeader{
+public:
+    ReqPowerParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_POWERPARAMS, chanId, 0, dest, source){}
+};
+
+class GetPowerParams: public LongMessage{};
 
