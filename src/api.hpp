@@ -450,6 +450,10 @@ public:
         *((uint16_t *) &bytes[8]) = htole16(RestFactor);
         *((uint16_t *) &bytes[10]) = htole16(MoveFactor);
             }
+    
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    void SetRestFactor(uint16_t rest_fac){ *((uint16_t *) &bytes[8]) = htole16(rest_fac); }
+    void SetMoveFactor(uint16_t move_fac){ *((uint16_t *) &bytes[10]) = htole16(move_fac); }
 };
 
 class ReqPowerParams: public MessageHeader{
@@ -457,5 +461,33 @@ public:
     ReqPowerParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_POWERPARAMS, chanId, 0, dest, source){}
 };
 
-class GetPowerParams: public LongMessage{};
+class GetPowerParams: public LongMessage{
+public:
+    GetPowerParams(uint8_t *mess):LongMessage(mess, 12){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    /**
+     * @return phase power when motor is at rest in % 
+     */
+    uint16_t GetRestFactor(){ return le16toh(*((uint16_t*) &bytes[8]));  }
+    /**
+     * @return phase power when motor is moving in % 
+     */
+    uint16_t GetMoveFactor(){ return le16toh(*((uint16_t*) &bytes[10]));  }
+};
+
+class SetGeneralMoveParams: public LongMessage{
+    SetGeneralMoveParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, uint32_t BacklashDist = 0 )
+            :LongMessage(SET_GENMOVEPARAMS, 12, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint32_t *) &bytes[8]) = htole32(BacklachDist);
+    }
+    
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    void SetBacklashDist(uint32_t dist){ *((uint32_t *) &bytes[8]) = htole16(dist); }
+};
+
+class ReqGenerealMoveParams: public MessageHeader{};
+
+class GetGeneralMoveParams: public LongMessage{};
 
