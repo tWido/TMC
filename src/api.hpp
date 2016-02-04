@@ -376,9 +376,9 @@ public:
 
 class SetJogParams: public LongMessage{
 public:
-    SetJogParams(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID = 1, uint16_t mode =1, uint32_t stepSize = 0, 
+    SetJogParams(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanId = 1, uint16_t mode =1, uint32_t stepSize = 0, 
             uint32_t minVel = 0, uint32_t acc = 0, uint32_t maxVel = 0, uint16_t stopMode = 2)
-            :LongMessage(SET_JOGPARAMS, 28, dest, source){
+            :LongMessage(SET_JOGPARAMS, 22, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((uint16_t *) &bytes[8]) = htole16(mode);
         *((uint32_t *) &bytes[10]) = htole32(stepSize);
@@ -393,14 +393,14 @@ public:
      * @param mode 1 for continuous jogging, 2 for single step
      */
     void SetJogMode(uint16_t mode){ *((uint16_t *) &bytes[8]) = htole16(mode); }
-    void SetStepSize(uint32_t size){ *((uint32_t *) &bytes[10]) = htole32(stepSize); }
+    void SetStepSize(uint32_t stepSize){ *((uint32_t *) &bytes[10]) = htole32(stepSize); }
     void SetMinVelocity(uint32_t velocity){ *((uint32_t *) &bytes[14]) = htole32(velocity); }
-    void SetMaxVelocity(uint32_t velocity){ *((uint32_t *) &bytes[22]) = htole32(maxVel); }
-    void SetAcceleration(uint32_t acceleration){ *((uint32_t *) &bytes[18]) = htole32(acc); }
+    void SetMaxVelocity(uint32_t velocity){ *((uint32_t *) &bytes[22]) = htole32(velocity); }
+    void SetAcceleration(uint32_t acc){ *((uint32_t *) &bytes[18]) = htole32(acc); }
     /**
      * @param mode 1 for immediate stop, 2 for profiled stop
      */
-    void SetStopMode(uint16_t mode){ *((uint16_t *) &bytes[26]) = htole16(stopMode); }
+    void SetStopMode(uint16_t mode){ *((uint16_t *) &bytes[26]) = htole16(mode); }
             
 };
 
@@ -444,8 +444,8 @@ public:
 
 class SetPowerParams: public LongMessage{
 public:
-    SetPowerParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId, uint16_t RestFactor, uint16_t Movefactor )
-            :LongMessage(SET_POWERPARAMS, 12, dest, source){
+    SetPowerParams(uint8_t dest = 0x50, uint8_t source = 0x01, uint16_t chanId = 1, uint16_t RestFactor = 0, uint16_t MoveFactor = 0 )
+            :LongMessage(SET_POWERPARAMS, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((uint16_t *) &bytes[8]) = htole16(RestFactor);
         *((uint16_t *) &bytes[10]) = htole16(MoveFactor);
@@ -478,16 +478,104 @@ public:
 
 class SetGeneralMoveParams: public LongMessage{
     SetGeneralMoveParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, uint32_t BacklashDist = 0 )
-            :LongMessage(SET_GENMOVEPARAMS, 12, dest, source){
+            :LongMessage(SET_GENMOVEPARAMS, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
-        *((uint32_t *) &bytes[8]) = htole32(BacklachDist);
+        *((uint32_t *) &bytes[8]) = htole32(BacklashDist);
     }
     
     void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
     void SetBacklashDist(uint32_t dist){ *((uint32_t *) &bytes[8]) = htole16(dist); }
 };
 
-class ReqGenerealMoveParams: public MessageHeader{};
+class ReqGeneralMoveParams: public MessageHeader{
+public:
+    ReqGeneralMoveParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_GENMOVEPARAMS, chanId, 0, dest, source){}
+};
 
-class GetGeneralMoveParams: public LongMessage{};
+class GetGeneralMoveParams: public LongMessage{
+public:
+    GetGeneralMoveParams(uint8_t *mess):LongMessage(mess,12){};
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint32_t GetBakclashDist(){return le32toh(*((uint32_t*) &bytes[8])); }
+};
+
+class SetRelativeMoveParams: public LongMessage{
+public:
+    SetRelativeMoveParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, uint32_t RelativeDist = 0)
+            :LongMessage(SET_MOVERELPARAMS, 6, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint32_t *) &bytes[8]) = htole32(RelativeDist);
+        }
+            
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    void SetRelativeDist(uint32_t dist){ *((uint32_t *) &bytes[8]) = htole32(dist); }
+};
+
+class ReqRelativeMoveParams: public MessageHeader{
+public:
+    ReqRelativeMoveParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_MOVERELPARAMS, chanId, 0, dest, source){}
+};
+
+class GetRelativeMoveParams: public LongMessage{
+    GetRelativeMoveParams(uint8_t *mess):LongMessage(mess,6){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint32_t GetRelativeDist(){ return le32toh(*((uint32_t*) &bytes[8])); }
+};
+
+class SetAbsoluteMoveParams: public LongMessage{
+public: 
+    SetAbsoluteMoveParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, uint32_t AbsolutePos = 0)
+            :LongMessage(SET_MOVEABSPARAMS, 6, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint32_t *) &bytes[8]) = htole32(AbsolutePos);    
+        }
+            
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    void SetAbsolutePos(uint32_t pos){ *((uint32_t *) &bytes[8]) = htole32(pos); }
+};
+
+class ReqAbsoluteMoveParams: public MessageHeader{
+public:
+    ReqAbsoluteMoveParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1): MessageHeader(REQ_MOVEABSPARAMS, chanId, 0, dest, source){}
+};
+
+class GetAbsoluteMoveParams: public LongMessage{
+public:
+    GetAbsoluteMoveParams(uint8_t *mess):LongMessage(mess,12){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint32_t GetAbsolutePos(){ return le32toh(*((uint32_t*) &bytes[8])); }
+};
+
+class SetHomeParams: public LongMessage{
+public:
+    SetHomeParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, uint32_t HomingVel = 1):LongMessage(SET_HOMEPARAMS, 14, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint32_t *) &bytes[12]) = htole32(HomingVel); 
+    }
+    
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    void SetHomingVelocity(uint32_t vel){ *((uint32_t *) &bytes[12]) = htole32(vel); }
+};
+
+class ReqHomeParams: public MessageHeader{
+public:
+    ReqHomeParams(int8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_HOMEPARAMS, chanId, 0, dest, source){}
+};
+
+class GetHomeParams: public LongMessage{
+public:
+    GetHomeParams(uint8_t *mess):LongMessage(mess,20){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint32_t GetHomingVelocity(){ return le32toh(*((uint32_t*) &bytes[12])); }
+};
+
+class SetLimitSwitchParams:LongMessage{};
+
+class ReqLimitSwitchParams:MessageHeader{};
+
+class GetLimitSwitchParams:LongMessage{};
 
