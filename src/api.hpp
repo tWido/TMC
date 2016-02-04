@@ -562,7 +562,7 @@ public:
 
 class ReqHomeParams: public MessageHeader{
 public:
-    ReqHomeParams(int8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_HOMEPARAMS, chanId, 0, dest, source){}
+    ReqHomeParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_HOMEPARAMS, chanId, 0, dest, source){}
 };
 
 class GetHomeParams: public LongMessage{
@@ -573,9 +573,74 @@ public:
     uint32_t GetHomingVelocity(){ return le32toh(*((uint32_t*) &bytes[12])); }
 };
 
-class SetLimitSwitchParams:LongMessage{};
+class SetLimitSwitchParams: public LongMessage{
+public:
+    SetLimitSwitchParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, uint16_t CWHardLimit = 0x01, uint16_t CCWHardLimit = 0x01,
+            uint32_t CWSoftLimit = 0x01, uint32_t CCWSoftLimit = 0x01, uint16_t LimitMode = 0x01 )
+            :LongMessage(SET_LIMSWITCHPARAMS, 16, dest, source){
+                *((uint16_t *) &bytes[6]) = htole16(chanId);
+                *((uint16_t *) &bytes[8]) = htole16(CWHardLimit);
+                *((uint16_t *) &bytes[10]) = htole16(CCWHardLimit);
+                *((uint32_t *) &bytes[12]) = htole32(CWSoftLimit);
+                *((uint32_t *) &bytes[16]) = htole32(CCWSoftLimit);
+                *((uint16_t *) &bytes[20]) = htole16(LimitMode);
+            }
+            
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    
+    void SetClockwiseHardLimit(uint16_t limit){ *((uint16_t *) &bytes[8]) = htole16(limit); }
+    void SetCounterlockwiseHardLimit(uint16_t limit){ *((uint16_t *) &bytes[10]) = htole16(limit); }
+    
+    void SetClockwiseSoftLimit(uint32_t limit){ *((uint32_t *) &bytes[12]) = htole32(limit); }
+    void SetCounterlockwiseSoftLimit(uint32_t limit){ *((uint32_t *) &bytes[16]) = htole32(limit); }  
+    
+    void SetLimitMode(uint16_t mode){ *((uint16_t *) &bytes[20]) = htole16(mode); }
+};
 
-class ReqLimitSwitchParams:MessageHeader{};
+class ReqLimitSwitchParams: public MessageHeader{
+public:
+    ReqLimitSwitchParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_LIMSWITCHPARAMS, chanId, 0, dest, source){}
+};
 
-class GetLimitSwitchParams:LongMessage{};
+class GetLimitSwitchParams: public LongMessage{
+public:
+    GetLimitSwitchParams(uint8_t *mess):LongMessage(mess, 22){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    
+    uint16_t GetClockwiseHardLimit(){ return le16toh(*((uint16_t*) &bytes[8])); }
+    uint16_t GetCounterlockwiseHardLimit(){ return le16toh(*((uint16_t*) &bytes[10])); }
+    
+    uint32_t SetClockwiseSoftLimit(){ return le32toh(*((uint32_t*) &bytes[12])); }
+    uint32_t SetCounterlockwiseSoftLimit(){ return le32toh(*((uint32_t*) &bytes[16])); }
+    
+    uint16_t GetLimitMode(){ return le16toh(*((uint16_t*) &bytes[20])); }
+};
 
+class MoveHome: public MessageHeader{
+public:
+    MoveHome(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(MOVE_HOME, chanId, 0, dest, source){}
+};
+
+class MovedHome: public MessageHeader{
+public:
+    MovedHome(uint8_t *mess):MessageHeader(mess){}
+};
+
+class MoveRelative1:public MessageHeader{
+public:
+    MoveRelative1(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(MOVE_RELATIVE, chanId, 0, dest, source){}
+};
+
+class MoveRelative2:public LongMessage{
+public:
+    MoveRelative2(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint32_t RelativeDist = 0):LongMessage(MOVE_RELATIVE, 6, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint32_t *) &bytes[8]) = htole32(RelativeDist);
+    }
+};
+
+class MoveCompleted:public MessageHeader{
+public:
+    MoveCompleted(uint8_t *mess):MessageHeader(mess){};
+};
