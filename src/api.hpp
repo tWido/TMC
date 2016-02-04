@@ -630,17 +630,60 @@ public:
 class MoveRelative1:public MessageHeader{
 public:
     MoveRelative1(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(MOVE_RELATIVE, chanId, 0, dest, source){}
+    
+    
 };
 
 class MoveRelative2:public LongMessage{
 public:
-    MoveRelative2(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint32_t RelativeDist = 0):LongMessage(MOVE_RELATIVE, 6, dest, source){
+    MoveRelative2(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, uint32_t RelativeDist = 0):LongMessage(MOVE_RELATIVE, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((uint32_t *) &bytes[8]) = htole32(RelativeDist);
     }
+    
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    void SetRelativeDistance(uint32_t dist){ *((uint32_t *) &bytes[8]) = htole32(dist); }
 };
 
 class MoveCompleted:public MessageHeader{
 public:
     MoveCompleted(uint8_t *mess):MessageHeader(mess){};
 };
+
+
+class MoveAbsolute1:public MessageHeader{
+public:
+    MoveAbsolute1(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(MOVE_ABSOLUTE, chanId, 0 , dest, source){}
+};
+
+class MoveAbsolute2:public LongMessage{
+public:
+    MoveAbsolute2(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, uint32_t distance = 0):LongMessage(MOVE_ABSOLUTE, 6, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint32_t *) &bytes[8]) = htole32(distance);
+    };
+     
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    void SetAbsoluteDistance(uint32_t dist){ *((uint32_t *) &bytes[8]) = htole32(dist); }
+};
+
+class JogMove:public MessageHeader{
+public:
+    JogMove(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint8_t direction = 1):MessageHeader(MOVE_JOG, chanId, direction, dest, source){}
+};
+
+class MovewVelocity:public MessageHeader{
+public:
+    MovewVelocity(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint8_t direction = 1):MessageHeader(MOVE_VELOCITY,chanId, direction, dest, source){}
+};
+
+class StopMove:public MessageHeader{
+public:
+    StopMove(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint8_t StopMode = 2):MessageHeader(MOVE_STOP, chanId, StopMode, dest, source){}
+};
+
+class MoveStopped: public MessageHeader{
+public:
+    MoveStopped(uint8_t *mess):MessageHeader(mess){}
+}; 
+
