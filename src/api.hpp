@@ -755,3 +755,26 @@ public:
     
     uint16_t GetFilterControl(){ return le16toh(*((uint16_t*) &bytes[24])); }
 };
+
+class SetLedMode:public LongMessage{
+public:
+    SetLedMode(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, uint16_t mode = 1):LongMessage(SET_AVMODES, 4, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint16_t *) &bytes[8]) = htole16(mode);
+    }
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    void SetMode(uint16_t mode){ *((uint16_t *) &bytes[8]) = htole16(mode); }
+};
+
+class ReqLedMode:public MessageHeader{
+public:
+    ReqLedMode(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_AVMODES, chanId, 0, dest, source){}
+};
+
+class GetLedMode:public LongMessage{
+public:
+    GetLedMode(uint8_t *mess):LongMessage(mess, 10){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint16_t GetMode(){ return le16toh(*((uint16_t*) &bytes[8])); } 
+};
