@@ -687,3 +687,71 @@ public:
     MoveStopped(uint8_t *mess):MessageHeader(mess){}
 }; 
 
+class SetBowIndex:public LongMessage{
+public:
+    SetBowIndex(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, uint16_t bowIndex = 2):LongMessage(SET_BOWINDEX, 4, dest, source){
+        *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((uint16_t *) &bytes[8]) = htole16(bowIndex);
+    }
+    
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    /**
+     * @param profile of acceleration/deceleration, 0 for trapezoidal, 1-18 for s-curve profile
+     */
+    void SetBowindex(uint16_t index){ *((uint16_t *) &bytes[8]) = htole16(index); }
+};
+
+class ReqBowIndex:public MessageHeader{
+public:
+    ReqBowIndex(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_BOWINDEX, chanId, 0, dest, source){}
+};
+
+class GetBowIndex:public LongMessage{
+public:
+    GetBowIndex(uint8_t *mess):LongMessage(mess, 10){};
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    
+    uint16_t BowIndex(){ return le16toh(*((uint16_t*) &bytes[8])); }
+};
+
+class SetPidParams:public LongMessage{
+public:
+    SetPidParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, uint32_t proportional = 0, uint32_t integral = 0, 
+            uint32_t differential = 0, uint32_t integralLimit = 0, uint16_t FilterControl = 0):LongMessage(SET_DCPIDPARAMS, 20 , dest, source){
+                *((uint16_t *) &bytes[6]) = htole16(chanId);
+                *((uint32_t *) &bytes[8]) = htole32(proportional);
+                *((uint32_t *) &bytes[12]) = htole32(integral);
+                *((uint32_t *) &bytes[16]) = htole32(differential);
+                *((uint32_t *) &bytes[20]) = htole32(integralLimit);
+                *((uint16_t *) &bytes[24]) = htole16(FilterControl);
+            }
+            
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    
+    void SetProportional(uint32_t value){ *((uint32_t *) &bytes[8]) = htole32(value); }
+    void SetIntegeral(uint32_t value){ *((uint32_t *) &bytes[12]) = htole32(value); }
+    void SetDifferential(uint32_t value){ *((uint32_t *) &bytes[16]) = htole32(value); }
+    void SetIntegralLimit(uint32_t value){ *((uint32_t *) &bytes[20]) = htole32(value); }
+    
+    void SetFilterControl(uint16_t control){ *((uint16_t *) &bytes[24]) = htole16(control); }
+};
+
+class ReqPidParams:public MessageHeader{
+public:
+    ReqPidParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_DCPIDPARAMS, chanId, 0, dest, source){}
+};
+
+class GetPidParams:public LongMessage{
+public:
+    GetPidParams(uint8_t *mess):LongMessage(mess, 26){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    
+    uint32_t GetProportional(){ return le32toh(*((uint32_t*) &bytes[8])); }
+    uint32_t GetIntegral(){ return le32toh(*((uint32_t*) &bytes[12])); }
+    uint32_t GetDifferential(){ return le32toh(*((uint32_t*) &bytes[16])); }
+    uint32_t GetIntegralLimit(){ return le32toh(*((uint32_t*) &bytes[20])); }
+    
+    uint16_t GetFilterControl(){ return le16toh(*((uint16_t*) &bytes[24])); }
+};
