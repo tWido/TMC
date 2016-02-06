@@ -778,3 +778,119 @@ public:
     uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
     uint16_t GetMode(){ return le16toh(*((uint16_t*) &bytes[8])); } 
 };
+
+class SetButtonParams:public LongMessage{
+public:
+    SetButtonParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, uint16_t mode = 1, uint32_t pos1 = 0 , uint32_t pos2 = 0, uint16_t timeout= 500)
+            :LongMessage(SET_BUTTONPARAMS, 16, dest, source){
+                *((uint16_t *) &bytes[6]) = htole16(chanId);
+                *((uint16_t *) &bytes[8]) = htole16(mode);
+                *((uint32_t *) &bytes[10]) = htole32(pos1);
+                *((uint32_t *) &bytes[14]) = htole32(pos2);
+                *((uint16_t *) &bytes[18]) = htole16(timeout);
+            }
+            
+    void SetChanId(uint16_t chanId){ *((uint16_t *) &bytes[6]) = htole16(chanId); }
+    void SetMode(uint16_t mode){ *((uint16_t *) &bytes[8]) = htole16(mode); }
+    void SetPosition1(uint32_t pos){ *((uint32_t *) &bytes[10]) = htole32(pos); }
+    void SetPosition2(uint32_t pos){ *((uint32_t *) &bytes[14]) = htole32(pos); }
+    void SetTimeout(uint16_t ms){ *((uint16_t *) &bytes[18]) = htole16(ms); }
+};
+
+class ReqButtonParams:public MessageHeader{
+public:
+    ReqButtonParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_BUTTONPARAMS, chanId, 0, dest, source){}
+};
+
+class GetButtonParams: public LongMessage{
+public:
+    GetButtonParams(uint8_t *mess):LongMessage(mess, 22){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint16_t GetMode(){ return le16toh(*((uint16_t*) &bytes[8])); }
+    uint32_t GetPosition1(){ return le32toh(*((uint32_t*) &bytes[12])); }
+    uint32_t GetPosition2(){ return le32toh(*((uint32_t*) &bytes[14])); }
+    uint16_t GetTimeout(){ return le16toh(*((uint16_t*) &bytes[18])); }
+};
+
+class SetActuatorType:public MessageHeader{
+public:
+    SetActuatorType(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t actuatorId = 1):MessageHeader(SET_TSTACTUATORTYPE, actuatorId, 0, dest, source){}
+    
+    void SetActuatorId(uint8_t id){ SetFirstParam(id) ;}
+};
+
+class ReqStatusUpdate:public MessageHeader{
+public: 
+    ReqStatusUpdate(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1 ):MessageHeader(REQ_STATUSUPDATE, chanId, 0, dest, source){}
+};
+
+class GetStatusUpdate:public LongMessage{
+public:
+    GetStatusUpdate(uint8_t *mess):LongMessage(mess,20){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint32_t GetPosition(){ return le32toh(*((uint32_t*) &bytes[8])); }
+    uint32_t GetEncCount(){ return le32toh(*((uint32_t*) &bytes[12])); }
+    uint32_t GetStatusBits(){ return le32toh(*((uint32_t*) &bytes[16])); }
+};
+
+class ReqMotChanStatusUpdate:public MessageHeader{
+public:
+    ReqMotChanStatusUpdate(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1 ):MessageHeader(REQ_DCSTATUSUPDATE, chanId, 0, dest, source){}
+};
+
+class GetMotChanStatusUpdate:public LongMessage{
+public:
+    GetMotChanStatusUpdate(uint8_t *mess):LongMessage(mess,20){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint32_t GetPosition(){ return le32toh(*((uint32_t*) &bytes[8])); }
+    uint16_t GetVelocity(){ return le16toh(*((uint16_t*) &bytes[12])); }
+    uint32_t GetStatusBits(){ return le32toh(*((uint32_t*) &bytes[16])); }
+};
+
+class ServerAlive:public MessageHeader{
+public:
+    ServerAlive(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(ACK_DCSTATUSUPDATE, 0, 0, dest, source){}
+};
+
+class ReqStatusBits:public MessageHeader{
+public:
+    ReqStatusBits(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_STATUSBITS, chanId, 0, dest, source){}
+};
+
+class GetStatusBits:public LongMessage{
+public:
+    GetStatusBits(uint8_t *mess):LongMessage(mess,12){}
+    
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    uint32_t GetStatBits(){ return le32toh(*((uint32_t*) &bytes[8])); }
+};
+
+class DisableEndMoveMessages:public MessageHeader{
+public:
+    DisableEndMoveMessages(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(SUSPEND_ENDOFMOVEMSGS, 0, 0, dest, source){}
+};
+
+class EnableEndMoveMessages:public MessageHeader{
+public:
+    EnableEndMoveMessages(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(RESUME_ENDOFMOVEMSGS, 0, 0, dest, source){}
+};
+
+class SetTrigger:public MessageHeader{
+public:
+    SetTrigger(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint8_t mode = 0):MessageHeader(SET_TRIGGER, chanId, mode, dest, source){}
+};
+
+class ReqTrigger:public MessageHeader{
+public:
+    ReqTrigger(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_TRIGGER, chanId, 0, dest, source){}
+};
+
+class GetTrigger:public MessageHeader{
+public:
+    GetTrigger(uint8_t *mess):MessageHeader(mess){}
+    
+    uint8_t GetMode(){return GetSecondParam() ;}
+};
