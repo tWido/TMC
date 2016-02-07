@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "restrictions.hpp"
+#include "api.hpp"
 
 #define ERROR_FOUND -2
 #define BAD_PARAMS -4
