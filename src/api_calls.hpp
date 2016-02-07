@@ -2,21 +2,34 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "restrictions.hpp"
 
 #define ERROR_FOUND -2
 #define BAD_PARAMS -4
 #define ERROR_RETURNED -3
 
+typedef struct {
+    int32_t SN;
+    uint8_t device_type;
+    uint8_t HWtype;
+    uint8_t dest = 0x50;
+    uint8_t source = 0x01;
+    uint8_t chanID = 0x01;
+    uint16_t chan = 0x0001;
+} defaults;
+
+defaults gdefaults;
+
 uint8_t DefaultDest(){
-    return 0x50;
+    return gdefaults.dest;
 }
 
 uint8_t DefaultSource(){
-    return 0x01;
+    return gdefaults.source;
 }
 
 uint8_t DefaultChanel(){
-    return 0x01;
+    return gdefaults.chanID;
 }
 
 int SendMessage(Message message, FT_HANDLE &handle){
@@ -40,11 +53,6 @@ int CheckMessages(){
     return 0;
 }
 
-int CheckRestrictions(){
-    //not implemented
-    // check if parameters for device are within allowed range
-    return 0;
-}
 
 int Identify( FT_HANDLE &handle, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource() ){
     if (CheckMessages() != 0) return ERROR_FOUND;
@@ -55,7 +63,11 @@ int Identify( FT_HANDLE &handle, uint8_t dest = DefaultDest(), uint8_t source = 
 }
 
 int EnableChannel(FT_HANDLE &handle, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    if (CheckRestrictions() != 0 ) return BAD_PARAMS;
+    parameters to_check;
+    to_check.dest = &dest;
+    to_check.source = &source;
+    if (CheckRestrictions(to_check) != 0 ) return BAD_PARAMS;
+    
     if (CheckMessages() != 0) return ERROR_FOUND;
     SetChannelState mes(chanel, 1, dest, source);
     SendMessage(mes, handle);
@@ -64,7 +76,7 @@ int EnableChannel(FT_HANDLE &handle, uint8_t chanel = DefaultChanel(), uint8_t d
 }
 
 int DisableChannel(FT_HANDLE &handle,uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    if (CheckRestrictions() != 0 ) return BAD_PARAMS;
+    //if (CheckRestrictions() != 0 ) return BAD_PARAMS;
     if (CheckMessages() != 0) return ERROR_FOUND;
     SetChannelState mes(chanel, 2, dest, source);
     SendMessage(mes, handle);
@@ -73,7 +85,7 @@ int DisableChannel(FT_HANDLE &handle,uint8_t chanel = DefaultChanel(), uint8_t d
 }
 
 int ChannelState(FT_HANDLE &handle, ChannelStateInfo *info, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    if (CheckRestrictions() != 0 ) return BAD_PARAMS;
+    //if (CheckRestrictions() != 0 ) return BAD_PARAMS;
     if (CheckMessages() != 0) return ERROR_FOUND;
     ReqChannelState mes(chanel, dest, source);
     SendMessage(mes, handle);

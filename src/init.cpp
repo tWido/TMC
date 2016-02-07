@@ -37,6 +37,11 @@ int LoadRestrictions(){
     return -1;
 }
 
+int LoadDefaults(){
+    //not implemented
+    return -1;
+}
+
 int init(){
     checkModules();
     addVidPid();
