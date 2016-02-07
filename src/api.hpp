@@ -109,14 +109,14 @@ public:
 /** Flash front panel LED. */
 class IdentifyMs:public MessageHeader{
 public:
-    IdentifyMs(uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(IDENTIFY, 0, 0, dest, source){}
+    IdentifyMs(uint8_t dest, uint8_t source):MessageHeader(IDENTIFY, 0, 0, dest, source){}
 };
 
 
 /** Enable or disable drive channel. */
 class SetChannelState:public MessageHeader{
 public:
-    SetChannelState(uint8_t chanID = 0x01, uint8_t ableState = 0 , uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(SET_CHANENABLESTATE, chanID, ableState, dest, source){};
+    SetChannelState(uint8_t chanID, uint8_t ableState, uint8_t dest, uint8_t source):MessageHeader(SET_CHANENABLESTATE, chanID, ableState, dest, source){};
     
     /**
      * @brief Set channel id to change state. 
@@ -134,7 +134,7 @@ public:
 /** Asks for information about specified channel. */
 class ReqChannelState:public MessageHeader{
 public:
-    ReqChannelState(uint8_t chanID = 0x01, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(REQ_CHANENABLESTATE, chanID, 0, dest, source){};
+    ReqChannelState(uint8_t chanID, uint8_t dest, uint8_t source):MessageHeader(REQ_CHANENABLESTATE, chanID, 0, dest, source){};
    
     /** 
      * @brief Set channel id which info is required. 
