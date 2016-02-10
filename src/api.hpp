@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #define HEADER_SIZE 6
+#define INVALID_PARAM -5
+#define WARNING -3
 #define GET_CH_ID_FUNC uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
 #define SET_CH_ID_FUNC void SetChanID(uint16_t chanID){*((uint16_t *) &bytes[6]) = htole16(chanID); }
 
@@ -158,7 +160,7 @@ public:
 
 class HwDisconnect:public MessageHeader{
 public:
-    HwDisconnect(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader( HW_DISCONNECT, 0, 0, dest, source){}
+    HwDisconnect(uint8_t dest, uint8_t source):MessageHeader( HW_DISCONNECT, 0, 0, dest, source){}
 };
 
 /** Sent from device to notify of unexpected event. */
@@ -192,19 +194,19 @@ public:
 
 class StartUpdateMessages:public MessageHeader{
 public:
-    StartUpdateMessages(uint8_t rate = 0, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(HW_START_UPDATEMSGS, rate, 0, dest, source){};
+    StartUpdateMessages(uint8_t rate, uint8_t dest, uint8_t source):MessageHeader(HW_START_UPDATEMSGS, rate, 0, dest, source){};
     
     void SetUpdaterate(uint8_t rate){ SetFirstParam(rate); }
 };
 
 class StopUpdateMessages:public MessageHeader{
 public:
-    StopUpdateMessages(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(HW_STOP_UPDATEMSGS, 0, 0, dest, source){}
+    StopUpdateMessages(uint8_t dest, uint8_t source):MessageHeader(HW_STOP_UPDATEMSGS, 0, 0, dest, source){}
 };
 
 class ReqHwInfo: public MessageHeader{
 public:
-    ReqHwInfo(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(HW_REQ_INFO, 0, 0, dest, source){}
+    ReqHwInfo(uint8_t dest, uint8_t source):MessageHeader(HW_REQ_INFO, 0, 0, dest, source){}
 };
 
 class HwInfo:public LongMessage{
@@ -239,7 +241,7 @@ public:
     
 class ReqRackBayUsed:public MessageHeader{
 public:
-    ReqRackBayUsed(uint8_t bayID, uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(RACK_REQ_BAYUSED, bayID, 0 , dest, source){}
+    ReqRackBayUsed(uint8_t bayID, uint8_t dest, uint8_t source):MessageHeader(RACK_REQ_BAYUSED, bayID, 0 , dest, source){}
 
     void SetBayIdent(uint8_t bayID){ SetFirstParam(bayID); }
 };
@@ -258,7 +260,7 @@ public:
 
 class ReqHubBayUsed:public MessageHeader{
 public:
-    ReqHubBayUsed(uint8_t dest = 0x50, uint8_t source = 0x01 ):MessageHeader(HUB_REQ_BAYUSED, 0, 0, dest, source){}
+    ReqHubBayUsed(uint8_t dest, uint8_t source):MessageHeader(HUB_REQ_BAYUSED, 0, 0, dest, source){}
 };
 
 class GetBayUsed:public MessageHeader{
@@ -273,19 +275,19 @@ public:
 
 class YesFlashProg:public MessageHeader{
 public:
-    YesFlashProg(uint8_t dest =  0x50, uint8_t source = 0x01):MessageHeader(HW_YES_FLASH_PROGRAMMING, 0, 0, dest, source){};
+    YesFlashProg(uint8_t dest, uint8_t source):MessageHeader(HW_YES_FLASH_PROGRAMMING, 0, 0, dest, source){};
 };
 
 /* Part of initialization. Notifies device of addresses. */
 class NoFlashProg: public MessageHeader{
 public:
-    NoFlashProg(uint8_t dest =  0x50, uint8_t source = 0x01):MessageHeader(HW_NO_FLASH_PROGRAMMING, 0, 0, dest, source){};
+    NoFlashProg(uint8_t dest, uint8_t source):MessageHeader(HW_NO_FLASH_PROGRAMMING, 0, 0, dest, source){};
 };
 
 
 class SetPosCounter:public LongMessage{
 public:
-    SetPosCounter(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID  = 1, int32_t pos = 0 ):LongMessage(SET_POSCOUNTER, 6, dest, source){
+    SetPosCounter(uint8_t dest, uint8_t source, uint16_t chanID, int32_t pos):LongMessage(SET_POSCOUNTER, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanID);
         *((uint32_t *) &bytes[8]) = htole32(pos);
     }
@@ -295,7 +297,7 @@ public:
 
 class ReqPosCounter:public MessageHeader{
 public:
-    ReqPosCounter(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_POSCOUNTER, chanId, 0, dest, source){}
+    ReqPosCounter(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_POSCOUNTER, chanId, 0, dest, source){}
 };
 
 class GetPosCounter:public LongMessage{
@@ -308,7 +310,7 @@ public:
 
 class SetEncCount:public LongMessage{
 public:
-    SetEncCount(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanID  = 1, int32_t enc_count = 0):LongMessage(SET_ENCCOUNTER, 6, dest, source){
+    SetEncCount(uint8_t dest, uint8_t source, uint16_t chanID, int32_t enc_count):LongMessage(SET_ENCCOUNTER, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanID);
         *((int32_t *) &bytes[8]) = htole32(enc_count);
     }
@@ -316,7 +318,7 @@ public:
 
 class ReqEncCount:public MessageHeader{
 public:
-    ReqEncCount(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_ENCCOUNTER, chanId, 0, dest, source){}
+    ReqEncCount(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_ENCCOUNTER, chanId, 0, dest, source){}
 };
 
 class GetEncCount:public LongMessage{
@@ -330,7 +332,7 @@ public:
 
 class SetVelocityParams:public LongMessage{
 public:
-    SetVelocityParams(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanId = 1, int32_t min_vel = 0, int32_t acc = 0, int32_t max_vel = 0 )
+    SetVelocityParams(uint8_t dest, uint8_t source, uint16_t chanId, int32_t min_vel, int32_t acc, int32_t max_vel )
             :LongMessage(SET_VELPARAMS, 14, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((int32_t *) &bytes[8]) = htole32(min_vel);
@@ -346,7 +348,7 @@ public:
 
 class ReqVelocityParams:public MessageHeader{
 public:
-    ReqVelocityParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_VELPARAMS, chanId, 0, dest, source){}
+    ReqVelocityParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_VELPARAMS, chanId, 0, dest, source){}
 };
 
 class GetVelocityParams: public LongMessage{
@@ -361,8 +363,7 @@ public:
 
 class SetJogParams:public LongMessage{
 public:
-    SetJogParams(uint8_t dest =  0x50, uint8_t source = 0x01, uint16_t chanId = 1, uint16_t mode =1, int32_t stepSize = 0, 
-            int32_t minVel = 0, int32_t acc = 0, int32_t maxVel = 0, uint16_t stopMode = 2)
+    SetJogParams(uint8_t dest, uint8_t source, uint16_t chanId , uint16_t mode, int32_t stepSize, int32_t minVel, int32_t acc, int32_t maxVel, uint16_t stopMode)
             :LongMessage(SET_JOGPARAMS, 22, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((uint16_t *) &bytes[8]) = htole16(mode);
@@ -391,7 +392,7 @@ public:
 
 class ReqJogParams:public MessageHeader{
 public:
-    ReqJogParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_JOGPARAMS, chanId, 0, dest, source){}
+    ReqJogParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_JOGPARAMS, chanId, 0, dest, source){}
 };
 
 class GetJogParams:public LongMessage{
@@ -415,7 +416,7 @@ public:
 
 class ReqADCInputs:public MessageHeader{
 public:
-    ReqADCInputs(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_ADCINPUTS, chanId, 0, dest, source){}
+    ReqADCInputs(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_ADCINPUTS, chanId, 0, dest, source){}
 };
 
 class GetADCInputs:public LongMessage{
@@ -429,7 +430,7 @@ public:
 
 class SetPowerParams:public LongMessage{
 public:
-    SetPowerParams(uint8_t dest = 0x50, uint8_t source = 0x01, uint16_t chanId = 1, uint16_t RestFactor = 0, uint16_t MoveFactor = 0 )
+    SetPowerParams(uint8_t dest, uint8_t source, uint16_t chanId, uint16_t RestFactor, uint16_t MoveFactor )
             :LongMessage(SET_POWERPARAMS, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((uint16_t *) &bytes[8]) = htole16(RestFactor);
@@ -443,7 +444,7 @@ public:
 
 class ReqPowerParams: public MessageHeader{
 public:
-    ReqPowerParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_POWERPARAMS, chanId, 0, dest, source){}
+    ReqPowerParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_POWERPARAMS, chanId, 0, dest, source){}
 };
 
 class GetPowerParams:public LongMessage{
@@ -462,7 +463,7 @@ public:
 };
 
 class SetGeneralMoveParams:public LongMessage{
-    SetGeneralMoveParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, int32_t BacklashDist = 0 )
+    SetGeneralMoveParams(uint8_t dest, uint8_t source, uint16_t chanId, int32_t BacklashDist)
             :LongMessage(SET_GENMOVEPARAMS, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((int32_t *) &bytes[8]) = htole32(BacklashDist);
@@ -474,7 +475,7 @@ class SetGeneralMoveParams:public LongMessage{
 
 class ReqGeneralMoveParams:public MessageHeader{
 public:
-    ReqGeneralMoveParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_GENMOVEPARAMS, chanId, 0, dest, source){}
+    ReqGeneralMoveParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_GENMOVEPARAMS, chanId, 0, dest, source){}
 };
 
 class GetGeneralMoveParams:public LongMessage{
@@ -487,7 +488,7 @@ public:
 
 class SetRelativeMoveParams:public LongMessage{
 public:
-    SetRelativeMoveParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, int32_t RelativeDist = 0)
+    SetRelativeMoveParams(uint8_t dest, uint8_t source, uint16_t chanId, int32_t RelativeDist)
             :LongMessage(SET_MOVERELPARAMS, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((int32_t *) &bytes[8]) = htole32(RelativeDist);
@@ -499,7 +500,7 @@ public:
 
 class ReqRelativeMoveParams:public MessageHeader{
 public:
-    ReqRelativeMoveParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_MOVERELPARAMS, chanId, 0, dest, source){}
+    ReqRelativeMoveParams(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_MOVERELPARAMS, chanId, 0, dest, source){}
 };
 
 class GetRelativeMoveParams: public LongMessage{
@@ -511,7 +512,7 @@ class GetRelativeMoveParams: public LongMessage{
 
 class SetAbsoluteMoveParams:public LongMessage{
 public: 
-    SetAbsoluteMoveParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, int32_t AbsolutePos = 0)
+    SetAbsoluteMoveParams(uint8_t dest, uint8_t source, uint16_t chanId, int32_t AbsolutePos)
             :LongMessage(SET_MOVEABSPARAMS, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((int32_t *) &bytes[8]) = htole32(AbsolutePos);    
@@ -523,7 +524,7 @@ public:
 
 class ReqAbsoluteMoveParams:public MessageHeader{
 public:
-    ReqAbsoluteMoveParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1): MessageHeader(REQ_MOVEABSPARAMS, chanId, 0, dest, source){}
+    ReqAbsoluteMoveParams(uint8_t dest, uint8_t source, uint8_t chanId): MessageHeader(REQ_MOVEABSPARAMS, chanId, 0, dest, source){}
 };
 
 class GetAbsoluteMoveParams:public LongMessage{
@@ -536,7 +537,7 @@ public:
 
 class SetHomeParams:public LongMessage{
 public:
-    SetHomeParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, int32_t HomingVel = 1):LongMessage(SET_HOMEPARAMS, 14, dest, source){
+    SetHomeParams(uint8_t dest, uint8_t source, uint16_t chanId, int32_t HomingVel):LongMessage(SET_HOMEPARAMS, 14, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((int32_t *) &bytes[12]) = htole32(HomingVel); 
     }
@@ -547,7 +548,7 @@ public:
 
 class ReqHomeParams:public MessageHeader{
 public:
-    ReqHomeParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_HOMEPARAMS, chanId, 0, dest, source){}
+    ReqHomeParams(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_HOMEPARAMS, chanId, 0, dest, source){}
 };
 
 class GetHomeParams:public LongMessage{
@@ -560,8 +561,8 @@ public:
 
 class SetLimitSwitchParams:public LongMessage{
 public:
-    SetLimitSwitchParams(uint8_t dest = 0x50,uint8_t source = 0x01, uint16_t chanId = 1, uint16_t CWHardLimit = 0x01, uint16_t CCWHardLimit = 0x01,
-            int32_t CWSoftLimit = 0x01, int32_t CCWSoftLimit = 0x01, uint16_t LimitMode = 0x01 )
+    SetLimitSwitchParams(uint8_t dest, uint8_t source, uint16_t chanId, uint16_t CWHardLimit, uint16_t CCWHardLimit,
+            int32_t CWSoftLimit, int32_t CCWSoftLimit, uint16_t LimitMode )
             :LongMessage(SET_LIMSWITCHPARAMS, 16, dest, source){
                 *((uint16_t *) &bytes[6]) = htole16(chanId);
                 *((uint16_t *) &bytes[8]) = htole16(CWHardLimit);
@@ -584,7 +585,7 @@ public:
 
 class ReqLimitSwitchParams:public MessageHeader{
 public:
-    ReqLimitSwitchParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_LIMSWITCHPARAMS, chanId, 0, dest, source){}
+    ReqLimitSwitchParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_LIMSWITCHPARAMS, chanId, 0, dest, source){}
 };
 
 class GetLimitSwitchParams:public LongMessage{
@@ -603,7 +604,7 @@ public:
 
 class MoveHome:public MessageHeader{
 public:
-    MoveHome(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(MOVE_HOME, chanId, 0, dest, source){}
+    MoveHome(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(MOVE_HOME, chanId, 0, dest, source){}
 };
 
 class MovedHome:public MessageHeader{
@@ -613,14 +614,14 @@ public:
 
 class MoveRelative1:public MessageHeader{
 public:
-    MoveRelative1(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(MOVE_RELATIVE, chanId, 0, dest, source){}
+    MoveRelative1(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(MOVE_RELATIVE, chanId, 0, dest, source){}
     
     
 };
 
 class MoveRelative2:public LongMessage{
 public:
-    MoveRelative2(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, int32_t RelativeDist = 0):LongMessage(MOVE_RELATIVE, 6, dest, source){
+    MoveRelative2(uint8_t dest, uint8_t source, uint16_t chanId, int32_t RelativeDist):LongMessage(MOVE_RELATIVE, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((uint32_t *) &bytes[8]) = htole32(RelativeDist);
     }
@@ -637,12 +638,12 @@ public:
 
 class MoveAbsolute1:public MessageHeader{
 public:
-    MoveAbsolute1(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(MOVE_ABSOLUTE, chanId, 0 , dest, source){}
+    MoveAbsolute1(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(MOVE_ABSOLUTE, chanId, 0 , dest, source){}
 };
 
 class MoveAbsolute2:public LongMessage{
 public:
-    MoveAbsolute2(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, int32_t distance = 0):LongMessage(MOVE_ABSOLUTE, 6, dest, source){
+    MoveAbsolute2(uint8_t dest, uint8_t source, uint16_t chanId, int32_t distance):LongMessage(MOVE_ABSOLUTE, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((int32_t *) &bytes[8]) = htole32(distance);
     };
@@ -653,17 +654,17 @@ public:
 
 class JogMove:public MessageHeader{
 public:
-    JogMove(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint8_t direction = 1):MessageHeader(MOVE_JOG, chanId, direction, dest, source){}
+    JogMove(uint8_t dest, uint8_t source, uint8_t chanId, uint8_t direction):MessageHeader(MOVE_JOG, chanId, direction, dest, source){}
 };
 
 class MovewVelocity:public MessageHeader{
 public:
-    MovewVelocity(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint8_t direction = 1):MessageHeader(MOVE_VELOCITY,chanId, direction, dest, source){}
+    MovewVelocity(uint8_t dest, uint8_t source,  uint8_t chanId, uint8_t direction):MessageHeader(MOVE_VELOCITY,chanId, direction, dest, source){}
 };
 
 class StopMove:public MessageHeader{
 public:
-    StopMove(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint8_t StopMode = 2):MessageHeader(MOVE_STOP, chanId, StopMode, dest, source){}
+    StopMove(uint8_t dest, uint8_t source, uint8_t chanId, uint8_t StopMode):MessageHeader(MOVE_STOP, chanId, StopMode, dest, source){}
 };
 
 class MoveStopped: public MessageHeader{
@@ -673,7 +674,7 @@ public:
 
 class SetBowIndex:public LongMessage{
 public:
-    SetBowIndex(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, uint16_t bowIndex = 2):LongMessage(SET_BOWINDEX, 4, dest, source){
+    SetBowIndex(uint8_t dest, uint8_t source, uint16_t chanId, uint16_t bowIndex):LongMessage(SET_BOWINDEX, 4, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((uint16_t *) &bytes[8]) = htole16(bowIndex);
     }
@@ -687,7 +688,7 @@ public:
 
 class ReqBowIndex:public MessageHeader{
 public:
-    ReqBowIndex(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_BOWINDEX, chanId, 0, dest, source){}
+    ReqBowIndex(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_BOWINDEX, chanId, 0, dest, source){}
 };
 
 class GetBowIndex:public LongMessage{
@@ -700,8 +701,8 @@ public:
 
 class SetPidParams:public LongMessage{
 public:
-    SetPidParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, int32_t proportional = 0, int32_t integral = 0, 
-            int32_t differential = 0, int32_t integralLimit = 0, uint16_t FilterControl = 0):LongMessage(SET_DCPIDPARAMS, 20 , dest, source){
+    SetPidParams(uint8_t dest, uint8_t source, uint16_t chanId, int32_t proportional, int32_t integral, int32_t differential, int32_t integralLimit, uint16_t FilterControl)
+            :LongMessage(SET_DCPIDPARAMS, 20 , dest, source){
                 *((uint16_t *) &bytes[6]) = htole16(chanId);
                 *((int32_t *) &bytes[8]) = htole32(proportional);
                 *((int32_t *) &bytes[12]) = htole32(integral);
@@ -721,7 +722,7 @@ public:
 
 class ReqPidParams:public MessageHeader{
 public:
-    ReqPidParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_DCPIDPARAMS, chanId, 0, dest, source){}
+    ReqPidParams(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_DCPIDPARAMS, chanId, 0, dest, source){}
 };
 
 class GetPidParams:public LongMessage{
@@ -739,7 +740,7 @@ public:
 
 class SetLedMode:public LongMessage{
 public:
-    SetLedMode(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, uint16_t mode = 1):LongMessage(SET_AVMODES, 4, dest, source){
+    SetLedMode(uint8_t dest, uint8_t source, uint16_t chanId, uint16_t mode):LongMessage(SET_AVMODES, 4, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((uint16_t *) &bytes[8]) = htole16(mode);
     }
@@ -749,7 +750,7 @@ public:
 
 class ReqLedMode:public MessageHeader{
 public:
-    ReqLedMode(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_AVMODES, chanId, 0, dest, source){}
+    ReqLedMode(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_AVMODES, chanId, 0, dest, source){}
 };
 
 class GetLedMode:public LongMessage{
@@ -762,7 +763,7 @@ public:
 
 class SetButtonParams:public LongMessage{
 public:
-    SetButtonParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint16_t chanId = 1, uint16_t mode = 1, int32_t pos1 = 0 , int32_t pos2 = 0, uint16_t timeout= 500)
+    SetButtonParams(uint8_t dest, uint8_t source, uint16_t chanId, uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout)
             :LongMessage(SET_BUTTONPARAMS, 16, dest, source){
                 *((uint16_t *) &bytes[6]) = htole16(chanId);
                 *((uint16_t *) &bytes[8]) = htole16(mode);
@@ -780,7 +781,7 @@ public:
 
 class ReqButtonParams:public MessageHeader{
 public:
-    ReqButtonParams(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_BUTTONPARAMS, chanId, 0, dest, source){}
+    ReqButtonParams(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_BUTTONPARAMS, chanId, 0, dest, source){}
 };
 
 class GetButtonParams: public LongMessage{
@@ -796,14 +797,14 @@ public:
 
 class SetActuatorType:public MessageHeader{
 public:
-    SetActuatorType(uint8_t dest =  0x50, uint8_t source = 0x01,  uint8_t actuatorId = 1):MessageHeader(SET_TSTACTUATORTYPE, actuatorId, 0, dest, source){}
+    SetActuatorType(uint8_t dest, uint8_t source, uint8_t actuatorId):MessageHeader(SET_TSTACTUATORTYPE, actuatorId, 0, dest, source){}
     
     void SetActuatorId(uint8_t id){ SetFirstParam(id) ;}
 };
 
 class ReqStatusUpdate:public MessageHeader{
 public: 
-    ReqStatusUpdate(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1 ):MessageHeader(REQ_STATUSUPDATE, chanId, 0, dest, source){}
+    ReqStatusUpdate(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_STATUSUPDATE, chanId, 0, dest, source){}
 };
 
 class GetStatusUpdate:public LongMessage{
@@ -818,7 +819,7 @@ public:
 
 class ReqMotChanStatusUpdate:public MessageHeader{
 public:
-    ReqMotChanStatusUpdate(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1 ):MessageHeader(REQ_DCSTATUSUPDATE, chanId, 0, dest, source){}
+    ReqMotChanStatusUpdate(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_DCSTATUSUPDATE, chanId, 0, dest, source){}
 };
 
 class GetMotChanStatusUpdate:public LongMessage{
@@ -833,12 +834,12 @@ public:
 
 class ServerAlive:public MessageHeader{
 public:
-    ServerAlive(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(ACK_DCSTATUSUPDATE, 0, 0, dest, source){}
+    ServerAlive(uint8_t dest, uint8_t source):MessageHeader(ACK_DCSTATUSUPDATE, 0, 0, dest, source){}
 };
 
 class ReqStatusBits:public MessageHeader{
 public:
-    ReqStatusBits(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_STATUSBITS, chanId, 0, dest, source){}
+    ReqStatusBits(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_STATUSBITS, chanId, 0, dest, source){}
 };
 
 class GetStatusBits:public LongMessage{
@@ -851,22 +852,22 @@ public:
 
 class DisableEndMoveMessages:public MessageHeader{
 public:
-    DisableEndMoveMessages(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(SUSPEND_ENDOFMOVEMSGS, 0, 0, dest, source){}
+    DisableEndMoveMessages(uint8_t dest, uint8_t source):MessageHeader(SUSPEND_ENDOFMOVEMSGS, 0, 0, dest, source){}
 };
 
 class EnableEndMoveMessages:public MessageHeader{
 public:
-    EnableEndMoveMessages(uint8_t dest = 0x50, uint8_t source = 0x01):MessageHeader(RESUME_ENDOFMOVEMSGS, 0, 0, dest, source){}
+    EnableEndMoveMessages(uint8_t dest, uint8_t source):MessageHeader(RESUME_ENDOFMOVEMSGS, 0, 0, dest, source){}
 };
 
 class SetTrigger:public MessageHeader{
 public:
-    SetTrigger(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1, uint8_t mode = 0):MessageHeader(SET_TRIGGER, chanId, mode, dest, source){}
+    SetTrigger(uint8_t dest, uint8_t source, uint8_t chanId, uint8_t mode):MessageHeader(SET_TRIGGER, chanId, mode, dest, source){}
 };
 
 class ReqTrigger:public MessageHeader{
 public:
-    ReqTrigger(uint8_t dest = 0x50, uint8_t source = 0x01,  uint8_t chanId = 1):MessageHeader(REQ_TRIGGER, chanId, 0, dest, source){}
+    ReqTrigger(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_TRIGGER, chanId, 0, dest, source){}
 };
 
 class GetTrigger:public MessageHeader{
