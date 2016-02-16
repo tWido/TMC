@@ -27,7 +27,7 @@ int CheckDeviceAbility(){
     //not implementeed
     return-1;}
 
-int SendMessage(Message message, FT_HANDLE &handle){
+int SendMessage(Message &message, FT_HANDLE &handle){
     FT_STATUS wrStatus;
     unsigned int wrote;
     wrStatus = FT_Write(handle, message.data(), message.msize(), &wrote );
