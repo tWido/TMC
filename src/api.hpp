@@ -17,7 +17,7 @@
 class Message{
 public:
     Message(uint8_t* buffer, unsigned int buffer_size){
-        bytes = (uint8_t *) malloc(buffer_size);
+        bytes = (uint8_t *) std::malloc(buffer_size);
         bytes = (uint8_t *) memcpy(bytes, buffer, buffer_size);
         length = buffer_size;
     }
@@ -28,7 +28,7 @@ public:
     }
     
     ~Message(){
-        free(bytes);
+        std::free(bytes);
     }
  
     uint8_t* data(){ return bytes; }
