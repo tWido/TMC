@@ -8,16 +8,6 @@
 #define BAD_PARAMS -4
 #define ERROR_RETURNED -3
 
-typedef struct {
-    int32_t SN;
-    uint8_t device_type;
-    uint8_t HWtype;
-    uint8_t dest = 0x50;
-    uint8_t source = 0x01;
-    uint8_t chanID = 0x01;
-    uint16_t chan = 0x0001;
-    uint8_t update_rate = 0x0A;
-} defaults;
 
 defaults gdefaults;
 
