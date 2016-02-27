@@ -2,19 +2,30 @@
 
 // enum for device types
 enum {
+    BSC001,
+    BSC002,
+    BMS001,
+    BMS002,
+    MST601,
+    MST602,
+    BSC101,
+    BSC102,
+    BSC103,
+    BSC201,
+    BSC202,
+    BSC203,
     BBD101,
     BBD102,
     BBD103,
-    BSC001,
-    BMS001,
-    BSC002,
-    BMS002,
+    BBD201,
+    BBD202,
+    BBD203,
     OST001,
     ODC001,
-    BSC103,
     TST001,
-    BSC101,
-    TDC001
+    TDC001,
+    TSC001,
+    TDIxxx
 };
 
 typedef struct{
