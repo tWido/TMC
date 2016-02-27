@@ -6,13 +6,6 @@
 #include <stdio.h>
 
 
-typedef struct{
-    int device_type;
-    int max_pos;
-    int max_vel;
-    int max_acc;
-} device;
-
 typedef struct {
     int32_t SN;
     uint8_t device_type;

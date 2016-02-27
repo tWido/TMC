@@ -2,14 +2,18 @@
  * Api for thorlabs messages.
  */
 #include "../ftdi_lib/ftd2xx.h"
+#include "device.hpp"
 #include "message_codes.hpp"
 #include <endian.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
 #define HEADER_SIZE 6
+
 #define INVALID_PARAM -5
+#define IGNORED_PARAM -4
 #define WARNING -3
+
 #define GET_CH_ID_FUNC uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
 #define SET_CH_ID_FUNC void SetChanID(uint16_t chanID){*((uint16_t *) &bytes[6]) = htole16(chanID); }
 
@@ -124,13 +128,21 @@ public:
      * @brief Set channel id to change state. 
      * @param chanID - starting at 0x01
      */
-    void SetChannelIdent(uint8_t chanID){ SetFirstParam(chanID); }
+    int SetChannelIdent(uint8_t chanID){
+        if ( chanID != 1 && connected_device.channels == 1) return INVALID_PARAM;
+        SetFirstParam(chanID); 
+        return 0;
+    }
     
     /**
      * @brief Set channel id to change state. 
      * @param state - 0x01 for enable, 0x02 for disable 
      */
-    void SetAbleState(uint8_t state){ SetSecondParam(state); }
+    int SetAbleState(uint8_t state){
+        if (state != 1 && state != 2) return INVALID_PARAM;
+        SetSecondParam(state);
+        return 0;
+    }
 };
 
 /** Asks for information about specified channel. */
@@ -142,13 +154,17 @@ public:
      * @brief Set channel id which info is required. 
      * @param chanID - starting at 0x01
      */
-    void SetChannelIdent(uint8_t chanID){ SetFirstParam(chanID); }
+    int SetChannelIdent(uint8_t chanID){
+        if ( chanID != 1 && connected_device.channels == 0) return INVALID_PARAM;
+        SetFirstParam(chanID); 
+        return 0;
+    }
 };
 
 /** Info sent from device. */
-class ChannelStateInfo:public MessageHeader{
+class GetChannelState:public MessageHeader{
 public:
-    ChannelStateInfo(uint8_t *mess):MessageHeader(mess){}
+    GetChannelState(uint8_t *mess):MessageHeader(mess){}
     
     /**
      * @brief Saves info in given variables.
@@ -196,7 +212,11 @@ class StartUpdateMessages:public MessageHeader{
 public:
     StartUpdateMessages(uint8_t rate, uint8_t dest, uint8_t source):MessageHeader(HW_START_UPDATEMSGS, rate, 0, dest, source){};
     
-    void SetUpdaterate(uint8_t rate){ SetFirstParam(rate); }
+    int SetUpdaterate(uint8_t rate){ 
+        if ( connected_device.device_type == BBD101 || connected_device.device_type == BBD102 || connected_device.device_type == BBD103 ) return IGNORED_PARAM;
+        SetFirstParam(rate); 
+        return 0;
+    }
 };
 
 class StopUpdateMessages:public MessageHeader{
@@ -243,7 +263,11 @@ class ReqRackBayUsed:public MessageHeader{
 public:
     ReqRackBayUsed(uint8_t bayID, uint8_t dest, uint8_t source):MessageHeader(RACK_REQ_BAYUSED, bayID, 0 , dest, source){}
 
-    void SetBayIdent(uint8_t bayID){ SetFirstParam(bayID); }
+    int SetBayIdent(uint8_t bayID){ 
+        if (bayID > 10) return INVALID_PARAM;
+        SetFirstParam(bayID); 
+        return 0;
+    }
 };
 
 class GetRackBayUsed:public MessageHeader{
@@ -263,10 +287,10 @@ public:
     ReqHubBayUsed(uint8_t dest, uint8_t source):MessageHeader(HUB_REQ_BAYUSED, 0, 0, dest, source){}
 };
 
-class GetBayUsed:public MessageHeader{
+class GetHubBayUsed:public MessageHeader{
 public:
-    GetBayUsed(uint8_t *mess):MessageHeader(mess){}
-
+    GetHubBayUsed(uint8_t *mess):MessageHeader(mess){}
+    
     uint8_t GetBayID(){ return GetFirstParam(); }
 };
 
