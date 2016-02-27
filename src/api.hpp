@@ -291,7 +291,7 @@ class GetHubBayUsed:public MessageHeader{
 public:
     GetHubBayUsed(uint8_t *mess):MessageHeader(mess){}
     
-    uint8_t GetBayID(){ return GetFirstParam(); }
+    int8_t GetBayID(){ return GetFirstParam(); }
 };
 
 
