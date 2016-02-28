@@ -15,7 +15,8 @@
 #define WARNING -3
 
 #define GET_CH_ID_FUNC uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
-#define SET_CH_ID_FUNC void SetChanID(uint16_t chanID){*((uint16_t *) &bytes[6]) = htole16(chanID); }
+#define SET_CH_ID_16INT_FUNC int SetChanID(int16_t chanID){ if (chanID > connected_device.channels ) return INVALID_PARAM  ; *((uint16_t *) &bytes[6]) = htole16(chanID); return 0; }
+#define SET_CH_ID_8INT_FUNC int SetChannelIdent(uint8_t chanID){ if ( chanID > connected_device.channels ) return INVALID_PARAM;SetFirstParam(chanID);  return 0;}
 
 
 class Message{
@@ -124,15 +125,7 @@ class SetChannelState:public MessageHeader{
 public:
     SetChannelState(uint8_t chanID, uint8_t ableState, uint8_t dest, uint8_t source):MessageHeader(SET_CHANENABLESTATE, chanID, ableState, dest, source){};
     
-    /**
-     * @brief Set channel id to change state. 
-     * @param chanID - starting at 0x01
-     */
-    int SetChannelIdent(uint8_t chanID){
-        if ( chanID != 1 && connected_device.channels == 1) return INVALID_PARAM;
-        SetFirstParam(chanID); 
-        return 0;
-    }
+    SET_CH_ID_8INT_FUNC
     
     /**
      * @brief Set channel id to change state. 
@@ -150,15 +143,7 @@ class ReqChannelState:public MessageHeader{
 public:
     ReqChannelState(uint8_t chanID, uint8_t dest, uint8_t source):MessageHeader(REQ_CHANENABLESTATE, chanID, 0, dest, source){};
    
-    /** 
-     * @brief Set channel id which info is required. 
-     * @param chanID - starting at 0x01
-     */
-    int SetChannelIdent(uint8_t chanID){
-        if ( chanID != 1 && connected_device.channels == 0) return INVALID_PARAM;
-        SetFirstParam(chanID); 
-        return 0;
-    }
+    SET_CH_ID_8INT_FUNC
 };
 
 /** Info sent from device. */
@@ -311,17 +296,22 @@ public:
 
 class SetPosCounter:public LongMessage{
 public:
-    SetPosCounter(uint8_t dest, uint8_t source, uint16_t chanID, int32_t pos):LongMessage(SET_POSCOUNTER, 6, dest, source){
+    SetPosCounter(uint8_t dest, uint8_t source, uint16_t chanID):LongMessage(SET_POSCOUNTER, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanID);
-        *((uint32_t *) &bytes[8]) = htole32(pos);
     }
-    SET_CH_ID_FUNC
-    void SetPosition(int32_t pos){ *((int32_t *) &bytes[8]) = htole32(pos); }
+    
+    SET_CH_ID_16INT_FUNC
+    int SetPosition(int32_t pos){ 
+        *((int32_t *) &bytes[8]) = htole32(pos);  
+        return WARNING;
+    }
 };
 
 class ReqPosCounter:public MessageHeader{
 public:
     ReqPosCounter(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_POSCOUNTER, chanId, 0, dest, source){}
+    
+    SET_CH_ID_8INT_FUNC
 };
 
 class GetPosCounter:public LongMessage{
@@ -334,15 +324,20 @@ public:
 
 class SetEncCount:public LongMessage{
 public:
-    SetEncCount(uint8_t dest, uint8_t source, uint16_t chanID, int32_t enc_count):LongMessage(SET_ENCCOUNTER, 6, dest, source){
+    SetEncCount(uint8_t dest, uint8_t source, uint16_t chanID):LongMessage(SET_ENCCOUNTER, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanID);
-        *((int32_t *) &bytes[8]) = htole32(enc_count);
+    }
+    
+    int SetEncoderCount(int32_t count){ 
+        *((int32_t *) &bytes[8]) = htole32(count); 
+        return WARNING;
     }
 };
 
 class ReqEncCount:public MessageHeader{
 public:
-    ReqEncCount(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_ENCCOUNTER, chanId, 0, dest, source){}
+    ReqEncCount(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_ENCCOUNTER, chanId, 0, dest, source){}
+    SET_CH_ID_8INT_FUNC
 };
 
 class GetEncCount:public LongMessage{
@@ -351,7 +346,6 @@ public:
 
     GET_CH_ID_FUNC
     int32_t GetEncCounter(){ return le32toh(*((int16_t*) &bytes[8])); }
-
 };
 
 class SetVelocityParams:public LongMessage{
@@ -364,7 +358,7 @@ public:
         *((int32_t *) &bytes[16]) = htole32(max_vel);
     };
     
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetMinVel(int32_t min){ *((int32_t *) &bytes[8]) = htole32(min); }
     void SetMaxVel(int32_t max){ *((int32_t *) &bytes[12]) = htole32(max); }
     void SetAcceleration(int32_t acc){ *((int32_t *) &bytes[16]) = htole32(acc); }
@@ -398,7 +392,7 @@ public:
         *((uint16_t *) &bytes[24]) = htole16(stopMode);       
         }
             
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     /**
      * @param mode 1 for continuous jogging, 2 for single step
      */
@@ -461,7 +455,7 @@ public:
         *((uint16_t *) &bytes[10]) = htole16(MoveFactor);
             }
     
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetRestFactor(uint16_t rest_fac){ *((uint16_t *) &bytes[8]) = htole16(rest_fac); }
     void SetMoveFactor(uint16_t move_fac){ *((uint16_t *) &bytes[10]) = htole16(move_fac); }
 };
@@ -493,7 +487,7 @@ class SetGeneralMoveParams:public LongMessage{
         *((int32_t *) &bytes[8]) = htole32(BacklashDist);
     }
     
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetBacklashDist(int32_t dist){ *((int32_t *) &bytes[8]) = htole16(dist); }
 };
 
@@ -518,7 +512,7 @@ public:
         *((int32_t *) &bytes[8]) = htole32(RelativeDist);
         }
             
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetRelativeDist(int32_t dist){ *((int32_t *) &bytes[8]) = htole32(dist); }
 };
 
@@ -542,7 +536,7 @@ public:
         *((int32_t *) &bytes[8]) = htole32(AbsolutePos);    
         }
             
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetAbsolutePos(int32_t pos){ *((int32_t *) &bytes[8]) = htole32(pos); }
 };
 
@@ -566,7 +560,7 @@ public:
         *((int32_t *) &bytes[12]) = htole32(HomingVel); 
     }
     
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetHomingVelocity(int32_t vel){ *((int32_t *) &bytes[12]) = htole32(vel); }
 };
 
@@ -596,7 +590,7 @@ public:
                 *((uint16_t *) &bytes[20]) = htole16(LimitMode);
             }
             
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     
     void SetClockwiseHardLimit(uint16_t limit){ *((uint16_t *) &bytes[8]) = htole16(limit); }
     void SetCounterlockwiseHardLimit(uint16_t limit){ *((uint16_t *) &bytes[10]) = htole16(limit); }
@@ -650,7 +644,7 @@ public:
         *((uint32_t *) &bytes[8]) = htole32(RelativeDist);
     }
     
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetRelativeDistance(int32_t dist){ *((int32_t *) &bytes[8]) = htole32(dist); }
 };
 
@@ -672,7 +666,7 @@ public:
         *((int32_t *) &bytes[8]) = htole32(distance);
     };
      
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetAbsoluteDistance(int32_t dist){ *((int32_t *) &bytes[8]) = htole32(dist); }
 };
 
@@ -703,7 +697,7 @@ public:
         *((uint16_t *) &bytes[8]) = htole16(bowIndex);
     }
     
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     /**
      * @param profile of acceleration/deceleration, 0 for trapezoidal, 1-18 for s-curve profile
      */
@@ -735,7 +729,7 @@ public:
                 *((uint16_t *) &bytes[24]) = htole16(FilterControl);
             }
             
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetProportional(int32_t value){ *((int32_t *) &bytes[8]) = htole32(value); }
     void SetIntegeral(int32_t value){ *((int32_t *) &bytes[12]) = htole32(value); }
     void SetDifferential(int32_t value){ *((int32_t *) &bytes[16]) = htole32(value); }
@@ -768,7 +762,7 @@ public:
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         *((uint16_t *) &bytes[8]) = htole16(mode);
     }
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetMode(uint16_t mode){ *((uint16_t *) &bytes[8]) = htole16(mode); }
 };
 
@@ -796,7 +790,7 @@ public:
                 *((uint16_t *) &bytes[18]) = htole16(timeout);
             }
             
-    SET_CH_ID_FUNC
+    SET_CH_ID_16INT_FUNC
     void SetMode(uint16_t mode){ *((uint16_t *) &bytes[8]) = htole16(mode); }
     void SetPosition1(int32_t pos){ *((int32_t *) &bytes[10]) = htole32(pos); }
     void SetPosition2(int32_t pos){ *((int32_t *) &bytes[14]) = htole32(pos); }
