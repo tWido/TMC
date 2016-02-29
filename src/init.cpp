@@ -4,7 +4,10 @@
 #include "../ftdi_lib/ftd2xx.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <string>
+#include <errno.h>
 
+using namespace std;;
 
 typedef struct {
     int32_t SN;
@@ -18,14 +21,32 @@ typedef struct {
 } defaults;
 
 int addVidPid(){
-    //not implemented, dmesg || /var/log/kern.log, add all devicess
+    //not implemented, dmesg ,  add all devicess
     return -1;
 }
 
-int checkModules(){
-    //check for ftdi_sio, usbserial, cannot be loaded!!!
-    //not implemented 
-    return -1;
+int RemoveModules(std::string module_name){
+    std::string lsmod_cmd= "lsmod | grep ";
+    lsmod_cmd.append(module_name);
+    FILE* out = popen(lsmod_cmd.c_str(), "r");
+    if (out == NULL){
+        cout << "Failed to run system command. Modules not checked. \n";
+        return -1;
+    }
+    
+    char buff[128];
+    if (fgets(buff, 128, out) != NULL){
+        std::string rmmod_cmd = "rmmod ";
+        rmmod_cmd.append(module_name);
+        system(rmmod_cmd.c_str());
+        cout << "Removing loaded module : " << module_name << "\n";
+    }
+    
+    if( pclose(out) == -1 ){ 
+        cout << "Failed to close input from system. \n" ;
+        return -1;
+    }
+    return 0;
 }
 
 int CheckLog(){
@@ -54,13 +75,15 @@ int LoadDefaults(){
 }
 
 int init(){
-    checkModules();
-    addVidPid();
+    if( RemoveModules("ftdi_sio")  != 0) return -1;
+    if( RemoveModules("usbserial")  != 0) return -1;
     
-    FT_STATUS ft_status;
-    unsigned int numdevs = 0;
-    ft_status =  FT_CreateDeviceInfoList(&numdevs);
-    if ( ft_status != FT_OK ) printf("FAIL\n");
+   // addVidPid();
+    
+  //  FT_STATUS ft_status;
+ //   unsigned int numdevs = 0;
+ //   ft_status =  FT_CreateDeviceInfoList(&numdevs);
+  //  if ( ft_status != FT_OK ) printf("FAIL\n");
     
     //not implemented yet
     return -1;
