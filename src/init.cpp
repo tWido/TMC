@@ -26,7 +26,7 @@ int addVidPid(){
 }
 
 int RemoveModules(std::string module_name){
-    std::string lsmod_cmd= "lsmod | grep ";
+    string lsmod_cmd= "lsmod | grep ";
     lsmod_cmd.append(module_name);
     FILE* out = popen(lsmod_cmd.c_str(), "r");
     if (out == NULL){
@@ -36,7 +36,7 @@ int RemoveModules(std::string module_name){
     
     char buff[128];
     if (fgets(buff, 128, out) != NULL){
-        std::string rmmod_cmd = "rmmod ";
+        string rmmod_cmd = "rmmod ";
         rmmod_cmd.append(module_name);
         system(rmmod_cmd.c_str());
         cout << "Removing loaded module : " << module_name << "\n";
@@ -75,6 +75,7 @@ int LoadDefaults(){
 }
 
 int init(){
+    cout<<"Starting.\n";
     if( RemoveModules("ftdi_sio")  != 0) return -1;
     if( RemoveModules("usbserial")  != 0) return -1;
     
