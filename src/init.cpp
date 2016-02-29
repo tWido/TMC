@@ -21,7 +21,28 @@ typedef struct {
 } defaults;
 
 int addVidPid(){
-    //not implemented, dmesg ,  add all devicess
+    FILE* out = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep idVendor | cut -d'=' -f2 | cut -b1-4", "r");
+    if (out == NULL){
+        cout << "Failed to run system command. Modules not checked. \n";
+        return -1;
+    }
+    //save pid
+    if( pclose(out) == -1 ){ 
+        cout << "Failed to close input from system. \n" ;
+        return -1;
+    }
+    
+    out = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep idVendor | cut -d'=' -f3 | cut -b1-4", "r");
+    if (out == NULL){
+        cout << "Failed to run system command. Modules not checked. \n";
+        return -1;
+    }
+    //save vid
+    if( pclose(out) == -1 ){ 
+        cout << "Failed to close input from system. \n" ;
+        return -1;
+    }
+    
     return -1;
 }
 
@@ -47,6 +68,20 @@ int RemoveModules(std::string module_name){
         return -1;
     }
     return 0;
+}
+
+int LoadSN(){
+    FILE* out = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep SerialNumber: | cut -d' ' -f7", "r");
+        if (out == NULL){
+        cout << "Failed to run system command. Modules not checked. \n";
+        return -1;
+    }
+    //read sn
+    
+    if( pclose(out) == -1 ){ 
+        cout << "Failed to close input from system. \n" ;
+        return -1;
+    }
 }
 
 int CheckLog(){
