@@ -21,29 +21,38 @@ typedef struct {
 } defaults;
 
 int addVidPid(){
-    FILE* out = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep idVendor | cut -d'=' -f2 | cut -b1-4", "r");
-    if (out == NULL){
-        cout << "Failed to run system command. Modules not checked. \n";
-        return -1;
-    }
-    //save pid
-    if( pclose(out) == -1 ){ 
-        cout << "Failed to close input from system. \n" ;
+    FILE* vendors = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep idVendor | cut -d'=' -f2 | cut -b1-4", "r");
+    if (vendors == NULL){
+        printf("Failed to run system command. Modules not checked. \n");
         return -1;
     }
     
-    out = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep idVendor | cut -d'=' -f3 | cut -b1-4", "r");
-    if (out == NULL){
-        cout << "Failed to run system command. Modules not checked. \n";
-        return -1;
-    }
-    //save vid
-    if( pclose(out) == -1 ){ 
-        cout << "Failed to close input from system. \n" ;
+    FILE* products = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep idVendor | cut -d'=' -f3 | cut -b1-4", "r");
+    if (products == NULL){
+        printf("Failed to run system command. Modules not checked. \n");
         return -1;
     }
     
-    return -1;
+    //save pid & vid - possibly more
+    char vid_buff[4];
+    char pid_buff[4];
+    while (true ){
+        if ( fgets(pid_buff, 4, products) != NULL || fgets(pid_buff, 4, vendors) != NULL ) break;
+        unsigned int pid = atoi(pid_buff); 
+        unsigned int vid = atoi(vid_buff);
+        FT_SetVIDPID(vid, pid);
+    }
+    
+    if( pclose(vendors) == -1 ){ 
+        printf("Failed to close input from system. \n" );
+        return -1;
+    }
+    if( pclose(products) == -1 ){ 
+        printf("Failed to close input from system. \n") ;
+        return -1;
+    }
+    
+    return 0;
 }
 
 int RemoveModules(std::string module_name){
@@ -51,20 +60,20 @@ int RemoveModules(std::string module_name){
     lsmod_cmd.append(module_name);
     FILE* out = popen(lsmod_cmd.c_str(), "r");
     if (out == NULL){
-        cout << "Failed to run system command. Modules not checked. \n";
+        printf("Failed to run system command. Modules not checked. \n");
         return -1;
     }
     
-    char buff[128];
-    if (fgets(buff, 128, out) != NULL){
+    char buff[64];
+    if (fgets(buff, 64, out) != NULL){
         string rmmod_cmd = "rmmod ";
         rmmod_cmd.append(module_name);
         system(rmmod_cmd.c_str());
-        cout << "Removing loaded module : " << module_name << "\n";
+        printf("Removing loaded module : %s \n",module_name.c_str());
     }
     
     if( pclose(out) == -1 ){ 
-        cout << "Failed to close input from system. \n" ;
+        printf("Failed to close input from system. \n");
         return -1;
     }
     return 0;
@@ -73,13 +82,13 @@ int RemoveModules(std::string module_name){
 int LoadSN(){
     FILE* out = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep SerialNumber: | cut -d' ' -f7", "r");
         if (out == NULL){
-        cout << "Failed to run system command. Modules not checked. \n";
+        printf("Failed to run system command. Modules not checked. \n");
         return -1;
     }
     //read sn
     
     if( pclose(out) == -1 ){ 
-        cout << "Failed to close input from system. \n" ;
+        printf("Failed to close input from system. \n");
         return -1;
     }
 }
@@ -110,7 +119,7 @@ int LoadDefaults(){
 }
 
 int init(){
-    cout<<"Starting.\n";
+    printf("Starting.\n");
     if( RemoveModules("ftdi_sio")  != 0) return -1;
     if( RemoveModules("usbserial")  != 0) return -1;
     
