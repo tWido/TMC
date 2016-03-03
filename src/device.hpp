@@ -7,6 +7,7 @@ typedef struct{
     int max_acc;
 } device;
 
+int devices_connected;
 device *connected_device;
 device opened_device;
 
@@ -35,7 +36,8 @@ enum {
     TST001,
     TDC001,
     TSC001,
-    TDIxxx
+    TDIxxx,
+    TBD001
 };
 
 
