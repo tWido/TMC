@@ -47,13 +47,12 @@ int addVidPid(){
         if (*p != 0 || *pr != 0) {
             continue;
         }
-        printf("found thorlabs device, vendor ID: %d, product ID: %d\n", vid, pid);
+        printf("found thorlabs device, vendor ID: 0x%s, product ID: ox%s\n", vid_buff, pid_buff);
         ftStatus = FT_SetVIDPID(vid, pid);
         if (ftStatus != FT_OK ) {
             printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
             return -1;
         }
-        printf("Found device, product ID: 0x%s, vendor ID: 0x%s\n", pid_buff, vid_buff);
     }
     
     if( pclose(vendors) == -1 ){ 
