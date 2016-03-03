@@ -448,16 +448,29 @@ public:
 
 class SetPowerParams:public LongMessage{
 public:
-    SetPowerParams(uint8_t dest, uint8_t source, uint16_t chanId, uint16_t RestFactor, uint16_t MoveFactor )
+    SetPowerParams(uint8_t dest, uint8_t source, uint16_t chanId )
             :LongMessage(SET_POWERPARAMS, 6, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);
-        *((uint16_t *) &bytes[8]) = htole16(RestFactor);
-        *((uint16_t *) &bytes[10]) = htole16(MoveFactor);
+                *((uint16_t *) &bytes[6]) = htole16(chanId);
             }
     
     SET_CH_ID_16INT_FUNC
-    void SetRestFactor(uint16_t rest_fac){ *((uint16_t *) &bytes[8]) = htole16(rest_fac); }
-    void SetMoveFactor(uint16_t move_fac){ *((uint16_t *) &bytes[10]) = htole16(move_fac); }
+    /**
+     * @param rest_fac, range from 1 to 100, i.e 1% to 100%
+     */
+    int SetRestFactor(uint16_t rest_fac){ 
+        if (rest_fac > 100 || rest_fac == 0) return INVALID_PARAM;
+        *((uint16_t *) &bytes[8]) = htole16(rest_fac);
+        return 0;
+    }
+    
+    /**
+     * @param rest_fac, range from 1 to 100, i.e 1% to 100%
+     */
+    int SetMoveFactor(uint16_t move_fac){
+        if (move_fac > 100 || move_fac == 0) return INVALID_PARAM;
+        *((uint16_t *) &bytes[10]) = htole16(move_fac);
+        return 0;
+    }
 };
 
 class ReqPowerParams: public MessageHeader{
@@ -579,26 +592,41 @@ public:
 
 class SetLimitSwitchParams:public LongMessage{
 public:
-    SetLimitSwitchParams(uint8_t dest, uint8_t source, uint16_t chanId, uint16_t CWHardLimit, uint16_t CCWHardLimit,
-            int32_t CWSoftLimit, int32_t CCWSoftLimit, uint16_t LimitMode )
+    SetLimitSwitchParams(uint8_t dest, uint8_t source, uint16_t chanId)
             :LongMessage(SET_LIMSWITCHPARAMS, 16, dest, source){
                 *((uint16_t *) &bytes[6]) = htole16(chanId);
-                *((uint16_t *) &bytes[8]) = htole16(CWHardLimit);
-                *((uint16_t *) &bytes[10]) = htole16(CCWHardLimit);
-                *((int32_t *) &bytes[12]) = htole32(CWSoftLimit);
-                *((int32_t *) &bytes[16]) = htole32(CCWSoftLimit);
-                *((uint16_t *) &bytes[20]) = htole16(LimitMode);
             }
             
     SET_CH_ID_16INT_FUNC
     
-    void SetClockwiseHardLimit(uint16_t limit){ *((uint16_t *) &bytes[8]) = htole16(limit); }
-    void SetCounterlockwiseHardLimit(uint16_t limit){ *((uint16_t *) &bytes[10]) = htole16(limit); }
+    int SetClockwiseHardLimit(uint16_t limit){
+        if ( limit != 0x80 && limit > 0x06 ) return INVALID_PARAM;
+        *((uint16_t *) &bytes[8]) = htole16(limit);
+        return 0;
+    }
+    int SetCounterlockwiseHardLimit(uint16_t limit){ 
+        if ( limit != 0x80 && limit > 0x06 ) return INVALID_PARAM;
+        *((uint16_t *) &bytes[10]) = htole16(limit);
+        return 0;
+    }
     
-    void SetClockwiseSoftLimit(int32_t limit){ *((int32_t *) &bytes[12]) = htole32(limit); }
-    void SetCounterlockwiseSoftLimit(int32_t limit){ *((int32_t *) &bytes[16]) = htole32(limit); }  
+    int SetClockwiseSoftLimit(int32_t limit){
+        if (opened_device.device_type == TDC001 ) return IGNORED_PARAM;
+        *((int32_t *) &bytes[12]) = htole32(limit); 
+        return 0;
+    }
+    int SetCounterlockwiseSoftLimit(int32_t limit){ 
+        if (opened_device.device_type == TDC001 ) return IGNORED_PARAM;
+        *((int32_t *) &bytes[16]) = htole32(limit); 
+        return 0;
+    }  
     
-    void SetLimitMode(uint16_t mode){ *((uint16_t *) &bytes[20]) = htole16(mode); }
+    int SetLimitMode(uint16_t mode){ 
+        if ( opened_device.device_type == TDC001 ) return IGNORED_PARAM;
+        if ( mode != 0x80 && mode > 0x03 ) return INVALID_PARAM;
+        *((uint16_t *) &bytes[20]) = htole16(mode); 
+        return 0;
+    }
 };
 
 class ReqLimitSwitchParams:public MessageHeader{
@@ -632,9 +660,7 @@ public:
 
 class MoveRelative1:public MessageHeader{
 public:
-    MoveRelative1(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(MOVE_RELATIVE, chanId, 0, dest, source){}
-    
-    
+    MoveRelative1(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(MOVE_RELATIVE, chanId, 0, dest, source){}
 };
 
 class MoveRelative2:public LongMessage{
@@ -672,17 +698,38 @@ public:
 
 class JogMove:public MessageHeader{
 public:
-    JogMove(uint8_t dest, uint8_t source, uint8_t chanId, uint8_t direction):MessageHeader(MOVE_JOG, chanId, direction, dest, source){}
+    JogMove(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(MOVE_JOG, chanId, 1, dest, source){}
+    
+    int SetDirection(uint8_t direction){
+        if (direction != 0x01 && direction != 0x02) return INVALID_PARAM;
+        SetSecondParam(direction);
+        return 0;
+    }
 };
 
 class MovewVelocity:public MessageHeader{
 public:
-    MovewVelocity(uint8_t dest, uint8_t source,  uint8_t chanId, uint8_t direction):MessageHeader(MOVE_VELOCITY,chanId, direction, dest, source){}
+    MovewVelocity(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(MOVE_VELOCITY,chanId, 1, dest, source){}
+    
+    int SetDirection(uint8_t direction){
+        if (direction != 0x01 && direction != 0x02) return INVALID_PARAM;
+        SetSecondParam(direction);
+        return 0;
+    }
 };
 
 class StopMove:public MessageHeader{
 public:
-    StopMove(uint8_t dest, uint8_t source, uint8_t chanId, uint8_t StopMode):MessageHeader(MOVE_STOP, chanId, StopMode, dest, source){}
+    StopMove(uint8_t dest, uint8_t source, uint8_t chanId ):MessageHeader(MOVE_STOP, chanId, 2, dest, source){}
+    
+    /**
+     * @param mode, 1 for immediate stop, 2 for profiled stop
+     */
+    int SetStopMode(uint8_t mode){
+        if (mode != 0x01 && mode != 0x02) return INVALID_PARAM;
+        SetSecondParam(mode);
+        return 0;
+    }
 };
 
 class MoveStopped: public MessageHeader{
@@ -692,16 +739,19 @@ public:
 
 class SetBowIndex:public LongMessage{
 public:
-    SetBowIndex(uint8_t dest, uint8_t source, uint16_t chanId, uint16_t bowIndex):LongMessage(SET_BOWINDEX, 4, dest, source){
+    SetBowIndex(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(SET_BOWINDEX, 4, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
-        *((uint16_t *) &bytes[8]) = htole16(bowIndex);
     }
     
     SET_CH_ID_16INT_FUNC
     /**
      * @param profile of acceleration/deceleration, 0 for trapezoidal, 1-18 for s-curve profile
      */
-    void SetBowindex(uint16_t index){ *((uint16_t *) &bytes[8]) = htole16(index); }
+    int SetBowindex(uint16_t index){
+        if ( index > 18 ) return INVALID_PARAM;
+        *((uint16_t *) &bytes[8]) = htole16(index); 
+        return 0;
+    }
 };
 
 class ReqBowIndex:public MessageHeader{
@@ -719,21 +769,34 @@ public:
 
 class SetPidParams:public LongMessage{
 public:
-    SetPidParams(uint8_t dest, uint8_t source, uint16_t chanId, int32_t proportional, int32_t integral, int32_t differential, int32_t integralLimit, uint16_t FilterControl)
-            :LongMessage(SET_DCPIDPARAMS, 20 , dest, source){
+    SetPidParams(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(SET_DCPIDPARAMS, 20 , dest, source){
                 *((uint16_t *) &bytes[6]) = htole16(chanId);
-                *((int32_t *) &bytes[8]) = htole32(proportional);
-                *((int32_t *) &bytes[12]) = htole32(integral);
-                *((int32_t *) &bytes[16]) = htole32(differential);
-                *((int32_t *) &bytes[20]) = htole32(integralLimit);
-                *((uint16_t *) &bytes[24]) = htole16(FilterControl);
             }
             
     SET_CH_ID_16INT_FUNC
-    void SetProportional(int32_t value){ *((int32_t *) &bytes[8]) = htole32(value); }
-    void SetIntegeral(int32_t value){ *((int32_t *) &bytes[12]) = htole32(value); }
-    void SetDifferential(int32_t value){ *((int32_t *) &bytes[16]) = htole32(value); }
-    void SetIntegralLimit(int32_t value){ *((int32_t *) &bytes[20]) = htole32(value); }
+    int SetProportional(int32_t value){ 
+        if ( value < 0 || value > 32767 ) return INVALID_PARAM;
+        *((int32_t *) &bytes[8]) = htole32(value); 
+        return 0;
+    }
+    
+    int SetIntegeral(int32_t value){ 
+        if ( value < 0 || value > 32767 ) return INVALID_PARAM;
+        *((int32_t *) &bytes[12]) = htole32(value); 
+        return 0;
+    }
+    
+    int SetDifferential(int32_t value){ 
+        if ( value < 0 || value > 32767 ) return INVALID_PARAM;
+        *((int32_t *) &bytes[16]) = htole32(value);
+        return 0;
+    }
+    
+    int SetIntegralLimit(int32_t value){ 
+        if ( value < 0 || value > 32767 ) return INVALID_PARAM;
+        *((int32_t *) &bytes[20]) = htole32(value); 
+        return 0;
+    }
     
     void SetFilterControl(uint16_t control){ *((uint16_t *) &bytes[24]) = htole16(control); }
 };
@@ -758,12 +821,16 @@ public:
 
 class SetLedMode:public LongMessage{
 public:
-    SetLedMode(uint8_t dest, uint8_t source, uint16_t chanId, uint16_t mode):LongMessage(SET_AVMODES, 4, dest, source){
+    SetLedMode(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(SET_AVMODES, 4, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
-        *((uint16_t *) &bytes[8]) = htole16(mode);
     }
     SET_CH_ID_16INT_FUNC
-    void SetMode(uint16_t mode){ *((uint16_t *) &bytes[8]) = htole16(mode); }
+    int SetMode(uint16_t mode){ 
+        if ( mode > 11 || ( mode > 3 || mode < 8) ) return INVALID_PARAM;
+        *((uint16_t *) &bytes[8]) = htole16(mode); 
+         return 0;
+    }
+       
 };
 
 class ReqLedMode:public MessageHeader{
@@ -811,13 +878,6 @@ public:
     int32_t GetPosition1(){ return le32toh(*((int32_t*) &bytes[12])); }
     int32_t GetPosition2(){ return le32toh(*((int32_t*) &bytes[14])); }
     uint16_t GetTimeout(){ return le16toh(*((uint16_t*) &bytes[18])); }
-};
-
-class SetActuatorType:public MessageHeader{
-public:
-    SetActuatorType(uint8_t dest, uint8_t source, uint8_t actuatorId):MessageHeader(SET_TSTACTUATORTYPE, actuatorId, 0, dest, source){}
-    
-    void SetActuatorId(uint8_t id){ SetFirstParam(id) ;}
 };
 
 class ReqStatusUpdate:public MessageHeader{
@@ -880,7 +940,17 @@ public:
 
 class SetTrigger:public MessageHeader{
 public:
-    SetTrigger(uint8_t dest, uint8_t source, uint8_t chanId, uint8_t mode):MessageHeader(SET_TRIGGER, chanId, mode, dest, source){}
+    SetTrigger(uint8_t dest, uint8_t source, uint8_t chanId, uint8_t mode):MessageHeader(SET_TRIGGER, chanId, 0, dest, source){}
+    
+    int SetMode(uint8_t mode){
+        if (opened_device.device_type != BSC201 && opened_device.device_type != BSC202 && opened_device.device_type != BSC203 && 
+            opened_device.device_type != TBD001 && opened_device.device_type != BBD201 && opened_device.device_type != BBD202 && 
+            opened_device.device_type != BBD203) 
+            return IGNORED_PARAM;
+        SetSecondParam(mode);        
+        return 0;        
+    }
+    
 };
 
 class ReqTrigger:public MessageHeader{

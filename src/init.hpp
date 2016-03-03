@@ -102,6 +102,7 @@ int LoadSN(){
     }
     printf("Devices found: %d\n", numdevs );
     connected_device = (device *) malloc(numdevs*sizeof(device));
+    devices_connected= numdevs;
     
     FILE* SN = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep SerialNumber: | cut -d':' -f3 | cut -b2-9", "r");
         if (SN == NULL){
@@ -149,15 +150,11 @@ int init(){
     printf("Starting.\n");
     if( RemoveModules("ftdi_sio")  != 0) return -1;
     if( RemoveModules("usbserial")  != 0) return -1;
-    
-    
     if (addVidPid() != 0) return -1;
+    
     LoadSN();
     
-  //  FT_STATUS ft_status;
- //   unsigned int numdevs = 0;
- //   ft_status =  FT_CreateDeviceInfoList(&numdevs);
-  //  if ( ft_status != FT_OK ) printf("FAIL\n");
+
     
     //not implemented yet
     return -1;
