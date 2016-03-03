@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string>
 #include <errno.h>
+#include <set>
 
 using namespace std;;
 
@@ -52,7 +53,7 @@ int addVidPid(){
             printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
             return -1;
         }
-
+        printf("Found device, product ID: 0x%s, vendor ID: 0x%s\n", pid_buff, vid_buff);
     }
     
     if( pclose(vendors) == -1 ){ 
@@ -92,6 +93,7 @@ int RemoveModules(std::string module_name){
 }
 
 int LoadSN(){
+    std::set<std::string> serial_numbers;
     FT_STATUS ftStatus;
     unsigned int numdevs = 0;
     ftStatus =  FT_CreateDeviceInfoList(&numdevs);
@@ -102,14 +104,20 @@ int LoadSN(){
     printf("Devices found: %d\n", numdevs );
     connected_device = (device *) malloc(numdevs*sizeof(device));
     
-    FILE* out = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep SerialNumber: | cut -d':' -f3", "r");
-        if (out == NULL){
+    FILE* SN = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep SerialNumber: | cut -d':' -f3 | cut -b2-9", "r");
+        if (SN == NULL){
         printf("Failed to run system command. SerialNumber not found. \n");
         return -1;
     }
-    //read sn
+    char buff[9];
+    while ( fgets(buff, 9, SN) != NULL){
+        std::string serial(buff);
+        if (serial.length() == 1) continue; //SN file contains empty lines
+        serial_numbers.insert(serial);
+    }
+    //insert sn in connected device list;
     
-    if( pclose(out) == -1 ){ 
+    if( pclose(SN) == -1 ){ 
         printf("Failed to close input from system. \n");
         return -1;
     }
@@ -141,8 +149,9 @@ int init(){
     if( RemoveModules("ftdi_sio")  != 0) return -1;
     if( RemoveModules("usbserial")  != 0) return -1;
     
-    if (addVidPid() != 0) return -1;
     
+    if (addVidPid() != 0) return -1;
+    LoadSN();
     
   //  FT_STATUS ft_status;
  //   unsigned int numdevs = 0;
