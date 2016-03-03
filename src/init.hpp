@@ -35,12 +35,17 @@ int addVidPid(){
     }
     
     FT_STATUS ftStatus;
-    char vid_buff[4];
-    char pid_buff[4];
+    char vid_buff[5];
+    char pid_buff[5];
     while (true ){
-        if ( fgets(pid_buff, 4, products) != NULL || fgets(vid_buff, 4, vendors) != NULL ) break;
-        unsigned int pid = atoi(pid_buff); 
-        unsigned int vid = atoi(vid_buff);
+        if ( fgets(pid_buff, 5, products) != NULL || fgets(vid_buff, 5, vendors) != NULL ) break;
+        char *p, *pr;
+        unsigned int pid = strtol(pid_buff, &p, 16); 
+        unsigned int vid = strtol(vid_buff, &pr, 16);
+        if (*p != 0 || *pr != 0) {
+            printf("cannot parse product and vendor numbers\n");
+            return -1;
+        }
         printf("found thorlabs device, vendor ID: %d, product ID: %d\n", vid, pid);
         ftStatus = FT_SetVIDPID(vid, pid);
         if (ftStatus != FT_OK ) {
