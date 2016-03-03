@@ -39,13 +39,13 @@ int addVidPid(){
     char vid_buff[5];
     char pid_buff[5];
     while (true ){
-        if ( fgets(pid_buff, 5, products) != NULL || fgets(vid_buff, 5, vendors) != NULL ) break;
+        if ( fgets(pid_buff, 5, products) == NULL || fgets(vid_buff, 5, vendors) == NULL ) break;
+        
         char *p, *pr;
         unsigned int pid = strtol(pid_buff, &p, 16); 
         unsigned int vid = strtol(vid_buff, &pr, 16);
         if (*p != 0 || *pr != 0) {
-            printf("cannot parse product and vendor numbers\n");
-            return -1;
+            continue;
         }
         printf("found thorlabs device, vendor ID: %d, product ID: %d\n", vid, pid);
         ftStatus = FT_SetVIDPID(vid, pid);
@@ -114,7 +114,9 @@ int LoadSN(){
         std::string serial(buff);
         if (serial.length() == 1) continue; //SN file contains empty lines
         serial_numbers.insert(serial);
+        std::cout<<serial<<endl;
     }
+    //disconnected devices?
     //insert sn in connected device list;
     
     if( pclose(SN) == -1 ){ 
