@@ -2,6 +2,7 @@
  * Startup functions. Finding devices, controlling logs, etc
  */
 #include "../ftdi_lib/ftd2xx.h"
+#include "device.hpp"
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
@@ -33,14 +34,20 @@ int addVidPid(){
         return -1;
     }
     
-    //save pid & vid - possibly more
+    FT_STATUS ftStatus;
     char vid_buff[4];
     char pid_buff[4];
     while (true ){
-        if ( fgets(pid_buff, 4, products) != NULL || fgets(pid_buff, 4, vendors) != NULL ) break;
+        if ( fgets(pid_buff, 4, products) != NULL || fgets(vid_buff, 4, vendors) != NULL ) break;
         unsigned int pid = atoi(pid_buff); 
         unsigned int vid = atoi(vid_buff);
-        FT_SetVIDPID(vid, pid);
+        printf("found thorlabs device, vendor ID: %d, product ID: %d\n", vid, pid);
+        ftStatus = FT_SetVIDPID(vid, pid);
+        if (ftStatus != FT_OK ) {
+            printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
+            return -1;
+        }
+
     }
     
     if( pclose(vendors) == -1 ){ 
@@ -80,9 +87,19 @@ int RemoveModules(std::string module_name){
 }
 
 int LoadSN(){
-    FILE* out = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep SerialNumber: | cut -d' ' -f7", "r");
+    FT_STATUS ftStatus;
+    unsigned int numdevs = 0;
+    ftStatus =  FT_CreateDeviceInfoList(&numdevs);
+    if (ftStatus != FT_OK) {
+        printf("creating device list failed, err: %d \n", ftStatus );
+        return -1;
+    }
+    printf("Devices found: %d\n", numdevs );
+    connected_device = (device *) malloc(numdevs*sizeof(device));
+    
+    FILE* out = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep SerialNumber: | cut -d':' -f3", "r");
         if (out == NULL){
-        printf("Failed to run system command. Modules not checked. \n");
+        printf("Failed to run system command. SerialNumber not found. \n");
         return -1;
     }
     //read sn
@@ -91,6 +108,7 @@ int LoadSN(){
         printf("Failed to close input from system. \n");
         return -1;
     }
+    return 0;
 }
 
 int CheckLog(){
@@ -100,11 +118,6 @@ int CheckLog(){
 
 int CheckCron(){
     //not implemented;
-    return -1;
-}
-
-int OpenDevice(){
-    //not implemented, FT_OpenEx, set communication
     return -1;
 }
 
@@ -123,7 +136,8 @@ int init(){
     if( RemoveModules("ftdi_sio")  != 0) return -1;
     if( RemoveModules("usbserial")  != 0) return -1;
     
-   // addVidPid();
+    if (addVidPid() != 0) return -1;
+    
     
   //  FT_STATUS ft_status;
  //   unsigned int numdevs = 0;

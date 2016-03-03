@@ -1,4 +1,14 @@
-#include <stdint.h>
+
+typedef struct{
+    int device_type;
+    int channels;
+    int max_pos;
+    int max_vel;
+    int max_acc;
+} device;
+
+device *connected_device;
+device opened_device;
 
 // enum for device types
 enum {
@@ -28,12 +38,5 @@ enum {
     TDIxxx
 };
 
-typedef struct{
-    int device_type;
-    int channels;
-    int max_pos;
-    int max_vel;
-    int max_acc;
-} device;
 
-device connected_device;
+

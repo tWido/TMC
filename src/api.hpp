@@ -2,12 +2,12 @@
  * Api for thorlabs messages.
  */
 #include "../ftdi_lib/ftd2xx.h"
-#include "device.hpp"
-#include "message_codes.hpp"
 #include <endian.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "init.hpp"
+#include "message_codes.hpp"
 #define HEADER_SIZE 6
 
 #define INVALID_PARAM -5
@@ -15,8 +15,8 @@
 #define WARNING -3
 
 #define GET_CH_ID_FUNC uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
-#define SET_CH_ID_16INT_FUNC int SetChanID(int16_t chanID){ if (chanID > connected_device.channels ) return INVALID_PARAM  ; *((uint16_t *) &bytes[6]) = htole16(chanID); return 0; }
-#define SET_CH_ID_8INT_FUNC int SetChannelIdent(uint8_t chanID){ if ( chanID > connected_device.channels ) return INVALID_PARAM;SetFirstParam(chanID);  return 0;}
+#define SET_CH_ID_16INT_FUNC int SetChanID(int16_t chanID){ if (chanID > opened_device.channels ) return INVALID_PARAM  ; *((uint16_t *) &bytes[6]) = htole16(chanID); return 0; }
+#define SET_CH_ID_8INT_FUNC int SetChannelIdent(uint8_t chanID){ if ( chanID > opened_device.channels ) return INVALID_PARAM;SetFirstParam(chanID);  return 0;}
 
 
 class Message{
@@ -198,7 +198,7 @@ public:
     StartUpdateMessages(uint8_t rate, uint8_t dest, uint8_t source):MessageHeader(HW_START_UPDATEMSGS, rate, 0, dest, source){};
     
     int SetUpdaterate(uint8_t rate){ 
-        if ( connected_device.device_type == BBD101 || connected_device.device_type == BBD102 || connected_device.device_type == BBD103 ) return IGNORED_PARAM;
+        if ( opened_device.device_type == BBD101 || opened_device.device_type == BBD102 || opened_device.device_type == BBD103 ) return IGNORED_PARAM;
         SetFirstParam(rate); 
         return 0;
     }
