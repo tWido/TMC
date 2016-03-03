@@ -73,12 +73,12 @@ int DisableChannel(FT_HANDLE &handle,uint8_t chanel = DefaultChanel(), uint8_t d
     return 0;
 }
 
-int ChannelState(FT_HANDLE &handle, ChannelStateInfo *info, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){ 
+int ChannelState(FT_HANDLE &handle, GetChannelState *info, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){ 
     if (CheckMessages(0) != 0) return ERROR_FOUND;
     ReqChannelState mes(chanel, dest, source);
     SendMessage(mes, handle);
     uint8_t *ret;
     if (CheckMessages(REQ_CHANENABLESTATE, GET_CHANENABLESTATE, ret) != 0) return ERROR_RETURNED;
-    info = new ChannelStateInfo(ret);
+    info = new GetChannelState(ret);
     return 0;
 }
