@@ -5,6 +5,11 @@ typedef struct{
     int max_pos;
     int max_vel;
     int max_acc;
+    int tick;
+    int enc_count;
+    uint8_t dest;
+    uint16_t chanID16;
+    uint8_t chanID8;
 } device;
 
 int devices_connected;
