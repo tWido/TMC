@@ -1,29 +1,26 @@
 
-typedef struct{
-    int device_type;
-    uint8_t bay_connected[10];
-    uint8_t dest = 0x11;
-} hub_device;
-
-typedef struct{
-    bool ft_opened;
-    int device_type;
-    int channels;
+typedef struct {
+    int motor_type;
     int max_pos;
     int max_vel;
     int max_acc;
     int tick;
     int enc_count;
-    int in_hub;
     uint8_t dest;
-    uint16_t chanID16;
-    uint8_t chanID8;
 } motor_device;
 
+typedef struct{
+    bool ft_opened;
+    int device_type;
+    int channels;
+    int in_hub;
+    uint8_t dest;
+    motor_device motor[3];
+} controller_device;
+
 int devices_connected;
-motor_device *connected_device;
-motor_device opened_device;
-hub_device *hub_devices;
+controller_device *connected_device;
+controller_device opened_device;
 
 // enum for device types
 enum {

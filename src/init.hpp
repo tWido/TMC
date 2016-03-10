@@ -101,7 +101,7 @@ int LoadSN(){
         return -1;
     }
     printf("Devices found: %d\n", numdevs );
-    connected_device = (motor_device *) malloc(numdevs*sizeof(motor_device));
+    connected_device = (controller_device *) malloc(numdevs*sizeof(controller_device));
     devices_connected= numdevs;
     
     FILE* SN = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep SerialNumber: | cut -d':' -f3 | cut -b2-9", "r");

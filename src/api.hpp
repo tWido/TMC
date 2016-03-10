@@ -15,10 +15,6 @@
 #define IGNORED_PARAM -4
 #define WARNING -3
 
-#define GET_CH_ID_FUNC uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
-#define SET_CH_ID_16INT_FUNC int SetChanID(int16_t chanID){ if (chanID > opened_device.channels ) return INVALID_PARAM  ; *((uint16_t *) &bytes[6]) = htole16(chanID); return 0; }
-#define SET_CH_ID_8INT_FUNC int SetChannelIdent(uint8_t chanID){ if ( chanID > opened_device.channels ) return INVALID_PARAM;SetFirstParam(chanID);  return 0;}
-
 
 class Message{
 public:
@@ -109,6 +105,13 @@ public:
     
     uint16_t GetType(){ return le16toh(*((uint16_t *) &bytes[0])) ;}
 
+    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
+    
+    int SetChanID(int16_t chanID){ 
+        if (chanID > opened_device.channels ) return INVALID_PARAM  ;
+        *((uint16_t *) &bytes[6]) = htole16(chanID); 
+        return 0; 
+    }
 };
 
 
@@ -126,8 +129,6 @@ class SetChannelState:public MessageHeader{
 public:
     SetChannelState(uint8_t chanID, uint8_t ableState, uint8_t dest, uint8_t source):MessageHeader(SET_CHANENABLESTATE, chanID, ableState, dest, source){};
     
-    SET_CH_ID_8INT_FUNC
-    
     /**
      * @brief Set channel id to change state. 
      * @param state - 0x01 for enable, 0x02 for disable 
@@ -143,8 +144,6 @@ public:
 class ReqChannelState:public MessageHeader{
 public:
     ReqChannelState(uint8_t chanID, uint8_t dest, uint8_t source):MessageHeader(REQ_CHANENABLESTATE, chanID, 0, dest, source){};
-   
-    SET_CH_ID_8INT_FUNC
 };
 
 /** Info sent from device. */
@@ -297,9 +296,8 @@ public:
         *((uint16_t *) &bytes[6]) = htole16(chanID);
     }
     
-    SET_CH_ID_16INT_FUNC
     int SetPosition(int32_t pos){
-        if (opened_device.max_pos < pos) return INVALID_PARAM;
+        if (opened_device.motor[GetChanID()].max_pos < pos) return INVALID_PARAM;
         *((int32_t *) &bytes[8]) = htole32(pos);  
         return WARNING;
     }
@@ -308,15 +306,12 @@ public:
 class ReqPosCounter:public MessageHeader{
 public:
     ReqPosCounter(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_POSCOUNTER, chanId, 0, dest, source){}
-    
-    SET_CH_ID_8INT_FUNC
 };
 
 class GetPosCounter:public LongMessage{
 public:
     GetPosCounter(uint8_t *mess):LongMessage(mess,12){};
 
-    GET_CH_ID_FUNC
     int32_t GetPosition(){ return le32toh(*((int32_t*) &bytes[8])); }
 };
 
@@ -327,7 +322,7 @@ public:
     }
     
     int SetEncoderCount(int32_t count){
-        if (opened_device.enc_count == -1 ) return IGNORED_PARAM;
+        if (opened_device.motor[GetChanID()].enc_count == -1 ) return IGNORED_PARAM;
         *((int32_t *) &bytes[8]) = htole32(count); 
         return WARNING;
     }
@@ -336,14 +331,12 @@ public:
 class ReqEncCount:public MessageHeader{
 public:
     ReqEncCount(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_ENCCOUNTER, chanId, 0, dest, source){}
-    SET_CH_ID_8INT_FUNC
 };
 
 class GetEncCount:public LongMessage{
 public:
     GetEncCount(uint8_t *mess):LongMessage(mess, 12){}
 
-    GET_CH_ID_FUNC
     int32_t GetEncCounter(){ return le32toh(*((int16_t*) &bytes[8])); }
 };
 
@@ -354,20 +347,19 @@ public:
         *((uint16_t *) &bytes[6]) = htole16(chanId);
     };
     
-    SET_CH_ID_16INT_FUNC
     int SetMinVel(int32_t min){
-        if( abs(min) > opened_device.max_vel ) return INVALID_PARAM;
+        if( abs(min) > opened_device.motor[GetChanID()].max_vel ) return INVALID_PARAM;
         *((int32_t *) &bytes[8]) = htole32(min);
         return 0;
     }
     
     int SetAcceleration(int32_t acc){
-        if( abs(acc) > opened_device.max_acc ) return INVALID_PARAM;
+        if( abs(acc) > opened_device.motor[GetChanID()].max_acc ) return INVALID_PARAM;
         *((int32_t *) &bytes[12]) = htole32(acc);
         return 0;
     }
     int SetMaxVel(int32_t max){ 
-        if( abs(max) > opened_device.max_vel ) return INVALID_PARAM;
+        if( abs(max) > opened_device.motor[GetChanID()].max_vel ) return INVALID_PARAM;
         *((int32_t *) &bytes[16]) = htole32(max);
         return 0;
     }
@@ -382,7 +374,6 @@ class GetVelocityParams: public LongMessage{
 public:
     GetVelocityParams(uint8_t *mess):LongMessage(mess, 14){}
     
-    GET_CH_ID_FUNC
     int32_t GetMinVel(){ return le32toh(*((int32_t*) &bytes[8])); }
     int32_t GetMaxVel(){ return le32toh(*((int32_t*) &bytes[12])); }
     int32_t GetAcceleration(){ return le32toh(*((int32_t*) &bytes[16])); }
@@ -395,7 +386,6 @@ public:
                 *((uint16_t *) &bytes[6]) = htole16(chanId);      
                 }
             
-    SET_CH_ID_16INT_FUNC
     /**
      * @param mode 1 for continuous jogging, 2 for single step
      */
@@ -407,18 +397,18 @@ public:
     void SetStepSize(int32_t stepSize){ *((int32_t *) &bytes[10]) = htole32(stepSize); }
     
     int SetMinVelocity(int32_t velocity){ 
-        if( abs(velocity) > opened_device.max_vel ) return INVALID_PARAM;
+        if( abs(velocity) > opened_device.motor[GetChanID()].max_vel ) return INVALID_PARAM;
         *((int32_t *) &bytes[14]) = htole32(velocity); 
         return 0;
     }
     
     int SetMaxVelocity(int32_t velocity){
-        if( abs(velocity) > opened_device.max_vel ) return INVALID_PARAM;
+        if( abs(velocity) > opened_device.motor[GetChanID()].max_vel ) return INVALID_PARAM;
         *((int32_t *) &bytes[22]) = htole32(velocity);
         return 0;
     }
     int SetAcceleration(int32_t acc){
-        if( abs(acc) > opened_device.max_acc ) return INVALID_PARAM;
+        if( abs(acc) > opened_device.motor[GetChanID()].max_acc ) return INVALID_PARAM;
         *((int32_t *) &bytes[18]) = htole32(acc);
         return 0;
     }
@@ -442,7 +432,6 @@ class GetJogParams:public LongMessage{
 public:
     GetJogParams(uint8_t *mess):LongMessage(mess, 28){}
     
-    GET_CH_ID_FUNC
     /**
      * @return 1 for continuous jogging, 2 for single step 
      */
@@ -478,7 +467,6 @@ public:
                 *((uint16_t *) &bytes[6]) = htole16(chanId);
             }
     
-    SET_CH_ID_16INT_FUNC
     /**
      * @param rest_fac, range from 1 to 100, i.e 1% to 100%
      */
@@ -507,7 +495,6 @@ class GetPowerParams:public LongMessage{
 public:
     GetPowerParams(uint8_t *mess):LongMessage(mess, 12){}
     
-    GET_CH_ID_FUNC
     /**
      * @return phase power when motor is at rest in % 
      */
@@ -524,7 +511,6 @@ class SetGeneralMoveParams:public LongMessage{
         *((uint16_t *) &bytes[6]) = htole16(chanId);
     }
     
-    SET_CH_ID_16INT_FUNC
     void SetBacklashDist(int32_t dist){ *((int32_t *) &bytes[8]) = htole16(dist); }
 };
 
@@ -537,7 +523,6 @@ class GetGeneralMoveParams:public LongMessage{
 public:
     GetGeneralMoveParams(uint8_t *mess):LongMessage(mess,12){};
     
-    GET_CH_ID_FUNC
     int32_t GetBakclashDist(){return le32toh(*((int32_t*) &bytes[8])); }
 };
 
@@ -547,8 +532,7 @@ public:
             :LongMessage(SET_MOVERELPARAMS, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
         }
-            
-    SET_CH_ID_16INT_FUNC
+
     void SetRelativeDist(int32_t dist){ *((int32_t *) &bytes[8]) = htole32(dist); }
 };
 
@@ -560,7 +544,6 @@ public:
 class GetRelativeMoveParams: public LongMessage{
     GetRelativeMoveParams(uint8_t *mess):LongMessage(mess,6){}
     
-    GET_CH_ID_FUNC
     int32_t GetRelativeDist(){ return le32toh(*((int32_t*) &bytes[8])); }
 };
 
@@ -571,9 +554,8 @@ public:
         *((uint16_t *) &bytes[6]) = htole16(chanId);   
         }
             
-    SET_CH_ID_16INT_FUNC
     int SetAbsolutePos(int32_t pos){ 
-        if (pos < 0 || pos > opened_device.max_pos ) return INVALID_PARAM;
+        if (pos < 0 || pos > opened_device.motor[GetChanID()].max_pos ) return INVALID_PARAM;
         *((int32_t *) &bytes[8]) = htole32(pos); 
         return 0;
     }
@@ -588,7 +570,6 @@ class GetAbsoluteMoveParams:public LongMessage{
 public:
     GetAbsoluteMoveParams(uint8_t *mess):LongMessage(mess,12){}
     
-    GET_CH_ID_FUNC
     int32_t GetAbsolutePos(){ return le32toh(*((int32_t*) &bytes[8])); }
 };
 
@@ -598,9 +579,8 @@ public:
         *((uint16_t *) &bytes[6]) = htole16(chanId);
     }
     
-    SET_CH_ID_16INT_FUNC
     int SetHomingVelocity(int32_t vel){
-        if (vel < 0 || vel > opened_device.max_vel ) return INVALID_PARAM;
+        if (vel < 0 || vel > opened_device.motor[GetChanID()].max_vel ) return INVALID_PARAM;
         *((int32_t *) &bytes[12]) = htole32(vel); 
         return 0;
     }
@@ -615,7 +595,6 @@ class GetHomeParams:public LongMessage{
 public:
     GetHomeParams(uint8_t *mess):LongMessage(mess,20){}
     
-    GET_CH_ID_FUNC
     int32_t GetHomingVelocity(){ return le32toh(*((int32_t*) &bytes[12])); }
 };
 
@@ -625,8 +604,6 @@ public:
             :LongMessage(SET_LIMSWITCHPARAMS, 16, dest, source){
                 *((uint16_t *) &bytes[6]) = htole16(chanId);
             }
-            
-    SET_CH_ID_16INT_FUNC
     
     int SetClockwiseHardLimit(uint16_t limit){
         if ( limit != 0x80 && limit > 0x06 ) return INVALID_PARAM;
@@ -667,7 +644,6 @@ class GetLimitSwitchParams:public LongMessage{
 public:
     GetLimitSwitchParams(uint8_t *mess):LongMessage(mess, 22){}
     
-    GET_CH_ID_FUNC
     uint16_t GetClockwiseHardLimit(){ return le16toh(*((uint16_t*) &bytes[8])); }
     uint16_t GetCounterlockwiseHardLimit(){ return le16toh(*((uint16_t*) &bytes[10])); }
     
@@ -699,7 +675,6 @@ public:
         *((uint32_t *) &bytes[8]) = htole32(RelativeDist);
     }
     
-    SET_CH_ID_16INT_FUNC
     void SetRelativeDistance(int32_t dist){ *((int32_t *) &bytes[8]) = htole32(dist); }
 };
 
@@ -720,9 +695,8 @@ public:
         *((uint16_t *) &bytes[6]) = htole16(chanId);
     };
      
-    SET_CH_ID_16INT_FUNC
     int SetAbsoluteDistance(int32_t dist){
-        if (dist < 0 || dist > opened_device.max_pos ) return INVALID_PARAM;
+        if (dist < 0 || dist > opened_device.motor[GetChanID()].max_pos ) return INVALID_PARAM;
         *((int32_t *) &bytes[8]) = htole32(dist); 
         return 0;
     }
@@ -775,7 +749,6 @@ public:
         *((uint16_t *) &bytes[6]) = htole16(chanId);
     }
     
-    SET_CH_ID_16INT_FUNC
     /**
      * @param profile of acceleration/deceleration, 0 for trapezoidal, 1-18 for s-curve profile
      */
@@ -795,7 +768,6 @@ class GetBowIndex:public LongMessage{
 public:
     GetBowIndex(uint8_t *mess):LongMessage(mess, 10){};
     
-    GET_CH_ID_FUNC
     uint16_t BowIndex(){ return le16toh(*((uint16_t*) &bytes[8])); }
 };
 
@@ -805,7 +777,6 @@ public:
                 *((uint16_t *) &bytes[6]) = htole16(chanId);
             }
             
-    SET_CH_ID_16INT_FUNC
     int SetProportional(int32_t value){ 
         if ( value < 0 || value > 32767 ) return INVALID_PARAM;
         *((int32_t *) &bytes[8]) = htole32(value); 
@@ -841,8 +812,7 @@ public:
 class GetPidParams:public LongMessage{
 public:
     GetPidParams(uint8_t *mess):LongMessage(mess, 26){}
-    
-    GET_CH_ID_FUNC
+
     int32_t GetProportional(){ return le32toh(*((int32_t*) &bytes[8])); }
     int32_t GetIntegral(){ return le32toh(*((int32_t*) &bytes[12])); }
     int32_t GetDifferential(){ return le32toh(*((int32_t*) &bytes[16])); }
@@ -856,7 +826,7 @@ public:
     SetLedMode(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(SET_AVMODES, 4, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
     }
-    SET_CH_ID_16INT_FUNC
+    
     int SetMode(uint16_t mode){ 
         if ( mode > 11 || ( mode > 3 || mode < 8) ) return INVALID_PARAM;
         *((uint16_t *) &bytes[8]) = htole16(mode); 
@@ -874,33 +844,28 @@ class GetLedMode:public LongMessage{
 public:
     GetLedMode(uint8_t *mess):LongMessage(mess, 10){}
     
-    GET_CH_ID_FUNC
     uint16_t GetMode(){ return le16toh(*((uint16_t*) &bytes[8])); } 
 };
 
 class SetButtonParams:public LongMessage{
 public:
-    SetButtonParams(uint8_t dest, uint8_t source, uint16_t chanId, int32_t pos1, int32_t pos2, uint16_t timeout)
+    SetButtonParams(uint8_t dest, uint8_t source, uint16_t chanId)
             :LongMessage(SET_BUTTONPARAMS, 16, dest, source){
                 *((uint16_t *) &bytes[6]) = htole16(chanId);
-                *((int32_t *) &bytes[10]) = htole32(pos1);
-                *((int32_t *) &bytes[14]) = htole32(pos2);
-                *((uint16_t *) &bytes[18]) = htole16(timeout);
             }
             
-    SET_CH_ID_16INT_FUNC
     int SetMode(uint16_t mode){
         if (mode != 1 && mode != 2 ) return INVALID_PARAM;
         *((uint16_t *) &bytes[8]) = htole16(mode); 
         return 0;
     }
     int SetPosition1(int32_t pos){
-        if (pos < 0 || pos > opened_device.max_pos ) return INVALID_PARAM;
+        if (pos < 0 || pos > opened_device.motor[GetChanID()].max_pos ) return INVALID_PARAM;
         *((int32_t *) &bytes[10]) = htole32(pos);
         return 0;
     }
     int SetPosition2(int32_t pos){
-        if (pos < 0 || pos > opened_device.max_pos ) return INVALID_PARAM;
+        if (pos < 0 || pos > opened_device.motor[GetChanID()].max_pos ) return INVALID_PARAM;
         *((int32_t *) &bytes[14]) = htole32(pos);
         return 0;
     }
@@ -920,7 +885,6 @@ class GetButtonParams: public LongMessage{
 public:
     GetButtonParams(uint8_t *mess):LongMessage(mess, 22){}
     
-    GET_CH_ID_FUNC
     uint16_t GetMode(){ return le16toh(*((uint16_t*) &bytes[8])); }
     int32_t GetPosition1(){ return le32toh(*((int32_t*) &bytes[12])); }
     int32_t GetPosition2(){ return le32toh(*((int32_t*) &bytes[14])); }
@@ -936,7 +900,6 @@ class GetStatusUpdate:public LongMessage{
 public:
     GetStatusUpdate(uint8_t *mess):LongMessage(mess,20){}
     
-    GET_CH_ID_FUNC
     int32_t GetPosition(){ return le32toh(*((int32_t*) &bytes[8])); }
     int32_t GetEncCount(){ return le32toh(*((int32_t*) &bytes[12])); }
     uint32_t GetStatusBits(){ return le32toh(*((uint32_t*) &bytes[16])); }
@@ -951,7 +914,6 @@ class GetMotChanStatusUpdate:public LongMessage{
 public:
     GetMotChanStatusUpdate(uint8_t *mess):LongMessage(mess,20){}
     
-    GET_CH_ID_FUNC
     int32_t GetPosition(){ return le32toh(*((int32_t*) &bytes[8])); }
     uint16_t GetVelocity(){ return le16toh(*((uint16_t*) &bytes[12])); }
     uint32_t GetStatusBits(){ return le32toh(*((uint32_t*) &bytes[16])); }
@@ -971,7 +933,6 @@ class GetStatusBits:public LongMessage{
 public:
     GetStatusBits(uint8_t *mess):LongMessage(mess,12){}
     
-    GET_CH_ID_FUNC
     uint32_t GetStatBits(){ return le32toh(*((uint32_t*) &bytes[8])); }
 };
 
@@ -987,7 +948,7 @@ public:
 
 class SetTrigger:public MessageHeader{
 public:
-    SetTrigger(uint8_t dest, uint8_t source, uint8_t chanId, uint8_t mode):MessageHeader(SET_TRIGGER, chanId, 0, dest, source){}
+    SetTrigger(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(SET_TRIGGER, chanId, 0, dest, source){}
     
     int SetMode(uint8_t mode){
         if (opened_device.device_type != BSC201 && opened_device.device_type != BSC202 && opened_device.device_type != BSC203 && 
