@@ -247,13 +247,9 @@ public:
     
 class ReqRackBayUsed:public MessageHeader{
 public:
-    ReqRackBayUsed(uint8_t bayID, uint8_t dest, uint8_t source):MessageHeader(RACK_REQ_BAYUSED, bayID, 0 , dest, source){}
+    ReqRackBayUsed( uint8_t dest, uint8_t source):MessageHeader(RACK_REQ_BAYUSED, 0, 0 , dest, source){}
 
-    int SetBayIdent(uint8_t bayID){ 
-        if (bayID > 10) return INVALID_PARAM;
-        SetFirstParam(bayID); 
-        return 0;
-    }
+    void SetBayIdent(uint8_t bayID){ SetFirstParam(bayID); }
 };
 
 class GetRackBayUsed:public MessageHeader{
