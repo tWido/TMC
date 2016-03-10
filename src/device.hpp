@@ -23,7 +23,7 @@ typedef struct{
 int devices_connected;
 motor_device *connected_device;
 motor_device opened_device;
-hub_device *hub_device;
+hub_device *hub_devices;
 
 // enum for device types
 enum {
