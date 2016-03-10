@@ -670,9 +670,8 @@ public:
 
 class MoveRelative2:public LongMessage{
 public:
-    MoveRelative2(uint8_t dest, uint8_t source, uint16_t chanId, int32_t RelativeDist):LongMessage(MOVE_RELATIVE, 6, dest, source){
+    MoveRelative2(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(MOVE_RELATIVE, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
-        *((uint32_t *) &bytes[8]) = htole32(RelativeDist);
     }
     
     void SetRelativeDistance(int32_t dist){ *((int32_t *) &bytes[8]) = htole32(dist); }
