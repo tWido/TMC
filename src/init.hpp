@@ -23,13 +23,13 @@ typedef struct {
 } defaults;
 
 int addVidPid(){
-    FILE* vendors = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep idVendor | cut -d'=' -f2 | cut -b1-4", "r");
+    FILE* vendors = popen("lsusb -v | grep \"Future Technology Devices International\" | grep \"Bus\" | cut -d':' -f2 | cut -b5-8", "r");
     if (vendors == NULL){
         printf("Failed to run system command. Modules not checked. \n");
         return -1;
     }
     
-    FILE* products = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep idVendor | cut -d'=' -f3 | cut -b1-4", "r");
+    FILE* products = popen("lsusb | grep \"Future Technology Devices International\" | grep \"Bus\" | cut -d':' -f3 | cut -b-4", "r");
     if (products == NULL){
         printf("Failed to run system command. Modules not checked. \n");
         return -1;
@@ -47,7 +47,7 @@ int addVidPid(){
         if (*p != 0 || *pr != 0) {
             continue;
         }
-        printf("found thorlabs device, vendor ID: 0x%s, product ID: ox%s\n", vid_buff, pid_buff);
+        printf("found Thorlabs device, vendor ID: 0x%s, product ID: 0x%s\n", vid_buff, pid_buff);
         ftStatus = FT_SetVIDPID(vid, pid);
         if (ftStatus != FT_OK ) {
             printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
