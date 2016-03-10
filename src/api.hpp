@@ -94,7 +94,7 @@ public:
     LongMessage(uint16_t type, uint16_t data_size, uint8_t dest, uint8_t source):Message(HEADER_SIZE + data_size){
         *((uint16_t *) &bytes[0]) = htole16(type);
         *((uint16_t *) &bytes[2]) = htole16(data_size);
-        bytes[4] = dest;
+        bytes[4] = dest | 0x80;
         bytes[5] = source;
     }
     
