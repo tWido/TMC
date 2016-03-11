@@ -8,8 +8,9 @@
 #include <string>
 #include <errno.h>
 #include <set>
+#define USB_PATH path = dev_path; path.append(loc);
 
-using namespace std;;
+using namespace std;
 
 typedef struct {
     int32_t SN;
@@ -23,46 +24,105 @@ typedef struct {
 } defaults;
 
 int addVidPid(){
-    FILE* vendors = popen("lsusb -v | grep \"Future Technology Devices International\" | grep \"Bus\" | cut -d':' -f2 | cut -b5-8", "r");
-    if (vendors == NULL){
-        printf("Failed to run system command. Modules not checked. \n");
-        return -1;
-    }
-    
-    FILE* products = popen("lsusb | grep \"Future Technology Devices International\" | grep \"Bus\" | cut -d':' -f3 | cut -b-4", "r");
-    if (products == NULL){
-        printf("Failed to run system command. Modules not checked. \n");
-        return -1;
-    }
-    
+    string dev_path = "/sys/bus/usb/devices/";
+    string vendor_path = "/idVendor";
+    string product_path = "/idProduct";
+    string serial_path = "/serial";
+    string manufacturer_path = "/manufacturer";
+    string path;
+    char *p;
     FT_STATUS ftStatus;
-    char vid_buff[5];
-    char pid_buff[5];
+    
+    FILE *bus_loc = popen("dmesg | grep Thorlabs | cut -d':' -f1 |cut -b20-", "r");
+    char loc_buff[10];
     while (true ){
-        if ( fgets(pid_buff, 5, products) == NULL || fgets(vid_buff, 5, vendors) == NULL ) break;
+        if ( fgets(loc_buff, 10, bus_loc) == NULL ) break;
+        string loc(loc_buff);
         
-        char *p, *pr;
-        unsigned int pid = strtol(pid_buff, &p, 16); 
-        unsigned int vid = strtol(vid_buff, &pr, 16);
-        if (*p != 0 || *pr != 0) {
-            continue;
+        USB_PATH
+        path.append(manufacturer_path);
+        FILE *manufacturer = fopen(path.c_str(),"r");
+        if (manufacturer == NULL) continue;                 //device disconnected
+        else {
+            char m_buff[25];
+            fgets(m_buff, 20, manufacturer);
+            if ( strcmp(m_buff, "Thorlabs")!= 0 ) continue;  //other device connected in port
         }
-        printf("found Thorlabs device, vendor ID: 0x%s, product ID: 0x%s\n", vid_buff, pid_buff);
+        fclose(manufacturer);
+        
+        USB_PATH
+        path.append(vendor_path);
+        FILE *vid_file = fopen(path.c_str(),"r");
+        if (vid_file == NULL) return -1;
+        char vid_buff[5];
+        if ( fgets(vid_buff, 5, vid_file) == NULL) return -1;
+        unsigned int vid = strtol(vid_buff, &p, 16); 
+        fclose(vid_file);
+        
+        USB_PATH
+        path.append(product_path);
+        FILE *pid_file = fopen(path.c_str(),"r");
+        if (pid_file == NULL) return -1;
+        char pid_buff[5];
+        if ( fgets(pid_buff, 5, pid_file) == NULL) return -1;
+        unsigned int pid = strtol(pid_buff, &p, 16); 
+        fclose(pid_file);
+        
+        printf("Found Thorlabs device, vendor ID: 0x%s, product ID: 0x%s\n", vid_buff, pid_buff);
         ftStatus = FT_SetVIDPID(vid, pid);
         if (ftStatus != FT_OK ) {
             printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
             return -1;
         }
+            
+        USB_PATH
+        path.append(serial_path);
+        FILE *serial = fopen(path.c_str(),"r");
+        if (serial == NULL) return -1;
+        //get sn
+        fclose(serial);
     }
     
-    if( pclose(vendors) == -1 ){ 
-        printf("Failed to close input from system. \n" );
-        return -1;
-    }
-    if( pclose(products) == -1 ){ 
-        printf("Failed to close input from system. \n") ;
-        return -1;
-    }
+//    FILE* vendors = popen("dmesg | grep Thorlabs -A 1 -B 3 | grep idVendor | cut -d'=' -f2 | cut -b1-4", "r");
+//    if (vendors == NULL){
+//        printf("Failed to run system command. Modules not checked. \n");
+//        return -1;
+//    }
+//    
+//    FILE* products = popen("lsusb | grep \"Future Technology Devices International\" | grep \"Bus\" | cut -d':' -f3 | cut -b-4", "r");
+//    if (products == NULL){
+//        printf("Failed to run system command. Modules not checked. \n");
+//        return -1;
+//    }
+//    
+//    FT_STATUS ftStatus;
+//    char vid_buff[5];
+//    char pid_buff[5];
+//    while (true ){
+//        if ( fgets(pid_buff, 5, products) == NULL || fgets(vid_buff, 5, vendors) == NULL ) break;
+//        
+//        char *p, *pr;
+//        unsigned int pid = strtol(pid_buff, &p, 16); 
+//        unsigned int vid = strtol(vid_buff, &pr, 16);
+//        if (*p != 0 || *pr != 0) {
+//            continue;
+//        }
+//        printf("found Thorlabs device, vendor ID: 0x%s, product ID: 0x%s\n", vid_buff, pid_buff);
+//        ftStatus = FT_SetVIDPID(vid, pid);
+//        if (ftStatus != FT_OK ) {
+//            printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
+//            return -1;
+//        }
+//    }
+//    
+//    if( pclose(vendors) == -1 ){ 
+//        printf("Failed to close input from system. \n" );
+//        return -1;
+//    }
+//    if( pclose(products) == -1 ){ 
+//        printf("Failed to close input from system. \n") ;
+//        return -1;
+//    }
     
     return 0;
 }

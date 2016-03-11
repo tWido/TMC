@@ -15,6 +15,7 @@ typedef struct{
     int channels;
     int in_hub;
     uint8_t dest;
+    char SN[9];
     motor_device motor[3];
 } controller_device;
 
