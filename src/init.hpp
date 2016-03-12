@@ -38,6 +38,8 @@ int addVidPid(){
     while (true ){
         if ( fgets(loc_buff, 10, bus_loc) == NULL ) break;
         string loc(loc_buff);
+        const char c = '\0';
+        loc.replace(loc.length()-1, 1, &c  );
         
         USB_PATH
         path.append(manufacturer_path);
@@ -46,7 +48,7 @@ int addVidPid(){
         else {
             char m_buff[25];
             fgets(m_buff, 20, manufacturer);
-            if ( strcmp(m_buff, "Thorlabs")!= 0 ) continue;  //other device connected in port
+            if ( strncmp(m_buff, "Thorlabs", 8)!= 0 ) continue;  //other device connected in port
         }
         fclose(manufacturer);
         
