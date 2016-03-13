@@ -9,31 +9,26 @@
 #include <errno.h>
 #include <dirent.h>
 #include <vector>
+
+#define STOP 1
+#define FTDI_ERROR -2
+#define SYSTEM_ERROR -3
+
 #define USB_PATH path = dev_path; path.append(loc);
 
 using namespace std;
 
-typedef struct {
-    int32_t SN;
-    uint8_t device_type;
-    uint8_t HWtype;
-    uint8_t dest = 0x50;
-    uint8_t source = 0x01;
-    uint8_t chanID = 0x01;
-    uint16_t chan = 0x0001;
-    uint8_t update_rate = 0x0A;
-} defaults;
+vector<string> SN;
 
 int addVidPid(){
     char *p;
     FT_STATUS ftStatus;
-    vector<string> SN;
     string usb_path= "/sys/bus/usb/devices/";
     
     DIR *usb_devs = opendir(usb_path.c_str());
     if (usb_devs == NULL ) {
         printf("Error while opening usb devices directory %s", strerror(errno));
-        return -1;
+        return SYSTEM_ERROR;
     }
     struct dirent *st_dir;
     while ( (st_dir = readdir (usb_devs)) ){
@@ -53,7 +48,7 @@ int addVidPid(){
             if (read_file == NULL) {
                 printf("Error while reading vendor id %s", strerror(errno));
                 closedir(usb_devs);
-                return -1;
+                return SYSTEM_ERROR;
             }
             fgets(fread_buff, 5, read_file);
             fclose(read_file);
@@ -66,7 +61,7 @@ int addVidPid(){
             if (read_file == NULL) {
                 printf("Error while reading product id %s", strerror(errno));
                 closedir(usb_devs);
-                return -1;
+                return SYSTEM_ERROR;
             }
             fgets(fread_buff, 5, read_file);
             fclose(read_file);
@@ -74,9 +69,9 @@ int addVidPid(){
             
             ftStatus = FT_SetVIDPID(vid, pid);
             if (ftStatus != FT_OK ) {
-            printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
-            closedir(usb_devs);
-            return -1;
+                printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
+                closedir(usb_devs);
+                return FTDI_ERROR;
             }
             
             string sn_path = usb_path;
@@ -86,7 +81,7 @@ int addVidPid(){
             if (read_file == NULL) {
                 printf("Error while reading product serial %s", strerror(errno));
                 closedir(usb_devs);
-                return -1;
+                return SYSTEM_ERROR;
             }
             fgets(fread_buff, 9, read_file); 
             fclose(read_file);
@@ -152,6 +147,43 @@ int init(){
     if( RemoveModules("usbserial")  != 0) return -1;
     if (addVidPid() != 0) return -1;
     
+    devices_connected = SN.size();
+    if (devices_connected == 0) {
+        printf("No Thorlabs device found. Exiting\n");
+        return STOP;
+    }
+    connected_device = (controller_device*) malloc(  sizeof(controller_device) * devices_connected );
+    for (unsigned int i = 0; i< SN.size(); i++) connected_device[i].SN = strdup(SN.at(i).c_str());
+    
+    FT_STATUS ft_status;
+    unsigned int num_ftdi_devices;
+    ft_status = FT_CreateDeviceInfoList(&num_ftdi_devices);
+    if (ft_status != FT_OK) {
+        printf("Detecting devices failed\n");
+        return FTDI_ERROR;
+    }
+    
+    FT_DEVICE_LIST_INFO_NODE *ftdi_devs = (FT_DEVICE_LIST_INFO_NODE*) malloc(sizeof(FT_DEVICE_LIST_INFO_NODE) *num_ftdi_devices  ) ;  
+    ft_status = FT_GetDeviceInfoList( ftdi_devs, &num_ftdi_devices) ;  
+    if (ft_status != FT_OK) {
+        printf("Detecting devices failed\n");
+        return FTDI_ERROR;
+    }
+    
+    //Find additional info to Thorlabs devices
+    for (unsigned int j = 0; j<  devices_connected; j++){
+        for (unsigned int i = 0; i< num_ftdi_devices; i++){
+            if ( strncmp(ftdi_devs[i].SerialNumber, connected_device[j].SN, 8) == 0 ){
+                
+                connected_device[j].device_type = ftdi_devs[i].Type;
+                FT_HANDLE handle = ftdi_devs[i].ftHandle;
+                //send messages for more info
+
+            }
+        }
+    }
+    
+    free(ftdi_devs);        
     //not implemented yet
     return -1;
 }

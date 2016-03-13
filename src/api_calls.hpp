@@ -9,18 +9,17 @@
 #define ERROR_RETURNED -3
 
 
-defaults gdefaults;
 
 uint8_t DefaultDest(){
-    return gdefaults.dest;
+    return 0x50;
 }
 
 uint8_t DefaultSource(){
-    return gdefaults.source;
+    return 0x01;
 }
 
 uint8_t DefaultChanel(){
-    return gdefaults.chanID;
+    return 0x01;
 }
 
 int CheckDeviceAbility(){

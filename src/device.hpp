@@ -15,11 +15,11 @@ typedef struct{
     int channels;
     int in_hub;
     uint8_t dest;
-    char SN[9];
+    char *SN;
     motor_device motor[3];
 } controller_device;
 
-int devices_connected;
+unsigned int devices_connected;
 controller_device *connected_device;
 controller_device opened_device;
 
