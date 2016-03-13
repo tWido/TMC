@@ -7,12 +7,6 @@
 #include <stdio.h>
 #include "api.hpp"
 
-#define ERROR_FOUND -2
-#define BAD_PARAMS -4
-#define ERROR_RETURNED -3
-
-
-
 uint8_t DefaultDest(){
     return 0x50;
 }
@@ -43,7 +37,13 @@ int SendMessage(Message &message, FT_HANDLE &handle){
     return -1;
 }
 
-int CheckMessages(uint16_t last_msg = 0, uint16_t expected_msg = 0, uint8_t *mess = NULL){
+int CheckIcomingQueue(){
+    //not implemented
+    //check if queue is empty, process possible messages
+    return -1;
+}
+
+int GetResponseMess(uint16_t last_msg, uint16_t expected_msg, uint8_t *mess ){
     //not implemented
     //check incoming queue for error messages, return fail on error, 
     // other messages handled
@@ -52,35 +52,35 @@ int CheckMessages(uint16_t last_msg = 0, uint16_t expected_msg = 0, uint8_t *mes
 }
 
 int Identify( FT_HANDLE &handle, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource() ){
-    if (CheckMessages(0) != 0) return ERROR_FOUND;
+    CheckIcomingQueue();
     IdentifyMs mes(dest, source);
     SendMessage(mes, handle); 
-    if (CheckMessages(IDENTIFY) != 0) return ERROR_RETURNED;
+    CheckIcomingQueue();
     return 0;
 }
 
 int EnableChannel(FT_HANDLE &handle, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){   
-    if (CheckMessages() != 0) return ERROR_FOUND;
+    CheckIcomingQueue();
     SetChannelState mes(chanel, 1, dest, source);
     SendMessage(mes, handle);
-    if (CheckMessages(SET_CHANENABLESTATE) != 0) return ERROR_RETURNED;
+    CheckIcomingQueue();
     return 0;
 }
 
 int DisableChannel(FT_HANDLE &handle,uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){  
-    if (CheckMessages(0) != 0) return ERROR_FOUND;
+    CheckIcomingQueue();
     SetChannelState mes(chanel, 2, dest, source);
     SendMessage(mes, handle);
-    if (CheckMessages(SET_CHANENABLESTATE) != 0) return ERROR_RETURNED;
+    CheckIcomingQueue();
     return 0;
 }
 
 int ChannelState(FT_HANDLE &handle, GetChannelState *info, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){ 
-    if (CheckMessages(0) != 0) return ERROR_FOUND;
+    CheckIcomingQueue();
     ReqChannelState mes(chanel, dest, source);
     SendMessage(mes, handle);
     uint8_t *ret;
-    if (CheckMessages(REQ_CHANENABLESTATE, GET_CHANENABLESTATE, ret) != 0) return ERROR_RETURNED;
+    if (GetResponseMess(REQ_CHANENABLESTATE, GET_CHANENABLESTATE, ret) != 0) return -1;
     info = new GetChannelState(ret);
     return 0;
 }
