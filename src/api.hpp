@@ -1,13 +1,16 @@
+#ifndef API
+#define API
+
 /*
  * Api for thorlabs messages.
  */
-#include "../ftdi_lib/ftd2xx.h"
 #include <endian.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "init.hpp"
+#include "../ftdi_lib/ftd2xx.h"
+#include "device.hpp"
 #include "message_codes.hpp"
 #define HEADER_SIZE 6
 
@@ -971,3 +974,5 @@ public:
     
     uint8_t GetMode(){return GetSecondParam() ;}
 };
+
+ #endif 

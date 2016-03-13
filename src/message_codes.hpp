@@ -1,3 +1,6 @@
+#ifndef MESS_CODES
+#define MESS_CODES
+
 enum {
     //Generic messages
     IDENTIFY = 0x0223,
@@ -114,3 +117,4 @@ enum {
             
 };
 
+ #endif 

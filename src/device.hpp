@@ -1,3 +1,5 @@
+#ifndef DEVICE
+#define DEVICE
 
 typedef struct {
     int motor_type;
@@ -52,5 +54,5 @@ enum {
     TBD001
 };
 
-
+ #endif 
 
