@@ -1,3 +1,6 @@
+#ifndef API_CALLS
+#define API_CALLS
+
 #include <endian.h>
 #include <string.h>
 #include <stdint.h>
@@ -81,3 +84,5 @@ int ChannelState(FT_HANDLE &handle, GetChannelState *info, uint8_t chanel = Defa
     info = new GetChannelState(ret);
     return 0;
 }
+
+#endif 

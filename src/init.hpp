@@ -2,13 +2,14 @@
  * Startup functions. Finding devices, controlling logs, etc
  */
 #include "../ftdi_lib/ftd2xx.h"
-#include "device.hpp"
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
 #include <errno.h>
 #include <dirent.h>
 #include <vector>
+#include "device.hpp"
+#include "api_calls.hpp"
 
 #define STOP 1
 #define FTDI_ERROR -2
