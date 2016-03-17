@@ -198,7 +198,7 @@ public:
 
 class StartUpdateMessages:public MessageHeader{
 public:
-    StartUpdateMessages(uint8_t dest, uint8_t source):MessageHeader(HW_START_UPDATEMSGS, 0, dest, source){};
+    StartUpdateMessages(uint8_t dest, uint8_t source):MessageHeader(HW_START_UPDATEMSGS, 0, 0, dest, source){};
     
     int SetUpdaterate(uint8_t rate){ 
         if ( opened_device.device_type == BBD101 || opened_device.device_type == BBD102 || opened_device.device_type == BBD103 ) return IGNORED_PARAM;
