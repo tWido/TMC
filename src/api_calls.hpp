@@ -12,9 +12,9 @@
 #define DEVICE_ERROR -5
 #define MOVED_HOME 3
 #define MOVE_COMPLETED_STATUS 2
-#define MOVE_STOPPED 4
+#define MOVE_STOPPED_STATUS 4
 
-#define READ_REST(x) ftStatus = FT_Read(handle, &buff[2], x, NULL);   if (ftStatus != FT_OK) {printf("FT_Error occured, error code :%d", ftStatus );   return FT_ERROR; }                                                               
+#define READ_REST(x) ftStatus = FT_Read(handle, &buff[2], x, NULL);   if (ftStatus != FT_OK) {printf("FT_Error occured, error code :%d", ftStatus );   return FT_ERROR; }  
 
 uint8_t DefaultDest(){
     return 0x50;
@@ -69,46 +69,50 @@ int CheckIncomingQueue(FT_HANDLE &handle){
     switch ( msgID ){
         case HW_DISCONNECT: {
             READ_REST(4)
-            HwDisconnect disconnect(buff);
-            char* sn = (char *) "undefined";
-            for (unsigned int i = 0; i< devices_connected; i++){
-                if (connected_device[i].dest == disconnect.GetSource() ){
-                    sn = connected_device[i].SN;
-                    break;
-                }
-            }
-            printf("Device with serial %s disconnecting\n", sn );
+            HwDisconnect response(buff);
+            printf("Device with serial disconnecting\n");
             return 0;
         }
         case HW_RESPONSE:{
             READ_REST(4)
             HwResponse response(buff);
-            char* sn = (char *) "undefined";
-            for (unsigned int i = 0; i< devices_connected; i++){
-                if (connected_device[i].dest == response.GetSource() ){
-                    sn = connected_device[i].SN;
-                    break;
-                }
-            }
-            printf("Device with serial %s encountered error\n", sn );
+            printf("Device with serial encountered error\n");
             return DEVICE_ERROR;
         }
         case RICHRESPONSE:{
             READ_REST(72)
-            HwResponseInfo response(buff);        
+            HwResponseInfo response(buff);      
+            printf("Device with serial encountered error\n");
+            printf("Detailed description of error \n ");
+            uint16_t error_cause = response.GetMsgID();
+            if (error_cause != 0) printf("\tMessage causing error: %d\n ", error_cause);
+            printf("\tThorlabs error code: %d \n", response.GetCode());
+            printf("\tDescription: %s\n", response.GetDescription());
             return DEVICE_ERROR;
         }
         case MOVE_HOMED:{
-            //moved to home position
+            READ_REST(4)
+            MovedHome response(buff);
+            uint8_t motor_channel = response.GetSource();
+            if (motor_channel == 0x50 ) printf("Moved to home position\n");
+            else printf("Motor in bay %d moved to home position\n",  (motor_channel | 0x0F)  );
             return MOVED_HOME;
         }
         case MOVE_COMPLETED:{
-            //move completed
+            READ_REST(4)
+            MoveCompleted response(buff);
+            uint8_t motor_channel = response.GetSource();
+            if (motor_channel == 0x50 ) printf("Move completed\n");
+            else printf("Motor in bay %d completed move\n",  (motor_channel | 0x0F)  );
             return MOVE_COMPLETED_STATUS;
         }
         case MOVE_STOPPED:{
-            //stopped
-            return MOVE_STOPPED;
+            READ_REST(4)
+            MoveStopped response(buff);
+            uint8_t motor_channel = response.GetSource();
+            if (motor_channel == 0x50 ) printf("Move stopped\n");
+            else printf("Motor in bay %d stopped moving\n",  (motor_channel | 0x0F)  );
+            return MOVE_STOPPED_STATUS;
         }
         case GET_STATUSUPDATE:{
             //status update
