@@ -18,6 +18,7 @@
 #define EMPTY 1
 
 #define READ_REST(x) ftStatus = FT_Read(handle, &buff[2], x, NULL);   if (ftStatus != FT_OK) {printf("FT_Error occured, error code :%d", ftStatus );   return FT_ERROR; }  
+#define EMPTY_IN_QUEUE ret = EmptyIncomingQueue(handle, device);  if (ret != 0 ) return ret;
 
 uint8_t DefaultDest(){
     return 0x50;
@@ -206,61 +207,69 @@ int GetResponseMess(FT_HANDLE &handle, controller_device &device, uint16_t expec
 }
 
 int Identify( FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource() ){
-    EmptyIncomingQueue(handle, device);
+    int ret;
+    EMPTY_IN_QUEUE
     IdentifyMs mes(dest, source);
     SendMessage(mes, handle); 
-    EmptyIncomingQueue(handle, device);
+    EMPTY_IN_QUEUE
     return 0;
 }
 
 int EnableChannel(FT_HANDLE &handle, controller_device &device, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){   
-    EmptyIncomingQueue(handle, device);
+    int ret;
+    EMPTY_IN_QUEUE
     SetChannelState mes(chanel, 1, dest, source);
     SendMessage(mes, handle);
-    EmptyIncomingQueue(handle, device);
+    EMPTY_IN_QUEUE
     return 0;
 }
 
 int DisableChannel(FT_HANDLE &handle, controller_device &device,uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){  
-    EmptyIncomingQueue(handle, device);
+    int ret;
+    EMPTY_IN_QUEUE
     SetChannelState mes(chanel, 2, dest, source);
     SendMessage(mes, handle);
-    EmptyIncomingQueue(handle, device);
+    EMPTY_IN_QUEUE
     return 0;
 }
 
 int ChannelState(FT_HANDLE &handle, controller_device &device, GetChannelState *info, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){ 
-    EmptyIncomingQueue(handle, device);
+    int ret;
+    EMPTY_IN_QUEUE
     ReqChannelState mes(chanel, dest, source);
     SendMessage(mes, handle);
-    uint8_t *ret = (uint8_t *) malloc(HEADER_SIZE);
-    if (GetResponseMess(handle, device, GET_CHANENABLESTATE, HEADER_SIZE ,ret) != 0) return -1;
-    info = new GetChannelState(ret);
+    uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
+    ret = GetResponseMess(handle, device, GET_CHANENABLESTATE, HEADER_SIZE , buff);
+    if ( ret != 0) return ret;
+    info = new GetChannelState(buff);
     return 0;
 }
 
 int DisconnectHW(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    EmptyIncomingQueue(handle, device);
+    int ret;
+    EMPTY_IN_QUEUE
     HwDisconnect mes(dest,source);
     SendMessage(mes, handle);
-    EmptyIncomingQueue(handle, device);
+    EMPTY_IN_QUEUE
     return 0;
 }
 
 int StartUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    EmptyIncomingQueue(handle, device);
+    int ret;
+    EMPTY_IN_QUEUE
     StartUpdateMessages mes(dest,source);
     if (mes.SetUpdaterate(rate) == IGNORED_PARAM) printf("This parameter is ignored in connected device. Using default.\n");
     SendMessage(mes, handle);
-    EmptyIncomingQueue(handle, device);
+    EMPTY_IN_QUEUE
     return 0;
 }
 
 int StopUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    EmptyIncomingQueue(handle, device);
+    int ret;
+    EMPTY_IN_QUEUE
     StopUpdateMessages mes(dest,source);
     SendMessage(mes, handle);
-    EmptyIncomingQueue(handle, device);
+    EMPTY_IN_QUEUE
     return 0;
 }
 
