@@ -16,6 +16,7 @@ typedef struct {
 } motor_device;
 
 typedef struct{
+    FT_HANDLE *handle;
     bool ft_opened;
     int device_type;
     int channels;

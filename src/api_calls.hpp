@@ -150,7 +150,7 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
     };
 }
 
-int GetResponseMess(uint16_t expected_msg, uint8_t *mess ){
+int GetResponseMess(FT_HANDLE &handle, controller_device &device, uint16_t expected_msg, uint8_t *mess ){
     //not implemented
     //check incoming queue for error messages, return fail on error, 
     // other messages handled
@@ -187,7 +187,7 @@ int ChannelState(FT_HANDLE &handle, controller_device &device, GetChannelState *
     ReqChannelState mes(chanel, dest, source);
     SendMessage(mes, handle);
     uint8_t *ret = NULL;
-    if (GetResponseMess(GET_CHANENABLESTATE, ret) != 0) return -1;
+    if (GetResponseMess(handle, device, GET_CHANENABLESTATE, ret) != 0) return -1;
     info = new GetChannelState(ret);
     return 0;
 }

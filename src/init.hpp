@@ -178,6 +178,7 @@ int init(){
                 
                 connected_device[j].device_type = ftdi_devs[i].Type;
                 FT_HANDLE handle = ftdi_devs[i].ftHandle;
+                connected_device[j].handle = &ftdi_devs[i].ftHandle;
                 //send messages for more info
 
             }
