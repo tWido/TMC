@@ -242,6 +242,8 @@ int ChannelState(FT_HANDLE &handle, controller_device &device, GetChannelState *
     ret = GetResponseMess(handle, device, GET_CHANENABLESTATE, HEADER_SIZE , buff);
     if ( ret != 0) return ret;
     info = new GetChannelState(buff);
+    free(buff);
+    EMPTY_IN_QUEUE
     return 0;
 }
 
@@ -269,6 +271,33 @@ int StopUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t dest = 
     EMPTY_IN_QUEUE
     StopUpdateMessages mes(dest,source);
     SendMessage(mes, handle);
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+int GetBayUsed(FT_HANDLE &handle, controller_device &device, GetRackBayUsed *message, uint8_t bayID, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    int ret;
+    EMPTY_IN_QUEUE
+    ReqRackBayUsed mes(dest,source);
+    mes.SetBayIdent(bayID);
+    SendMessage(mes, handle);
+    uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
+    ret = GetResponseMess(handle, device, RACK_GET_BAYUSED, HEADER_SIZE , buff);
+    if ( ret != 0) return ret;
+    message = new GetRackBayUsed(buff);
+    free(buff);
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+int GetHubUsed(FT_HANDLE &handle, controller_device &device, GetHubBayUsed *message, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    int ret;
+    EMPTY_IN_QUEUE
+    ReqHubBayUsed mes(dest,source);
+    SendMessage(mes, handle);
+    uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
+    ret = GetResponseMess(handle, device, HUB_GET_BAYUSED, HEADER_SIZE , buff);
+    free(buff);
     EMPTY_IN_QUEUE
     return 0;
 }
