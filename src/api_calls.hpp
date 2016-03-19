@@ -72,12 +72,14 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             READ_REST(4)
             HwDisconnect response(buff);
             printf("Device with serial %s disconnecting\n", device.SN);
+            free(buff);
             return 0;
         }
         case HW_RESPONSE:{
             READ_REST(4)
             HwResponse response(buff);
             printf("Device with serial %s encountered error\n", device.SN);
+            free(buff);
             return DEVICE_ERROR;
         }
         case RICHRESPONSE:{
@@ -89,6 +91,7 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             if (error_cause != 0) printf("\tMessage causing error: %d\n ", error_cause);
             printf("\tThorlabs error code: %d \n", response.GetCode());
             printf("\tDescription: %s\n", response.GetDescription());
+            free(buff);
             return DEVICE_ERROR;
         }
         case MOVE_HOMED:{
@@ -97,6 +100,7 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             uint8_t motor_channel = response.GetSource();
             if (motor_channel == 0x50 ) printf("Moved to home position\n");
             else printf("Motor in bay %d moved to home position\n",  (motor_channel | 0x0F)  );
+            free(buff);
             return MOVED_HOME;
         }
         case MOVE_COMPLETED:{
@@ -105,6 +109,7 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             uint8_t motor_channel = response.GetSource();
             if (motor_channel == 0x50 ) printf("Move completed\n");
             else printf("Motor in bay %d completed move\n",  (motor_channel | 0x0F)  );
+            free(buff);
             return MOVE_COMPLETED_STATUS;
         }
         case MOVE_STOPPED:{
@@ -113,6 +118,7 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             uint8_t motor_channel = response.GetSource();
             if (motor_channel == 0x50 ) printf("Move stopped\n");
             else printf("Motor in bay %d stopped moving\n",  (motor_channel | 0x0F)  );
+            free(buff);
             return MOVE_STOPPED_STATUS;
         }
         case GET_STATUSUPDATE:{
@@ -127,6 +133,7 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
                     break;
                 }
             }
+            free(buff);
             return 0;
         }
         case GET_DCSTATUSUPDATE:{
@@ -141,16 +148,22 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
                     break;
                 }
             }
-             return 0;
+            free(buff);
+            return 0;
         }
         default: {
             ret_msgID = &msgID;
+            free(buff);
             return OTHER_MESSAGE;
         } 
     };
 }
 
 int GetResponseMess(FT_HANDLE &handle, controller_device &device, uint16_t expected_msg, uint8_t *mess ){
+    int ret;
+    uint16_t msgID;
+    
+    
     //not implemented
     //check incoming queue for error messages, return fail on error, 
     // other messages handled
