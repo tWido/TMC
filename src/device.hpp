@@ -9,6 +9,10 @@ typedef struct {
     int tick;
     int enc_count;
     uint8_t dest;
+    uint32_t status_position;
+    uint16_t status_velocity;
+    uint32_t status_enc_count;
+    uint16_t status_status_bits;
 } motor_device;
 
 typedef struct{

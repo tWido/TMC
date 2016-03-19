@@ -13,6 +13,7 @@
 #define MOVED_HOME 3
 #define MOVE_COMPLETED_STATUS 2
 #define MOVE_STOPPED_STATUS 4
+#define OTHER_MESSAGE 5
 
 #define READ_REST(x) ftStatus = FT_Read(handle, &buff[2], x, NULL);   if (ftStatus != FT_OK) {printf("FT_Error occured, error code :%d", ftStatus );   return FT_ERROR; }  
 
@@ -50,7 +51,7 @@ int SendMessage(Message &message, FT_HANDLE &handle){
     return FT_ERROR;
 }
 
-int CheckIncomingQueue(FT_HANDLE &handle){
+int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *ret_msgID){
     FT_STATUS ftStatus;
     unsigned int bytes;
     ftStatus = FT_GetQueueStatus(handle, &bytes);
@@ -70,19 +71,19 @@ int CheckIncomingQueue(FT_HANDLE &handle){
         case HW_DISCONNECT: {
             READ_REST(4)
             HwDisconnect response(buff);
-            printf("Device with serial disconnecting\n");
+            printf("Device with serial %s disconnecting\n", device.SN);
             return 0;
         }
         case HW_RESPONSE:{
             READ_REST(4)
             HwResponse response(buff);
-            printf("Device with serial encountered error\n");
+            printf("Device with serial %s encountered error\n", device.SN);
             return DEVICE_ERROR;
         }
         case RICHRESPONSE:{
             READ_REST(72)
             HwResponseInfo response(buff);      
-            printf("Device with serial encountered error\n");
+            printf("Device with serial %s encountered error\n", device.SN);
             printf("Detailed description of error \n ");
             uint16_t error_cause = response.GetMsgID();
             if (error_cause != 0) printf("\tMessage causing error: %d\n ", error_cause);
@@ -115,20 +116,41 @@ int CheckIncomingQueue(FT_HANDLE &handle){
             return MOVE_STOPPED_STATUS;
         }
         case GET_STATUSUPDATE:{
-            //status update
+            READ_REST(18)
+            GetStatusUpdate response(buff);
+            uint8_t motor_channel = response.GetSource();
+            for (int i = 0; i< device.channels; i++){
+                if (motor_channel == device.motor[i].dest ) {
+                    device.motor[i].status_enc_count = response.GetEncCount();
+                    device.motor[i].status_position = response.GetPosition();
+                    device.motor[i].status_status_bits = response.GetStatusBits();
+                    break;
+                }
+            }
             return 0;
         }
         case GET_DCSTATUSUPDATE:{
-            //status update
+            READ_REST(18)
+            GetMotChanStatusUpdate response(buff);
+            uint8_t motor_channel = response.GetSource();
+            for (int i = 0; i< device.channels; i++){
+                if (motor_channel == device.motor[i].dest ) {
+                    device.motor[i].status_velocity = response.GetVelocity();
+                    device.motor[i].status_position = response.GetPosition();
+                    device.motor[i].status_status_bits = response.GetStatusBits();
+                    break;
+                }
+            }
              return 0;
         }
-        default: 
-            printf("Unexpected response");
-            return -1;
+        default: {
+            ret_msgID = &msgID;
+            return OTHER_MESSAGE;
+        } 
     };
 }
 
-int GetResponseMess(uint16_t last_msg_sent, uint16_t expected_msg, uint8_t *mess ){
+int GetResponseMess(uint16_t expected_msg, uint8_t *mess ){
     //not implemented
     //check incoming queue for error messages, return fail on error, 
     // other messages handled
@@ -136,62 +158,62 @@ int GetResponseMess(uint16_t last_msg_sent, uint16_t expected_msg, uint8_t *mess
     return 0;
 }
 
-int Identify( FT_HANDLE &handle, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource() ){
-    CheckIncomingQueue(handle);
+int Identify( FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource() ){
+    CheckIncomingQueue(handle, device, NULL);
     IdentifyMs mes(dest, source);
     SendMessage(mes, handle); 
-    CheckIncomingQueue(handle);
+    CheckIncomingQueue(handle, device, NULL);
     return 0;
 }
 
-int EnableChannel(FT_HANDLE &handle, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){   
-    CheckIncomingQueue(handle);
+int EnableChannel(FT_HANDLE &handle, controller_device &device, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){   
+    CheckIncomingQueue(handle, device, NULL);
     SetChannelState mes(chanel, 1, dest, source);
     SendMessage(mes, handle);
-    CheckIncomingQueue(handle);
+    CheckIncomingQueue(handle, device, NULL);
     return 0;
 }
 
-int DisableChannel(FT_HANDLE &handle,uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){  
-    CheckIncomingQueue(handle);
+int DisableChannel(FT_HANDLE &handle, controller_device &device,uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){  
+    CheckIncomingQueue(handle, device, NULL);
     SetChannelState mes(chanel, 2, dest, source);
     SendMessage(mes, handle);
-    CheckIncomingQueue(handle);
+    CheckIncomingQueue(handle, device, NULL);
     return 0;
 }
 
-int ChannelState(FT_HANDLE &handle, GetChannelState *info, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){ 
-    CheckIncomingQueue(handle);
+int ChannelState(FT_HANDLE &handle, controller_device &device, GetChannelState *info, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){ 
+    CheckIncomingQueue(handle, device, NULL);
     ReqChannelState mes(chanel, dest, source);
     SendMessage(mes, handle);
     uint8_t *ret = NULL;
-    if (GetResponseMess(REQ_CHANENABLESTATE, GET_CHANENABLESTATE, ret) != 0) return -1;
+    if (GetResponseMess(GET_CHANENABLESTATE, ret) != 0) return -1;
     info = new GetChannelState(ret);
     return 0;
 }
 
-int DisconnectHW(FT_HANDLE &handle, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    CheckIncomingQueue(handle);
+int DisconnectHW(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    CheckIncomingQueue(handle, device, NULL);
     HwDisconnect mes(dest,source);
     SendMessage(mes, handle);
-    CheckIncomingQueue(handle);
+    CheckIncomingQueue(handle, device, NULL);
     return 0;
 }
 
-int StartUpdateMess(FT_HANDLE &handle, uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    CheckIncomingQueue(handle);
+int StartUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    CheckIncomingQueue(handle, device, NULL);
     StartUpdateMessages mes(dest,source);
     if (mes.SetUpdaterate(rate) == IGNORED_PARAM) printf("This parameter is ignored in connected device. Using default.\n");
     SendMessage(mes, handle);
-    CheckIncomingQueue(handle);
+    CheckIncomingQueue(handle, device, NULL);
     return 0;
 }
 
-int StopUpdateMess(FT_HANDLE &handle, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    CheckIncomingQueue(handle);
+int StopUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    CheckIncomingQueue(handle, device, NULL);
     StopUpdateMessages mes(dest,source);
     SendMessage(mes, handle);
-    CheckIncomingQueue(handle);
+    CheckIncomingQueue(handle, device, NULL);
     return 0;
 }
 
