@@ -165,6 +165,8 @@ public:
 class HwDisconnect:public MessageHeader{
 public:
     HwDisconnect(uint8_t dest, uint8_t source):MessageHeader( HW_DISCONNECT, 0, 0, dest, source){}
+    
+    HwDisconnect(uint8_t *mess):MessageHeader(mess){}
 };
 
 /** Sent from device to notify of unexpected event. */

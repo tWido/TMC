@@ -9,6 +9,12 @@
 
 #define MAX_RESPONSE_SIZE 128
 #define FT_ERROR -4
+#define DEVICE_ERROR -5
+#define MOVED_HOME 3
+#define MOVE_COMPLETED_STATUS 2
+#define MOVE_STOPPED 4
+
+#define READ_REST(x) ftStatus = FT_Read(handle, &buff[2], x, NULL);   if (ftStatus != FT_OK) {printf("FT_Error occured, error code :%d", ftStatus );   return FT_ERROR; }                                                               
 
 uint8_t DefaultDest(){
     return 0x50;
@@ -41,7 +47,7 @@ int SendMessage(Message &message, FT_HANDLE &handle){
         printf("Sending message failed, error code : %d \n", wrStatus );
         printf("wrote : %d should write: %d \n", wrote, message.msize());
     }
-    return -1;
+    return FT_ERROR;
 }
 
 int CheckIncomingQueue(FT_HANDLE &handle){
@@ -61,36 +67,61 @@ int CheckIncomingQueue(FT_HANDLE &handle){
     }
     uint16_t msgID = le16toh(*((uint16_t*) &buff[0])); 
     switch ( msgID ){
-        case HW_DISCONNECT: 
-            //device wants disconnect
-            break;
-        case HW_RESPONSE:
-            //error occured
-            break;
-        case RICHRESPONSE:
-            //error occured, got response message
-            break;
-        case MOVE_HOMED:
+        case HW_DISCONNECT: {
+            READ_REST(4)
+            HwDisconnect disconnect(buff);
+            char* sn = (char *) "undefined";
+            for (unsigned int i = 0; i< devices_connected; i++){
+                if (connected_device[i].dest == disconnect.GetSource() ){
+                    sn = connected_device[i].SN;
+                    break;
+                }
+            }
+            printf("Device with serial %s disconnecting\n", sn );
+            return 0;
+        }
+        case HW_RESPONSE:{
+            READ_REST(4)
+            HwResponse response(buff);
+            char* sn = (char *) "undefined";
+            for (unsigned int i = 0; i< devices_connected; i++){
+                if (connected_device[i].dest == response.GetSource() ){
+                    sn = connected_device[i].SN;
+                    break;
+                }
+            }
+            printf("Device with serial %s encountered error\n", sn );
+            return DEVICE_ERROR;
+        }
+        case RICHRESPONSE:{
+            READ_REST(72)
+            HwResponseInfo response(buff);        
+            return DEVICE_ERROR;
+        }
+        case MOVE_HOMED:{
             //moved to home position
-            break;
-        case MOVE_COMPLETED:
+            return MOVED_HOME;
+        }
+        case MOVE_COMPLETED:{
             //move completed
-            break;
-        case MOVE_STOPPED:
+            return MOVE_COMPLETED_STATUS;
+        }
+        case MOVE_STOPPED:{
             //stopped
-            break;
-        case GET_STATUSUPDATE:
+            return MOVE_STOPPED;
+        }
+        case GET_STATUSUPDATE:{
             //status update
-            break;
-        case GET_DCSTATUSUPDATE:
+            return 0;
+        }
+        case GET_DCSTATUSUPDATE:{
             //status update
-            break;
+             return 0;
+        }
         default: 
             printf("Unexpected response");
             return -1;
     };
-    
-    return -1;
 }
 
 int GetResponseMess(uint16_t last_msg_sent, uint16_t expected_msg, uint8_t *mess ){
