@@ -24,6 +24,11 @@
 #define INVALID_SOURCE -11
 #define INVALID_CHANNEL -12
 
+#define INVALID_PARAM_1 -15
+#define INVALID_PARAM_2 -16
+#define INVALID_PARAM_3 -17
+#define INVALID_PARAM_4 -18
+
 #define READ_REST(x) ftStatus = FT_Read(handle, &buff[2], x, NULL);   if (ftStatus != FT_OK) {printf("FT_Error occured, error code :%d", ftStatus );   return FT_ERROR; }  
 #define EMPTY_IN_QUEUE ret = EmptyIncomingQueue(handle, device);  if (ret != 0 ) return ret;
 #define CHECK_ADDR_PARAMS(source, dest, chanID) int ret;  ret = CheckParams(source,dest,chanID); if (ret != 0) return ret;
@@ -388,5 +393,31 @@ int GetEncoderCounter(FT_HANDLE &handle, controller_device &device, GetEncCount 
     return 0;
 };
 
+
+int SetVelocityP(FT_HANDLE &handle, controller_device &device, int32_t acc, int32_t maxVel, 
+        uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetVelocityParams mes(dest, source, channel);
+    if (mes.SetAcceleration(acc) == INVALID_PARAM) return INVALID_PARAM_1;
+    if (mes.SetMaxVel(maxVel) == INVALID_PARAM) return INVALID_PARAM_2;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE
+    return 0;        
+}
+
+int GetVelocityP(FT_HANDLE &handle, controller_device &device, GetVelocityParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    ReqVelocityParams mes(dest, source, channel);  
+    SendMessage(mes, handle);
+    uint8_t *buff = (uint8_t *) malloc(20);
+    ret = GetResponseMess(handle, device, GET_VELPARAMS, 20, buff);
+    if ( ret != 0) return ret;
+    message = new GetVelocityParams(buff);
+    free(buff);
+    EMPTY_IN_QUEUE        
+    return 0;
+};
 
 #endif 
