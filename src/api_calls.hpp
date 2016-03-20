@@ -36,7 +36,11 @@ uint8_t DefaultSource(){
     return 0x01;
 }
 
-uint8_t DefaultChanel(){
+uint8_t DefaultChanel8(){
+    return 0x01;
+}
+
+uint16_t DefaultChanel16(){
     return 0x01;
 }
 
@@ -227,7 +231,7 @@ int Identify( FT_HANDLE &handle, controller_device &device, uint8_t dest = Defau
     return 0;
 }
 
-int EnableChannel(FT_HANDLE &handle, controller_device &device, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){   
+int EnableChannel(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t chanel = DefaultChanel8()){   
     CHECK_ADDR_PARAMS(source ,dest, chanel)
     EMPTY_IN_QUEUE
     SetChannelState mes(chanel, 1, dest, source);
@@ -236,7 +240,7 @@ int EnableChannel(FT_HANDLE &handle, controller_device &device, uint8_t chanel =
     return 0;
 }
 
-int DisableChannel(FT_HANDLE &handle, controller_device &device,uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){  
+int DisableChannel(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t chanel = DefaultChanel8()){  
     CHECK_ADDR_PARAMS(source ,dest, chanel)
     EMPTY_IN_QUEUE
     SetChannelState mes(chanel, 2, dest, source);
@@ -245,7 +249,7 @@ int DisableChannel(FT_HANDLE &handle, controller_device &device,uint8_t chanel =
     return 0;
 }
 
-int ChannelState(FT_HANDLE &handle, controller_device &device, GetChannelState *info, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){ 
+int ChannelState(FT_HANDLE &handle, controller_device &device, GetChannelState *info, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t chanel = DefaultChanel8()){ 
     CHECK_ADDR_PARAMS(source ,dest, chanel)
     EMPTY_IN_QUEUE
     ReqChannelState mes(chanel, dest, source);
@@ -279,7 +283,7 @@ int StartUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t rate =
 }
 
 int StopUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    int ret;
+    CHECK_ADDR_PARAMS(source ,dest, -1)
     EMPTY_IN_QUEUE
     StopUpdateMessages mes(dest,source);
     SendMessage(mes, handle);
@@ -315,6 +319,74 @@ int GetHubUsed(FT_HANDLE &handle, controller_device &device, GetHubBayUsed *mess
 }
 
 //-------------------------- Motor control calls ------------------------------
+
+int FlashProgYes(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    CHECK_ADDR_PARAMS(source ,dest, -1)
+    EMPTY_IN_QUEUE
+    YesFlashProg mes(dest,source);
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE
+    return 0;
+};
+
+int FlashProgNo(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    CHECK_ADDR_PARAMS(source ,dest, -1)
+    EMPTY_IN_QUEUE
+    NoFlashProg mes(dest,source);
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE
+    return 0;
+};
+
+int SetPositionCounter(FT_HANDLE &handle, controller_device &device, int32_t pos, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetPosCounter mes(dest, source, channel);
+    ret = mes.SetPosition(pos);
+    if (ret == INVALID_PARAM) return ret;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE
+    return ret; //return WARNING
+};
+
+int GetPositionCounter(FT_HANDLE &handle, controller_device &device, GetPosCounter *message, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    ReqPosCounter mes(dest, source, channel);  
+    SendMessage(mes, handle);
+    uint8_t *buff = (uint8_t *) malloc(12);
+    ret = GetResponseMess(handle, device, GET_POSCOUNTER, 12, buff);
+    if ( ret != 0) return ret;
+    message = new GetPosCounter(buff);
+    free(buff);
+    EMPTY_IN_QUEUE        
+    return 0;
+};
+
+int SetEncoderCounter(FT_HANDLE &handle, controller_device &device, int32_t count, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetEncCount mes(dest, source, channel);
+    ret = mes.SetEncoderCount(count);
+    if (ret == INVALID_PARAM) return ret;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE
+    return ret; //return WARNING
+};
+
+int GetEncoderCounter(FT_HANDLE &handle, controller_device &device, GetEncCount *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    ReqEncCount mes(dest, source, channel);  
+    SendMessage(mes, handle);
+    uint8_t *buff = (uint8_t *) malloc(12);
+    ret = GetResponseMess(handle, device, GET_ENCCOUNTER, 12, buff);
+    if ( ret != 0) return ret;
+    message = new GetEncCount(buff);
+    free(buff);
+    EMPTY_IN_QUEUE        
+    return 0;
+};
 
 
 #endif 
