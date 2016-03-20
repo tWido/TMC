@@ -176,7 +176,7 @@ int init(){
         for (unsigned int i = 0; i< num_ftdi_devices; i++){
             if ( strncmp(ftdi_devs[i].SerialNumber, connected_device[j].SN, 8) == 0 ){
                 
-                connected_device[j].device_type = ftdi_devs[i].Type;
+                //device type
                 FT_HANDLE handle = ftdi_devs[i].ftHandle;
                 connected_device[j].handle = &ftdi_devs[i].ftHandle;
                 //send messages for more info
