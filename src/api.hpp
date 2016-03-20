@@ -350,13 +350,8 @@ public:
     SetVelocityParams(uint8_t dest, uint8_t source, uint16_t chanId )
             :LongMessage(SET_VELPARAMS, 14, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
+        *((int32_t *) &bytes[8]) = htole32(0);
     };
-    
-    int SetMinVel(int32_t min){
-        if( abs(min) > opened_device.motor[GetChanID()].max_vel ) return INVALID_PARAM;
-        *((int32_t *) &bytes[8]) = htole32(min);
-        return 0;
-    }
     
     int SetAcceleration(int32_t acc){
         if( abs(acc) > opened_device.motor[GetChanID()].max_acc ) return INVALID_PARAM;
@@ -377,7 +372,7 @@ public:
 
 class GetVelocityParams: public LongMessage{
 public:
-    GetVelocityParams(uint8_t *mess):LongMessage(mess, 14){}
+    GetVelocityParams(uint8_t *mess):LongMessage(mess, 20){}
     
     int32_t GetMinVel(){ return le32toh(*((int32_t*) &bytes[8])); }
     int32_t GetMaxVel(){ return le32toh(*((int32_t*) &bytes[12])); }
@@ -448,7 +443,7 @@ public:
     /** 
      * @return 1 for immediate stop, 2 for profiled stop 
      */
-    uint16_t GetStopMode(){ return le16toh(*((uint16_t*) &bytes[126])); }
+    uint16_t GetStopMode(){ return le16toh(*((uint16_t*) &bytes[26])); }
 };
 
 class ReqADCInputs:public MessageHeader{
