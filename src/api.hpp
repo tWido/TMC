@@ -383,7 +383,8 @@ class SetJogParams:public LongMessage{
 public:
     SetJogParams(uint8_t dest, uint8_t source, uint16_t chanId )
             :LongMessage(SET_JOGPARAMS, 22, dest, source){
-                *((uint16_t *) &bytes[6]) = htole16(chanId);      
+                *((uint16_t *) &bytes[6]) = htole16(chanId);
+                *((int32_t *) &bytes[14]) = htole32(0); 
                 }
             
     /**
@@ -395,12 +396,6 @@ public:
         return 0;
     }
     void SetStepSize(int32_t stepSize){ *((int32_t *) &bytes[10]) = htole32(stepSize); }
-    
-    int SetMinVelocity(int32_t velocity){ 
-        if( abs(velocity) > opened_device.motor[GetChanID()].max_vel ) return INVALID_PARAM;
-        *((int32_t *) &bytes[14]) = htole32(velocity); 
-        return 0;
-    }
     
     int SetMaxVelocity(int32_t velocity){
         if( abs(velocity) > opened_device.motor[GetChanID()].max_vel ) return INVALID_PARAM;
