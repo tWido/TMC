@@ -8,17 +8,25 @@
 #include "api.hpp"
 
 #define MAX_RESPONSE_SIZE 128
-#define FT_ERROR -4
-#define DEVICE_ERROR -5
-#define FATAL_ERROR -6
-#define MOVED_HOME 3
+
+#define FT_ERROR -6
+#define DEVICE_ERROR -7
+#define FATAL_ERROR -8
+
+#define MOVED_HOME_STATUS 3
 #define MOVE_COMPLETED_STATUS 2
 #define MOVE_STOPPED_STATUS 4
+
 #define OTHER_MESSAGE 5
 #define EMPTY 1
 
+#define INVALID_DEST -10
+#define INVALID_SOURCE -11
+#define INVALID_CHANNEL -12
+
 #define READ_REST(x) ftStatus = FT_Read(handle, &buff[2], x, NULL);   if (ftStatus != FT_OK) {printf("FT_Error occured, error code :%d", ftStatus );   return FT_ERROR; }  
 #define EMPTY_IN_QUEUE ret = EmptyIncomingQueue(handle, device);  if (ret != 0 ) return ret;
+#define CHECK_ADDR_PARAMS(source, dest, chanID) int ret;  ret = CheckParams(source,dest,chanID); if (ret != 0) return ret;
 
 uint8_t DefaultDest(){
     return 0x50;
@@ -36,9 +44,11 @@ uint8_t DeafultRate(){
     return 1;
 }
 
-int CheckDeviceAbility(){
-    //not implementeed
-    return-1;}
+
+int CheckParams(uint8_t source, uint8_t dest, int chanID){
+    //not implemented
+    return 0;
+};
 
 int SendMessage(Message &message, FT_HANDLE &handle){
     FT_STATUS wrStatus;
@@ -105,7 +115,7 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             if (motor_channel == 0x50 ) printf("Moved to home position\n");
             else printf("Motor in bay %d moved to home position\n",  (motor_channel | 0x0F)  );
             free(buff);
-            return MOVED_HOME;
+            return MOVED_HOME_STATUS;
         }
         case MOVE_COMPLETED:{
             READ_REST(4)
@@ -167,7 +177,7 @@ int EmptyIncomingQueue(FT_HANDLE &handle, controller_device &device){
     while(true){
         int ret = CheckIncomingQueue(handle, device, NULL);
         if (ret == EMPTY) return 0;
-        if (ret == MOVED_HOME || ret == MOVE_COMPLETED_STATUS || ret == MOVE_STOPPED_STATUS || ret == 0) continue; 
+        if (ret == MOVED_HOME_STATUS || ret == MOVE_COMPLETED_STATUS || ret == MOVE_STOPPED_STATUS || ret == 0) continue; 
         switch(ret){
             case FATAL_ERROR: return FATAL_ERROR;
             case FT_ERROR: return FT_ERROR;
@@ -196,7 +206,7 @@ int GetResponseMess(FT_HANDLE &handle, controller_device &device, uint16_t expec
             }
             else return FATAL_ERROR;
         } 
-        if (ret == MOVED_HOME || ret == MOVE_COMPLETED_STATUS || ret == MOVE_STOPPED_STATUS || ret == 0) continue; 
+        if (ret == MOVED_HOME_STATUS || ret == MOVE_COMPLETED_STATUS || ret == MOVE_STOPPED_STATUS || ret == 0) continue; 
         switch(ret){
             case FATAL_ERROR: return FATAL_ERROR;
             case FT_ERROR: return FT_ERROR;
@@ -206,8 +216,10 @@ int GetResponseMess(FT_HANDLE &handle, controller_device &device, uint16_t expec
     return 0;
 }
 
+// ------------------------- Generic device calls ------------------------------
+
 int Identify( FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource() ){
-    int ret;
+    CHECK_ADDR_PARAMS(source ,dest, -1)
     EMPTY_IN_QUEUE
     IdentifyMs mes(dest, source);
     SendMessage(mes, handle); 
@@ -216,7 +228,7 @@ int Identify( FT_HANDLE &handle, controller_device &device, uint8_t dest = Defau
 }
 
 int EnableChannel(FT_HANDLE &handle, controller_device &device, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){   
-    int ret;
+    CHECK_ADDR_PARAMS(source ,dest, chanel)
     EMPTY_IN_QUEUE
     SetChannelState mes(chanel, 1, dest, source);
     SendMessage(mes, handle);
@@ -225,7 +237,7 @@ int EnableChannel(FT_HANDLE &handle, controller_device &device, uint8_t chanel =
 }
 
 int DisableChannel(FT_HANDLE &handle, controller_device &device,uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){  
-    int ret;
+    CHECK_ADDR_PARAMS(source ,dest, chanel)
     EMPTY_IN_QUEUE
     SetChannelState mes(chanel, 2, dest, source);
     SendMessage(mes, handle);
@@ -234,7 +246,7 @@ int DisableChannel(FT_HANDLE &handle, controller_device &device,uint8_t chanel =
 }
 
 int ChannelState(FT_HANDLE &handle, controller_device &device, GetChannelState *info, uint8_t chanel = DefaultChanel(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){ 
-    int ret;
+    CHECK_ADDR_PARAMS(source ,dest, chanel)
     EMPTY_IN_QUEUE
     ReqChannelState mes(chanel, dest, source);
     SendMessage(mes, handle);
@@ -248,7 +260,7 @@ int ChannelState(FT_HANDLE &handle, controller_device &device, GetChannelState *
 }
 
 int DisconnectHW(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    int ret;
+    CHECK_ADDR_PARAMS(source ,dest, -1)
     EMPTY_IN_QUEUE
     HwDisconnect mes(dest,source);
     SendMessage(mes, handle);
@@ -257,7 +269,7 @@ int DisconnectHW(FT_HANDLE &handle, controller_device &device, uint8_t dest = De
 }
 
 int StartUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    int ret;
+    CHECK_ADDR_PARAMS(source ,dest, -1)
     EMPTY_IN_QUEUE
     StartUpdateMessages mes(dest,source);
     if (mes.SetUpdaterate(rate) == IGNORED_PARAM) printf("This parameter is ignored in connected device. Using default.\n");
@@ -276,7 +288,7 @@ int StopUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t dest = 
 }
 
 int GetBayUsed(FT_HANDLE &handle, controller_device &device, GetRackBayUsed *message, uint8_t bayID, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    int ret;
+    CHECK_ADDR_PARAMS(source ,dest, -1)
     EMPTY_IN_QUEUE
     ReqRackBayUsed mes(dest,source);
     mes.SetBayIdent(bayID);
@@ -291,7 +303,7 @@ int GetBayUsed(FT_HANDLE &handle, controller_device &device, GetRackBayUsed *mes
 }
 
 int GetHubUsed(FT_HANDLE &handle, controller_device &device, GetHubBayUsed *message, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    int ret;
+    CHECK_ADDR_PARAMS(source ,dest, -1);
     EMPTY_IN_QUEUE
     ReqHubBayUsed mes(dest,source);
     SendMessage(mes, handle);
@@ -301,5 +313,8 @@ int GetHubUsed(FT_HANDLE &handle, controller_device &device, GetHubBayUsed *mess
     EMPTY_IN_QUEUE
     return 0;
 }
+
+//-------------------------- Motor control calls ------------------------------
+
 
 #endif 
