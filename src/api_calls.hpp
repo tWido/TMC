@@ -436,7 +436,7 @@ int SetJogP(FT_HANDLE &handle, controller_device &device, uint16_t mode, int32_t
     return 0; 
 };
 
-int GetJogP(FT_HANDLE &handle, controller_device &device, GetJogParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+int GetJogP(FT_HANDLE &handle, controller_device &device, GetJogParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
     ReqJogParams mes(dest, source, channel);  
@@ -447,6 +447,32 @@ int GetJogP(FT_HANDLE &handle, controller_device &device, GetJogParams *message 
     message = new GetJogParams(buff);
     free(buff);
     EMPTY_IN_QUEUE        
+    return 0;
+};
+
+int SetPowerUsed(FT_HANDLE &handle, controller_device &device, uint16_t rest_power, uint16_t move_power,
+        int8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetPowerParams mes(dest, source, channel);
+    mes.SetRestFactor(rest_power);
+    mes.SetMoveFactor(move_power);        
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE        
+    return 0;
+};
+
+int GetPowerUsed(FT_HANDLE &handle, controller_device &device, GetPowerParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    ReqPowerParams mes(dest, source, channel); 
+    SendMessage(mes, handle);
+    uint8_t *buff = (uint8_t *) malloc(12);
+    ret = GetResponseMess(handle, device, GET_POWERPARAMS, 12, buff);
+    if ( ret != 0) return ret;
+    message = new GetPowerParams(buff);
+    free(buff);
+    EMPTY_IN_QUEUE          
     return 0;
 };
 
