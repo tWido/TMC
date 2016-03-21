@@ -467,4 +467,53 @@ int GetBacklashDist(FT_HANDLE &handle, controller_device &device, GetGeneralMove
     return 0;
 };
 
+int SetRelativeMoveP(FT_HANDLE &handle, controller_device &device, uint32_t dist, 
+        int8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetRelativeMoveParams mes(dest, source, channel);
+    mes.SetRelativeDist(dist);    
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;        
+};
+
+int GetRelativeMoveP(FT_HANDLE &handle, controller_device &device, GetRelativeMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqRelativeMoveParams,12,GET_MOVERELPARAMS,GetRelativeMoveParams) 
+    return 0;
+};
+
+int SetAbsoluteMoveP(FT_HANDLE &handle, controller_device &device, uint32_t pos, 
+        int8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetAbsoluteMoveParams mes(dest, source, channel);
+    mes.SetAbsolutePos(pos);    
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int GetAbsoluteMoveP(FT_HANDLE &handle, controller_device &device, GetAbsoluteMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqAbsoluteMoveParams,12,GET_MOVEABSPARAMS,GetAbsoluteMoveParams) 
+    return 0;
+};
+
+int SetHomingVel(FT_HANDLE &handle, controller_device &device, uint32_t vel, 
+        int8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetHomeParams mes(dest, source, channel);
+    if (mes.SetHomingVelocity(vel) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int GetHomingVel(FT_HANDLE &handle, controller_device &device, GetHomeParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqHomeParams,20,GET_HOMEPARAMS,GetHomeParams) 
+    return 0;
+};
+
+
 #endif 
