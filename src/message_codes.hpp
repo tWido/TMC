@@ -82,10 +82,6 @@ enum {
     REQ_BOWINDEX = 0x04f5,
     GET_BOWINDEX = 0x04f6,
     
-    SET_DCPIDPARAMS = 0x04a0,
-    REQ_DCPIDPARAMS = 0x04a1,
-    GET_DCPIDPARAMS = 0x04a2,
-    
     SET_AVMODES = 0x04b3,
     REQ_AVMODES = 0x04b4,
     GET_AVMODES = 0x04b5,

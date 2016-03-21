@@ -753,56 +753,6 @@ public:
     uint16_t BowIndex(){ return le16toh(*((uint16_t*) &bytes[8])); }
 };
 
-class SetPidParams:public LongMessage{
-public:
-    SetPidParams(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(SET_DCPIDPARAMS, 20 , dest, source){
-                *((uint16_t *) &bytes[6]) = htole16(chanId);
-            }
-            
-    int SetProportional(int32_t value){ 
-        if ( value < 0 || value > 32767 ) return INVALID_PARAM;
-        *((int32_t *) &bytes[8]) = htole32(value); 
-        return 0;
-    }
-    
-    int SetIntegeral(int32_t value){ 
-        if ( value < 0 || value > 32767 ) return INVALID_PARAM;
-        *((int32_t *) &bytes[12]) = htole32(value); 
-        return 0;
-    }
-    
-    int SetDifferential(int32_t value){ 
-        if ( value < 0 || value > 32767 ) return INVALID_PARAM;
-        *((int32_t *) &bytes[16]) = htole32(value);
-        return 0;
-    }
-    
-    int SetIntegralLimit(int32_t value){ 
-        if ( value < 0 || value > 32767 ) return INVALID_PARAM;
-        *((int32_t *) &bytes[20]) = htole32(value); 
-        return 0;
-    }
-    
-    void SetFilterControl(uint16_t control){ *((uint16_t *) &bytes[24]) = htole16(control); }
-};
-
-class ReqPidParams:public MessageHeader{
-public:
-    ReqPidParams(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_DCPIDPARAMS, chanId, 0, dest, source){}
-};
-
-class GetPidParams:public LongMessage{
-public:
-    GetPidParams(uint8_t *mess):LongMessage(mess, 26){}
-
-    int32_t GetProportional(){ return le32toh(*((int32_t*) &bytes[8])); }
-    int32_t GetIntegral(){ return le32toh(*((int32_t*) &bytes[12])); }
-    int32_t GetDifferential(){ return le32toh(*((int32_t*) &bytes[16])); }
-    int32_t GetIntegralLimit(){ return le32toh(*((int32_t*) &bytes[20])); }
-    
-    uint16_t GetFilterControl(){ return le16toh(*((uint16_t*) &bytes[24])); }
-};
-
 class SetLedMode:public LongMessage{
 public:
     SetLedMode(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(SET_AVMODES, 4, dest, source){
