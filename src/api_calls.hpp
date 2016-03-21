@@ -262,9 +262,9 @@ int ChannelState(FT_HANDLE &handle, controller_device &device, GetChannelState *
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess(handle, device, GET_CHANENABLESTATE, HEADER_SIZE , buff);
+    free(buff);
     if ( ret != 0) return ret;
     info = new GetChannelState(buff);
-    free(buff);
     EMPTY_IN_QUEUE
     return 0;
 }
@@ -305,9 +305,9 @@ int GetBayUsed(FT_HANDLE &handle, controller_device &device, GetRackBayUsed *mes
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess(handle, device, RACK_GET_BAYUSED, HEADER_SIZE , buff);
+    free(buff);
     if ( ret != 0) return ret;
     message = new GetRackBayUsed(buff);
-    free(buff);
     EMPTY_IN_QUEUE
     return 0;
 }
