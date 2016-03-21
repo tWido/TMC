@@ -515,5 +515,103 @@ int GetHomingVel(FT_HANDLE &handle, controller_device &device, GetHomeParams *me
     return 0;
 };
 
+int SetLimitSwitchConfig(FT_HANDLE &handle, controller_device &device, uint16_t CwHwLim, uint16_t CCwHwLim, uint16_t CwSwLim, uint16_t CCwSwLim, uint16_t mode, 
+        int8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetLimitSwitchParams mes(dest, source, channel);
+    if (mes.SetClockwiseHardLimit(CwHwLim) == INVALID_PARAM) return INVALID_PARAM_1;
+    if (mes.SetCounterlockwiseHardLimit(CCwHwLim) == INVALID_PARAM) return INVALID_PARAM_2;
+    if (mes.SetClockwiseSoftLimit(CwSwLim) == IGNORED_PARAM) return IGNORED_PARAM;
+    if (mes.SetCounterlockwiseSoftLimit(CCwSwLim)== IGNORED_PARAM) return IGNORED_PARAM;
+    ret = mes.SetLimitMode(mode);
+    if (ret == INVALID_PARAM) return INVALID_PARAM_5;
+    if (ret == IGNORED_PARAM) return IGNORED_PARAM;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int GetLimitSwitchConfig(FT_HANDLE &handle, controller_device &device, GetLimitSwitchParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqLimitSwitchParams,22,GET_LIMSWITCHPARAMS,GetLimitSwitchParams) 
+    return 0;
+};
+
+int MoveToHome(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    MoveHome mes(dest,source,channel);        
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int StartSetRelativeMove(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    MoveRelative1 mes(dest,source,channel);        
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int StartRelativeMove(FT_HANDLE &handle, controller_device &device, int32_t dist, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    MoveRelative2 mes(dest,source,channel);
+    mes.SetRelativeDistance(dist);
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int StartSetAbsoluteMove(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    MoveAbsolute1 mes(dest,source,channel);        
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int StartAbsoluteMove(FT_HANDLE &handle, controller_device &device, int32_t pos, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    MoveAbsolute2 mes(dest,source,channel);  
+    if (mes.SetAbsoluteDistance(pos) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int StartJogMove(FT_HANDLE &handle, controller_device &device, uint8_t direction, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    JogMove mes(dest,source,channel);  
+    if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int StartSetVelocityMove(FT_HANDLE &handle, controller_device &device, uint8_t direction, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    MovewVelocity mes(dest,source,channel);  
+    if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int StopMovement(FT_HANDLE &handle, controller_device &device, uint8_t stopMode, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    StopMove mes(dest,source,channel);  
+    if (mes.SetStopMode(stopMode) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
 
 #endif 
