@@ -524,7 +524,8 @@ public:
 };
 
 class GetRelativeMoveParams: public LongMessage{
-    GetRelativeMoveParams(uint8_t *mess):LongMessage(mess,6){}
+public:
+    GetRelativeMoveParams(uint8_t *mess):LongMessage(mess,12){}
     
     int32_t GetRelativeDist(){ return le32toh(*((int32_t*) &bytes[8])); }
 };
