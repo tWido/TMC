@@ -348,8 +348,7 @@ int SetPositionCounter(FT_HANDLE &handle, controller_device &device, int32_t pos
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
     SetPosCounter mes(dest, source, channel);
-    ret = mes.SetPosition(pos);
-    if (ret == INVALID_PARAM) return ret;
+    if ( mes.SetPosition(pos) == INVALID_PARAM ) return INVALID_PARAM_1;
     SendMessage(mes, handle);
     EMPTY_IN_QUEUE
     return ret; //return WARNING
@@ -373,8 +372,7 @@ int SetEncoderCounter(FT_HANDLE &handle, controller_device &device, int32_t coun
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
     SetEncCount mes(dest, source, channel);
-    ret = mes.SetEncoderCount(count);
-    if (ret == INVALID_PARAM) return ret;
+    if ( mes.SetEncoderCount(count)== INVALID_PARAM) return INVALID_PARAM_1;
     SendMessage(mes, handle);
     EMPTY_IN_QUEUE
     return ret; //return WARNING
@@ -455,8 +453,8 @@ int SetPowerUsed(FT_HANDLE &handle, controller_device &device, uint16_t rest_pow
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
     SetPowerParams mes(dest, source, channel);
-    mes.SetRestFactor(rest_power);
-    mes.SetMoveFactor(move_power);        
+    if ( mes.SetRestFactor(rest_power) == INVALID_PARAM) return INVALID_PARAM_1;
+    if (mes.SetMoveFactor(move_power) == INVALID_PARAM )return INVALID_PARAM_2;        
     SendMessage(mes, handle);
     EMPTY_IN_QUEUE        
     return 0;
@@ -472,6 +470,31 @@ int GetPowerUsed(FT_HANDLE &handle, controller_device &device, GetPowerParams *m
     free(buff);
     if ( ret != 0) return ret;
     message = new GetPowerParams(buff);
+    EMPTY_IN_QUEUE          
+    return 0;
+};
+
+int SetBacklashDist(FT_HANDLE &handle, controller_device &device, uint32_t dist, 
+        int8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetGeneralMoveParams mes(dest, source, channel);
+    mes.SetBacklashDist(dist);    
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE        
+    return 0;
+};
+
+int GetBacklashDist(FT_HANDLE &handle, controller_device &device, GetGeneralMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    ReqGeneralMoveParams mes(dest, source, channel); 
+    SendMessage(mes, handle);
+    uint8_t *buff = (uint8_t *) malloc(12);
+    ret = GetResponseMess(handle, device, GET_GENMOVEPARAMS, 12, buff);
+    free(buff);
+    if ( ret != 0) return ret;
+    message = new GetGeneralMoveParams(buff);
     EMPTY_IN_QUEUE          
     return 0;
 };
