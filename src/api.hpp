@@ -487,6 +487,7 @@ public:
 };
 
 class SetGeneralMoveParams:public LongMessage{
+public:
     SetGeneralMoveParams(uint8_t dest, uint8_t source, uint16_t chanId)
             :LongMessage(SET_GENMOVEPARAMS, 6, dest, source){
         *((uint16_t *) &bytes[6]) = htole16(chanId);
