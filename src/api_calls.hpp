@@ -355,16 +355,16 @@ int SetPositionCounter(FT_HANDLE &handle, controller_device &device, int32_t pos
     return ret; //return WARNING
 };
 
-int GetPositionCounter(FT_HANDLE &handle, controller_device &device, GetPosCounter *message, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+int GetPositionCounter(FT_HANDLE &handle, controller_device &device, GetPosCounter *message, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
     ReqPosCounter mes(dest, source, channel);  
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(12);
     ret = GetResponseMess(handle, device, GET_POSCOUNTER, 12, buff);
+    free(buff);
     if ( ret != 0) return ret;
     message = new GetPosCounter(buff);
-    free(buff);
     EMPTY_IN_QUEUE        
     return 0;
 };
@@ -380,16 +380,16 @@ int SetEncoderCounter(FT_HANDLE &handle, controller_device &device, int32_t coun
     return ret; //return WARNING
 };
 
-int GetEncoderCounter(FT_HANDLE &handle, controller_device &device, GetEncCount *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+int GetEncoderCounter(FT_HANDLE &handle, controller_device &device, GetEncCount *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
     ReqEncCount mes(dest, source, channel);  
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(12);
     ret = GetResponseMess(handle, device, GET_ENCCOUNTER, 12, buff);
+    free(buff);
     if ( ret != 0) return ret;
     message = new GetEncCount(buff);
-    free(buff);
     EMPTY_IN_QUEUE        
     return 0;
 };
@@ -407,16 +407,16 @@ int SetVelocityP(FT_HANDLE &handle, controller_device &device, int32_t acc, int3
     return 0;        
 }
 
-int GetVelocityP(FT_HANDLE &handle, controller_device &device, GetVelocityParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+int GetVelocityP(FT_HANDLE &handle, controller_device &device, GetVelocityParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
     ReqVelocityParams mes(dest, source, channel);  
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(20);
     ret = GetResponseMess(handle, device, GET_VELPARAMS, 20, buff);
+    free(buff);
     if ( ret != 0) return ret;
     message = new GetVelocityParams(buff);
-    free(buff);
     EMPTY_IN_QUEUE        
     return 0;
 };
@@ -436,16 +436,16 @@ int SetJogP(FT_HANDLE &handle, controller_device &device, uint16_t mode, int32_t
     return 0; 
 };
 
-int GetJogP(FT_HANDLE &handle, controller_device &device, GetJogParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel8()){
+int GetJogP(FT_HANDLE &handle, controller_device &device, GetJogParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
     ReqJogParams mes(dest, source, channel);  
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(28);
     ret = GetResponseMess(handle, device, GET_VELPARAMS, 28, buff);
+    free(buff);
     if ( ret != 0) return ret;
     message = new GetJogParams(buff);
-    free(buff);
     EMPTY_IN_QUEUE        
     return 0;
 };
@@ -462,16 +462,16 @@ int SetPowerUsed(FT_HANDLE &handle, controller_device &device, uint16_t rest_pow
     return 0;
 };
 
-int GetPowerUsed(FT_HANDLE &handle, controller_device &device, GetPowerParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+int GetPowerUsed(FT_HANDLE &handle, controller_device &device, GetPowerParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
     ReqPowerParams mes(dest, source, channel); 
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(12);
     ret = GetResponseMess(handle, device, GET_POWERPARAMS, 12, buff);
+    free(buff);
     if ( ret != 0) return ret;
     message = new GetPowerParams(buff);
-    free(buff);
     EMPTY_IN_QUEUE          
     return 0;
 };
