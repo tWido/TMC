@@ -615,7 +615,21 @@ int StopMovement(FT_HANDLE &handle, controller_device &device, uint8_t stopMode,
     return 0;
 };
 
+int SetAccelerationProfile(FT_HANDLE &handle, controller_device &device, uint16_t index, 
+        int8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetBowIndex mes(dest, source, channel);
+    if (mes.SetBowindex(index) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
 
+int GetAccelerationProfile(FT_HANDLE &handle, controller_device &device, GetBowIndex *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqBowIndex,10,GET_BOWINDEX,GetBowIndex) 
+    return 0;
+};
 
 } // namespace device_calls
 
