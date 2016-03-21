@@ -247,6 +247,7 @@ int GetResponseMess(FT_HANDLE &handle, controller_device &device, uint16_t expec
     return 0;
 }
 
+namespace device_calls{
 // ------------------------- Generic device calls ------------------------------
 
 int Identify( FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource() ){
@@ -613,5 +614,9 @@ int StopMovement(FT_HANDLE &handle, controller_device &device, uint8_t stopMode,
     EMPTY_IN_QUEUE 
     return 0;
 };
+
+
+
+} // namespace device_calls
 
 #endif 
