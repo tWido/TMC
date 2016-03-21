@@ -441,20 +441,6 @@ public:
     uint16_t GetStopMode(){ return le16toh(*((uint16_t*) &bytes[26])); }
 };
 
-class ReqADCInputs:public MessageHeader{
-public:
-    ReqADCInputs(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_ADCINPUTS, chanId, 0, dest, source){}
-};
-
-class GetADCInputs:public LongMessage{
-public:
-    GetADCInputs(uint8_t *mess):LongMessage(mess, 10){}
-    /**
-     * @return values between 0 and 32768, corresponds to 0V and 5V
-     */
-    uint16_t GetADCInput(){ return le16toh(*((uint16_t*) &bytes[6])); }
-};
-
 class SetPowerParams:public LongMessage{
 public:
     SetPowerParams(uint8_t dest, uint8_t source, uint16_t chanId )
