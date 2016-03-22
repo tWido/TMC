@@ -631,6 +631,43 @@ int GetAccelerationProfile(FT_HANDLE &handle, controller_device &device, GetBowI
     return 0;
 };
 
+int SetLedP(FT_HANDLE &handle, controller_device &device, uint16_t mode, 
+        int8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetLedMode mes(dest, source, channel);
+    if (mes.SetMode(mode) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+
+int GetLedP(FT_HANDLE &handle, controller_device &device, GetLedMode *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqLedMode,10,GET_AVMODES,GetLedMode) 
+    return 0;
+};
+
+int SetButtons(FT_HANDLE &handle, controller_device &device, uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout, 
+        int8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetButtonParams mes(dest, source, channel);
+    if (mes.SetMode(mode) == INVALID_PARAM) return INVALID_PARAM_1;
+    if (mes.SetPosition1(pos1) == INVALID_PARAM) return INVALID_PARAM_2;
+    if (mes.SetPosition2(pos2) == INVALID_PARAM) return INVALID_PARAM_3;
+    if (mes.SetTimeout(timeout) == IGNORED_PARAM ) return IGNORED_PARAM;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int GetButtonsInfo(FT_HANDLE &handle, controller_device &device, GetButtonParams *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqButtonParams,22,GET_BUTTONPARAMS,GetButtonParams) 
+    return 0;
+};
+
+
 } // namespace device_calls
 
 #endif 
