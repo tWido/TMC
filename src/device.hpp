@@ -9,10 +9,14 @@ typedef struct {
     int tick;
     int enc_count;
     uint8_t dest;
+    bool status_updates = false;
     uint32_t status_position;
     uint16_t status_velocity;
     uint32_t status_enc_count;
     uint16_t status_status_bits;
+    bool moving = false;
+    bool homing = false;
+    bool stopping = false;
 } motor_device;
 
 typedef struct{
@@ -24,6 +28,7 @@ typedef struct{
     uint8_t dest;
     char *SN;
     motor_device motor[3];
+    bool end_of_move_messages = false;
 } controller_device;
 
 unsigned int devices_connected;

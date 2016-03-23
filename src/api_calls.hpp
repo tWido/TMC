@@ -143,7 +143,13 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             READ_REST(4)
             MovedHome response(buff);
             uint8_t motor_channel = response.GetSource();
-            if (motor_channel == 0x50 ) printf("Moved to home position\n");
+            for (int i = 0; i< device.channels; i++){
+                if (device.motor[i].dest == motor_channel) device.motor[i].homing=false;
+            }
+            if (motor_channel == 0x50 ){ 
+                device.motor[0].homing = false;
+                printf("Moved to home position\n");
+            }
             else printf("Motor in bay %d moved to home position\n",  (motor_channel | 0x0F)  );
             free(buff);
             return MOVED_HOME_STATUS;
@@ -152,7 +158,13 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             READ_REST(4)
             MoveCompleted response(buff);
             uint8_t motor_channel = response.GetSource();
-            if (motor_channel == 0x50 ) printf("Move completed\n");
+            for (int i = 0; i< device.channels; i++){
+                if (device.motor[i].dest == motor_channel) device.motor[i].moving=false;
+            }
+            if (motor_channel == 0x50 ){ 
+                device.motor[0].moving = false;
+                printf("Move completed\n");
+            }
             else printf("Motor in bay %d completed move\n",  (motor_channel | 0x0F)  );
             free(buff);
             return MOVE_COMPLETED_STATUS;
@@ -161,7 +173,13 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             READ_REST(4)
             MoveStopped response(buff);
             uint8_t motor_channel = response.GetSource();
-            if (motor_channel == 0x50 ) printf("Move stopped\n");
+            for (int i = 0; i< device.channels; i++){
+                if (device.motor[i].dest == motor_channel) device.motor[i].stopping=false;
+            }
+            if (motor_channel == 0x50 ){
+                device.motor[0].stopping = false;
+                printf("Move stopped\n");
+            }
             else printf("Motor in bay %d stopped moving\n",  (motor_channel | 0x0F)  );
             free(buff);
             return MOVE_STOPPED_STATUS;
@@ -541,6 +559,11 @@ int GetLimitSwitchConfig(FT_HANDLE &handle, controller_device &device, GetLimitS
 int MoveToHome(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    if (device.end_of_move_messages){
+        for(int i = 0; i< device.channels; i++){
+            if (device.motor[i].dest == dest) device.motor[i].homing=true;
+        }
+    }
     MoveHome mes(dest,source,channel);        
     SendMessage(mes, handle);
     EMPTY_IN_QUEUE 
@@ -550,6 +573,11 @@ int MoveToHome(FT_HANDLE &handle, controller_device &device, uint8_t dest = Defa
 int StartSetRelativeMove(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    if (device.end_of_move_messages){
+        for(int i = 0; i< device.channels; i++){
+            if (device.motor[i].dest == dest) device.motor[i].moving=true;
+        }
+    }
     MoveRelative1 mes(dest,source,channel);        
     SendMessage(mes, handle);
     EMPTY_IN_QUEUE 
@@ -559,6 +587,11 @@ int StartSetRelativeMove(FT_HANDLE &handle, controller_device &device, uint8_t d
 int StartRelativeMove(FT_HANDLE &handle, controller_device &device, int32_t dist, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    if (device.end_of_move_messages){
+        for(int i = 0; i< device.channels; i++){
+            if (device.motor[i].dest == dest) device.motor[i].moving=true;
+        }
+    }
     MoveRelative2 mes(dest,source,channel);
     mes.SetRelativeDistance(dist);
     SendMessage(mes, handle);
@@ -569,6 +602,11 @@ int StartRelativeMove(FT_HANDLE &handle, controller_device &device, int32_t dist
 int StartSetAbsoluteMove(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    if (device.end_of_move_messages){
+        for(int i = 0; i< device.channels; i++){
+            if (device.motor[i].dest == dest) device.motor[i].moving=true;
+        }
+    }
     MoveAbsolute1 mes(dest,source,channel);        
     SendMessage(mes, handle);
     EMPTY_IN_QUEUE 
@@ -578,6 +616,11 @@ int StartSetAbsoluteMove(FT_HANDLE &handle, controller_device &device, uint8_t d
 int StartAbsoluteMove(FT_HANDLE &handle, controller_device &device, int32_t pos, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    if (device.end_of_move_messages){
+        for(int i = 0; i< device.channels; i++){
+            if (device.motor[i].dest == dest) device.motor[i].moving=true;
+        }
+    }        
     MoveAbsolute2 mes(dest,source,channel);  
     if (mes.SetAbsoluteDistance(pos) == INVALID_PARAM) return INVALID_PARAM_1;
     SendMessage(mes, handle);
@@ -588,6 +631,11 @@ int StartAbsoluteMove(FT_HANDLE &handle, controller_device &device, int32_t pos,
 int StartJogMove(FT_HANDLE &handle, controller_device &device, uint8_t direction, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    if (device.end_of_move_messages){
+        for(int i = 0; i< device.channels; i++){
+            if (device.motor[i].dest == dest) device.motor[i].moving=true;
+        }
+    }        
     JogMove mes(dest,source,channel);  
     if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
     SendMessage(mes, handle);
@@ -598,6 +646,11 @@ int StartJogMove(FT_HANDLE &handle, controller_device &device, uint8_t direction
 int StartSetVelocityMove(FT_HANDLE &handle, controller_device &device, uint8_t direction, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    if (device.end_of_move_messages){
+        for(int i = 0; i< device.channels; i++){
+            if (device.motor[i].dest == dest) device.motor[i].moving=true;
+        }
+    }        
     MovewVelocity mes(dest,source,channel);  
     if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
     SendMessage(mes, handle);
@@ -608,6 +661,11 @@ int StartSetVelocityMove(FT_HANDLE &handle, controller_device &device, uint8_t d
 int StopMovement(FT_HANDLE &handle, controller_device &device, uint8_t stopMode, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    if (device.end_of_move_messages){
+        for(int i = 0; i< device.channels; i++){
+            if (device.motor[i].dest == dest) device.motor[i].stopping=true;
+        }
+    }        
     StopMove mes(dest,source,channel);  
     if (mes.SetStopMode(stopMode) == INVALID_PARAM) return INVALID_PARAM_1;
     SendMessage(mes, handle);
