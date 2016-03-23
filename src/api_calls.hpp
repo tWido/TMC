@@ -562,14 +562,14 @@ int GetLimitSwitchConfig(FT_HANDLE &handle, controller_device &device, GetLimitS
 int MoveToHome(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    MoveHome mes(dest,source,channel);        
+    SendMessage(mes, handle);
     if (device.end_of_move_messages){
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].homing=true;
         }
         if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].homing=true;
-    }
-    MoveHome mes(dest,source,channel);        
-    SendMessage(mes, handle);
+    }    
     EMPTY_IN_QUEUE 
     return 0;
 };
@@ -577,14 +577,14 @@ int MoveToHome(FT_HANDLE &handle, controller_device &device, uint8_t dest = Defa
 int StartSetRelativeMove(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    MoveRelative1 mes(dest,source,channel);        
+    SendMessage(mes, handle);
     if (device.end_of_move_messages){
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
         if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
     }
-    MoveRelative1 mes(dest,source,channel);        
-    SendMessage(mes, handle);
     EMPTY_IN_QUEUE 
     return 0;
 };
@@ -592,15 +592,15 @@ int StartSetRelativeMove(FT_HANDLE &handle, controller_device &device, uint8_t d
 int StartRelativeMove(FT_HANDLE &handle, controller_device &device, int32_t dist, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    MoveRelative2 mes(dest,source,channel);
+    mes.SetRelativeDistance(dist);
+    SendMessage(mes, handle);
     if (device.end_of_move_messages){
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
         if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
     }
-    MoveRelative2 mes(dest,source,channel);
-    mes.SetRelativeDistance(dist);
-    SendMessage(mes, handle);
     EMPTY_IN_QUEUE 
     return 0;
 };
@@ -608,62 +608,62 @@ int StartRelativeMove(FT_HANDLE &handle, controller_device &device, int32_t dist
 int StartSetAbsoluteMove(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    MoveAbsolute1 mes(dest,source,channel);        
+    SendMessage(mes, handle);
     if (device.end_of_move_messages){
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
         if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
     }
-    MoveAbsolute1 mes(dest,source,channel);        
-    SendMessage(mes, handle);
     EMPTY_IN_QUEUE 
     return 0;
 };
 
 int StartAbsoluteMove(FT_HANDLE &handle, controller_device &device, int32_t pos, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
-    EMPTY_IN_QUEUE
+    EMPTY_IN_QUEUE       
+    MoveAbsolute2 mes(dest,source,channel);  
+    if (mes.SetAbsoluteDistance(pos) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
     if (device.end_of_move_messages){
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
         if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
-    }        
-    MoveAbsolute2 mes(dest,source,channel);  
-    if (mes.SetAbsoluteDistance(pos) == INVALID_PARAM) return INVALID_PARAM_1;
-    SendMessage(mes, handle);
+    } 
     EMPTY_IN_QUEUE 
     return 0;
 };
 
 int StartJogMove(FT_HANDLE &handle, controller_device &device, uint8_t direction, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
-    EMPTY_IN_QUEUE
+    EMPTY_IN_QUEUE       
+    JogMove mes(dest,source,channel);  
+    if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
     if (device.end_of_move_messages){
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
         if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
-    }        
-    JogMove mes(dest,source,channel);  
-    if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
-    SendMessage(mes, handle);
+    } 
     EMPTY_IN_QUEUE 
     return 0;
 };
 
 int StartSetVelocityMove(FT_HANDLE &handle, controller_device &device, uint8_t direction, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
-    EMPTY_IN_QUEUE
+    EMPTY_IN_QUEUE        
+    MovewVelocity mes(dest,source,channel);  
+    if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
     if (device.end_of_move_messages){
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
         if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
-    }        
-    MovewVelocity mes(dest,source,channel);  
-    if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
-    SendMessage(mes, handle);
+    }
     EMPTY_IN_QUEUE 
     return 0;
 };
@@ -671,15 +671,15 @@ int StartSetVelocityMove(FT_HANDLE &handle, controller_device &device, uint8_t d
 int StopMovement(FT_HANDLE &handle, controller_device &device, uint8_t stopMode, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(source ,dest, channel)
     EMPTY_IN_QUEUE
+    StopMove mes(dest,source,channel);  
+    if (mes.SetStopMode(stopMode) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes, handle);
     if (device.end_of_move_messages){
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].stopping=true;
         }
         if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].stopping=true;
     }        
-    StopMove mes(dest,source,channel);  
-    if (mes.SetStopMode(stopMode) == INVALID_PARAM) return INVALID_PARAM_1;
-    SendMessage(mes, handle);
     EMPTY_IN_QUEUE 
     return 0;
 };
