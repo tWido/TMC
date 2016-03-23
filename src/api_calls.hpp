@@ -736,6 +736,17 @@ int GetButtonsInfo(FT_HANDLE &handle, controller_device &device, GetButtonParams
     return 0;
 };
 
+int GetStatus(FT_HANDLE &handle, controller_device &device, GetStatusUpdate *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqStatusUpdate,20,GET_STATUSUPDATE,GetStatusUpdate) 
+    return 0;
+};
+
+int GetDcStatus(FT_HANDLE &handle, controller_device &device, GetMotChanStatusUpdate *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqMotChanStatusUpdate,20,GET_DCSTATUSUPDATE,GetMotChanStatusUpdate) 
+    return 0;
+};
+
+
 
 } // namespace device_calls
 
