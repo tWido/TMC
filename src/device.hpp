@@ -10,9 +10,9 @@ typedef struct {
     int enc_count;
     uint8_t dest;
     bool status_updates = false;
-    uint32_t status_position;
-    uint16_t status_velocity;
-    uint32_t status_enc_count;
+    int32_t status_position;
+    int16_t status_velocity;
+    int32_t status_enc_count;
     uint16_t status_status_bits;
     bool moving = false;
     bool homing = false;
