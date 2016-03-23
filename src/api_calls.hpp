@@ -187,36 +187,36 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
             free(buff);
             return MOVE_STOPPED_STATUS;
         }
-        case GET_STATUSUPDATE:{
-            READ_REST(18)
-            GetStatusUpdate response(buff);
-            uint8_t motor_channel = response.GetSource();
-            for (int i = 0; i< device.channels; i++){
-                if (motor_channel == device.motor[i].dest ) {
-                    device.motor[i].status_enc_count = response.GetEncCount();
-                    device.motor[i].status_position = response.GetPosition();
-                    device.motor[i].status_status_bits = response.GetStatusBits();
-                    break;
-                }
-            }
-            free(buff);
-            return 0;
-        }
-        case GET_DCSTATUSUPDATE:{
-            READ_REST(18)
-            GetMotChanStatusUpdate response(buff);
-            uint8_t motor_channel = response.GetSource();
-            for (int i = 0; i< device.channels; i++){
-                if (motor_channel == device.motor[i].dest ) {
-                    device.motor[i].status_velocity = response.GetVelocity();
-                    device.motor[i].status_position = response.GetPosition();
-                    device.motor[i].status_status_bits = response.GetStatusBits();
-                    break;
-                }
-            }
-            free(buff);
-            return 0;
-        }
+//        case GET_STATUSUPDATE:{
+//            READ_REST(18)
+//            GetStatusUpdate response(buff);
+//            uint8_t motor_channel = response.GetSource();
+//            for (int i = 0; i< device.channels; i++){
+//                if (motor_channel == device.motor[i].dest ) {
+//                    device.motor[i].status_enc_count = response.GetEncCount();
+//                    device.motor[i].status_position = response.GetPosition();
+//                    device.motor[i].status_status_bits = response.GetStatusBits();
+//                    break;
+//                }
+//            }
+//            free(buff);
+//            return 0;
+//        }
+//        case GET_DCSTATUSUPDATE:{
+//            READ_REST(18)
+//            GetMotChanStatusUpdate response(buff);
+//            uint8_t motor_channel = response.GetSource();
+//            for (int i = 0; i< device.channels; i++){
+//                if (motor_channel == device.motor[i].dest ) {
+//                    device.motor[i].status_velocity = response.GetVelocity();
+//                    device.motor[i].status_position = response.GetPosition();
+//                    device.motor[i].status_status_bits = response.GetStatusBits();
+//                    break;
+//                }
+//            }
+//            free(buff);
+//            return 0;
+//        }
         default: {
             ret_msgID = &msgID;
             free(buff);
@@ -321,24 +321,24 @@ int DisconnectHW(FT_HANDLE &handle, controller_device &device, uint8_t dest = De
     return 0;
 }
 
-int StartUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    CHECK_ADDR_PARAMS(source ,dest, -1)
-    EMPTY_IN_QUEUE
-    StartUpdateMessages mes(dest,source);
-    if (mes.SetUpdaterate(rate) == IGNORED_PARAM) printf("This parameter is ignored in connected device. Using default.\n");
-    SendMessage(mes, handle);
-    EMPTY_IN_QUEUE
-    return 0;
-}
-
-int StopUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
-    CHECK_ADDR_PARAMS(source ,dest, -1)
-    EMPTY_IN_QUEUE
-    StopUpdateMessages mes(dest,source);
-    SendMessage(mes, handle);
-    EMPTY_IN_QUEUE
-    return 0;
-}
+//int StartUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+//    CHECK_ADDR_PARAMS(source ,dest, -1)
+//    EMPTY_IN_QUEUE
+//    StartUpdateMessages mes(dest,source);
+//    if (mes.SetUpdaterate(rate) == IGNORED_PARAM) printf("This parameter is ignored in connected device. Using default.\n");
+//    SendMessage(mes, handle);
+//    EMPTY_IN_QUEUE
+//    return 0;
+//}
+//
+//int StopUpdateMess(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+//    CHECK_ADDR_PARAMS(source ,dest, -1)
+//    EMPTY_IN_QUEUE
+//    StopUpdateMessages mes(dest,source);
+//    SendMessage(mes, handle);
+//    EMPTY_IN_QUEUE
+//    return 0;
+//}
 
 int GetBayUsed(FT_HANDLE &handle, controller_device &device, GetRackBayUsed *message, uint8_t bayID, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
     CHECK_ADDR_PARAMS(source ,dest, -1)
