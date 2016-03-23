@@ -746,6 +746,54 @@ int GetDcStatus(FT_HANDLE &handle, controller_device &device, GetMotChanStatusUp
     return 0;
 };
 
+int SendServerAlive(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    CHECK_ADDR_PARAMS(source ,dest, -1)
+    EMPTY_IN_QUEUE
+    ServerAlive mes(dest,source);
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int GetStatBits(FT_HANDLE &handle, controller_device &device, GetStatusBits *message ,uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqStatusBits,12,GET_STATUSBITS,GetStatusBits) 
+    return 0;
+};
+
+int DisableEomMessages(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    CHECK_ADDR_PARAMS(source ,dest, -1)
+    EMPTY_IN_QUEUE
+    DisableEndMoveMessages mes(dest,source);
+    SendMessage(mes, handle);
+    device.end_of_move_messages = false;
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int EnableEomMessages(FT_HANDLE &handle, controller_device &device, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    CHECK_ADDR_PARAMS(source ,dest, -1)
+    EMPTY_IN_QUEUE
+    EnableEndMoveMessages mes(dest,source);
+    SendMessage(mes, handle);
+    device.end_of_move_messages = false;
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int CreateTrigger(FT_HANDLE &handle, controller_device &device, uint8_t mode, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(source ,dest, channel)
+    EMPTY_IN_QUEUE
+    SetTrigger mes(dest,source);
+    if (mes.SetMode(mode) == IGNORED_PARAM) return IGNORED_PARAM;
+    SendMessage(mes, handle);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+int GetTrigger(FT_HANDLE &handle, controller_device &device, GetTrigger *message, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqTrigger,HEADER_SIZE,GET_TRIGGER,GetTrigger) 
+    return 0;
+};
 
 
 } // namespace device_calls
