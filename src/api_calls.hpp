@@ -147,7 +147,7 @@ int CheckIncomingQueue(FT_HANDLE &handle, controller_device &device, uint16_t *r
                 if (device.motor[i].dest == motor_channel) device.motor[i].homing=false;
             }
             if (motor_channel == 0x50 || motor_channel == 0x11){ 
-                uint8_t chanID =response.GetFirstParam()
+                uint8_t chanID =response.GetFirstParam();
                 device.motor[chanID-1].homing = false;
                 printf("Moved to home position\n");
             }
@@ -566,7 +566,7 @@ int MoveToHome(FT_HANDLE &handle, controller_device &device, uint8_t dest = Defa
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].homing=true;
         }
-        if (dest == 0x50 || dest == 0x11 && channel >0) device.motor[channel-1].homing=true;
+        if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].homing=true;
     }
     MoveHome mes(dest,source,channel);        
     SendMessage(mes, handle);
@@ -581,7 +581,7 @@ int StartSetRelativeMove(FT_HANDLE &handle, controller_device &device, uint8_t d
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
-        if (dest == 0x50 || dest == 0x11 && channel >0) device.motor[channel-1].moving=true;
+        if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
     }
     MoveRelative1 mes(dest,source,channel);        
     SendMessage(mes, handle);
@@ -596,7 +596,7 @@ int StartRelativeMove(FT_HANDLE &handle, controller_device &device, int32_t dist
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
-        if (dest == 0x50 || dest == 0x11 && channel >0) device.motor[channel-1].moving=true;
+        if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
     }
     MoveRelative2 mes(dest,source,channel);
     mes.SetRelativeDistance(dist);
@@ -612,7 +612,7 @@ int StartSetAbsoluteMove(FT_HANDLE &handle, controller_device &device, uint8_t d
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
-        if (dest == 0x50 || dest == 0x11 && channel >0) device.motor[channel-1].moving=true;
+        if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
     }
     MoveAbsolute1 mes(dest,source,channel);        
     SendMessage(mes, handle);
@@ -627,7 +627,7 @@ int StartAbsoluteMove(FT_HANDLE &handle, controller_device &device, int32_t pos,
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
-        if (dest == 0x50 || dest == 0x11 && channel >0) device.motor[channel-1].moving=true;
+        if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
     }        
     MoveAbsolute2 mes(dest,source,channel);  
     if (mes.SetAbsoluteDistance(pos) == INVALID_PARAM) return INVALID_PARAM_1;
@@ -643,7 +643,7 @@ int StartJogMove(FT_HANDLE &handle, controller_device &device, uint8_t direction
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
-        if (dest == 0x50 || dest == 0x11 && channel >0) device.motor[channel-1].moving=true;
+        if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
     }        
     JogMove mes(dest,source,channel);  
     if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
@@ -659,7 +659,7 @@ int StartSetVelocityMove(FT_HANDLE &handle, controller_device &device, uint8_t d
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].moving=true;
         }
-        if (dest == 0x50 || dest == 0x11 && channel >0) device.motor[channel-1].moving=true;
+        if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].moving=true;
     }        
     MovewVelocity mes(dest,source,channel);  
     if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
@@ -675,7 +675,7 @@ int StopMovement(FT_HANDLE &handle, controller_device &device, uint8_t stopMode,
         for(int i = 0; i< device.channels; i++){
             if (device.motor[i].dest == dest) device.motor[i].stopping=true;
         }
-        if (dest == 0x50 || dest == 0x11 && channel >0) device.motor[channel-1].stopping=true;
+        if ((dest == 0x50 || dest == 0x11) && channel >0) device.motor[channel-1].stopping=true;
     }        
     StopMove mes(dest,source,channel);  
     if (mes.SetStopMode(stopMode) == INVALID_PARAM) return INVALID_PARAM_1;
