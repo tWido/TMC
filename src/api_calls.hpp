@@ -340,6 +340,20 @@ int DisconnectHW(FT_HANDLE &handle, controller_device &device, uint8_t dest = De
 //    return 0;
 //}
 
+int GetHwInfo(FT_HANDLE &handle, controller_device &device, HwInfo *message, uint8_t bayID, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+    CHECK_ADDR_PARAMS(source ,dest, -1)
+    EMPTY_IN_QUEUE
+    ReqHwInfo mes(dest,source);
+    SendMessage(mes, handle);
+    uint8_t *buff = (uint8_t *) malloc(90);
+    ret = GetResponseMess(handle, device, RACK_GET_BAYUSED, 90, buff);
+    free(buff);
+    if ( ret != 0) return ret;
+    message = new HwInfo(buff);
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
 int GetBayUsed(FT_HANDLE &handle, controller_device &device, GetRackBayUsed *message, uint8_t bayID, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
     CHECK_ADDR_PARAMS(source ,dest, -1)
     EMPTY_IN_QUEUE
