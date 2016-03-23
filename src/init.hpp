@@ -12,8 +12,8 @@
 #include "api_calls.hpp"
 
 #define STOP 1
-#define FTDI_ERROR -2
 #define SYSTEM_ERROR -3
+#define FIND_DEV(code) if (name.compare(#code)== 0){ printf("Found controller device, type: %s", name.c_str()) ; return code;}
 
 #define USB_PATH path = dev_path; path.append(loc);
 
@@ -72,7 +72,7 @@ int addVidPid(){
             if (ftStatus != FT_OK ) {
                 printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
                 closedir(usb_devs);
-                return FTDI_ERROR;
+                return FT_ERROR;
             }
             
             string sn_path = usb_path;
@@ -132,12 +132,78 @@ int CheckCron(){
     return -1;
 }
 
-int LoadRestrictions(){
+int LoadRestrictions(FT_HANDLE &handle, controller_device &device){
+    // for connected motors load restrictions
     //not implemented
     return -1;
 }
 
-int LoadDefaults(){
+int ToDevType(std::string name){
+    FIND_DEV(BSC001)
+    FIND_DEV(BSC002)
+    FIND_DEV(BMS001)
+    FIND_DEV(BMS002)
+    FIND_DEV(MST601)
+    FIND_DEV(MST602)
+    FIND_DEV(BSC101)
+    FIND_DEV(BSC102)
+    FIND_DEV(BSC103)
+    FIND_DEV(BSC201)
+    FIND_DEV(BSC202)
+    FIND_DEV(BSC203)
+    FIND_DEV(BBD101)
+    FIND_DEV(BBD102)
+    FIND_DEV(BBD103)
+    FIND_DEV(BBD201)
+    FIND_DEV(BBD202)
+    FIND_DEV(BBD203)
+    FIND_DEV(OST001)
+    FIND_DEV(ODC001)
+    FIND_DEV(TST001)
+    FIND_DEV(TDC001)
+    FIND_DEV(TSC001)
+    FIND_DEV(TDIxxx)
+    FIND_DEV(TBD001)
+    return -1;
+}
+
+int Channels(int type){
+    if ( type == BSC001 || type == BMS001 || type == BSC101 || type == BSC201 || type == BBD101 || type == BBD201 
+            || type == OST001 || type == ODC001 || type == TST001 || type == TDC001 || type == TSC001 || type == TBD001 ) return 1;
+    
+    if ( type == BSC002 || type == BMS002 || type == MST601 || type == MST601 || type == BSC102 || type == BSC202
+            || type == BBD102 || type== BBD202) return 2;
+    
+    if ( type == BSC103 || type == BSC203 || type == BBD103 || type== BBD203 ) return 3;
+    return 0;
+};
+
+int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
+    device.ft_opened = true;
+    device.handle = &handle;
+    int ret;
+    ret = device_calls::FlashProgNo(handle, device, 0x50, 0x01);
+    if (ret != 0) return ret;
+    
+    HwInfo *info = NULL;
+    ret = device_calls::GetHwInfo(handle, device, info, 0x50, 0x01);
+    if (ret != 0) return ret;
+    device.hw_type = info->HWType();
+    device.dest = info->GetSource();
+    std::string model_num = info->ModelNumber();
+    device.device_type = ToDevType(model_num);
+    if (device.device_type == -1 ) printf("WARNING: unrecognized controller device");// TODO manually get channels
+    delete(info);
+    
+    device.channels = Channels(device.device_type);
+    GetHubBayUsed *hub;
+    ret = device_calls::GetHubUsed(handle, device, hub, device.dest);
+    if (ret != 0) return ret;
+    device.in_hub = hub->GetBayID();
+    delete(hub);
+    
+    //motors connected
+    LoadRestrictions(handle, device);
     //not implemented
     return -1;
 }
@@ -161,26 +227,24 @@ int init(){
     ft_status = FT_CreateDeviceInfoList(&num_ftdi_devices);
     if (ft_status != FT_OK) {
         printf("Detecting devices failed\n");
-        return FTDI_ERROR;
+        return FT_ERROR;
     }
     
     FT_DEVICE_LIST_INFO_NODE *ftdi_devs = (FT_DEVICE_LIST_INFO_NODE*) malloc(sizeof(FT_DEVICE_LIST_INFO_NODE) *num_ftdi_devices  ) ;  
     ft_status = FT_GetDeviceInfoList( ftdi_devs, &num_ftdi_devices) ;  
     if (ft_status != FT_OK) {
         printf("Detecting devices failed\n");
-        return FTDI_ERROR;
+        return FT_ERROR;
     }
     
     //Find additional info to Thorlabs devices
     for (unsigned int j = 0; j<  devices_connected; j++){
         for (unsigned int i = 0; i< num_ftdi_devices; i++){
             if ( strncmp(ftdi_devs[i].SerialNumber, connected_device[j].SN, 8) == 0 ){
-                
-                //device type
-                FT_HANDLE handle = ftdi_devs[i].ftHandle;
-                connected_device[j].handle = &ftdi_devs[i].ftHandle;
-                //send messages for more info
-
+                FT_HANDLE handle;
+                ft_status = FT_OpenEx( connected_device[j].SN, FT_OPEN_BY_SERIAL_NUMBER, &handle);
+                if (ft_status != FT_OK ) return FT_ERROR; 
+                LoadDeviceInfo(handle, connected_device[j]);
             }
         }
     }

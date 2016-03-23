@@ -3,6 +3,7 @@
 
 typedef struct {
     int motor_type;
+    bool restrictions_loaded = false;
     int max_pos;
     int max_vel;
     int max_acc;
@@ -23,6 +24,7 @@ typedef struct{
     FT_HANDLE *handle;
     bool ft_opened;
     int device_type;
+    int hw_type;
     int channels;
     int in_hub;
     uint8_t dest;
