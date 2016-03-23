@@ -340,7 +340,7 @@ int DisconnectHW(FT_HANDLE &handle, controller_device &device, uint8_t dest = De
 //    return 0;
 //}
 
-int GetHwInfo(FT_HANDLE &handle, controller_device &device, HwInfo *message, uint8_t bayID, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
+int GetHwInfo(FT_HANDLE &handle, controller_device &device, HwInfo *message, uint8_t dest = DefaultDest(), uint8_t source = DefaultSource()){
     CHECK_ADDR_PARAMS(source ,dest, -1)
     EMPTY_IN_QUEUE
     ReqHwInfo mes(dest,source);
