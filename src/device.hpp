@@ -25,6 +25,7 @@ typedef struct{
     bool ft_opened;
     int device_type;
     int hw_type;
+    int bays;      
     int channels;
     int in_hub;
     uint8_t dest;

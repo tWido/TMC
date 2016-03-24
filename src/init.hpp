@@ -166,6 +166,10 @@ int ToDevType(std::string name){
     FIND_DEV(TBD001)
     return -1;
 }
+int Bays(int type){
+
+    return -1;
+}
 
 int Channels(int type){
     if ( type == BSC001 || type == BMS001 || type == BSC101 || type == BSC201 || type == BBD101 || type == BBD201 
@@ -196,12 +200,14 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     delete(info);
     
     device.channels = Channels(device.device_type);
-    GetHubBayUsed *hub;
+    device.bays = Bays(device.device_type);
+    GetHubBayUsed *hub = NULL;
     ret = device_calls::GetHubUsed(handle, device, hub, device.dest);
     if (ret != 0) return ret;
     device.in_hub = hub->GetBayID();
     delete(hub);
     
+    device.bays = Bays(device.device_type);
     //motors connected
     LoadRestrictions(handle, device);
     //not implemented
