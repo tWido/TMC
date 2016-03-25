@@ -202,7 +202,7 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     device.in_hub = hub->GetBayID();
     delete(hub);
     
-    //motors connected
+    //motors connected - bay occcupied
     LoadRestrictions(handle, device);
     //not implemented
     return -1;
