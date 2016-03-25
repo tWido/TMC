@@ -255,6 +255,7 @@ int init(){
         }
     }
     
+    opened_device = connected_device[0];
     free(ftdi_devs);        
     //not implemented yet
     return -1;
