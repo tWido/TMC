@@ -164,6 +164,7 @@ int ToDevType(std::string name){
     FIND_DEV(TSC001)
     FIND_DEV(TDIxxx)
     FIND_DEV(TBD001)
+    printf("Unknown device type\n");
     return -1;
 }
 int Bays(int type){
