@@ -10,11 +10,11 @@ typedef struct {
     int tick;
     int enc_count;
     uint8_t dest;
-//    bool status_updates = false;
-//    int32_t status_position;
-//    int16_t status_velocity;
-//    int32_t status_enc_count;
-//    uint16_t status_status_bits;
+    bool status_updates = false;
+    int32_t status_position;
+    int16_t status_velocity;
+    int32_t status_enc_count;
+    uint16_t status_status_bits;
     bool moving = false;
     bool homing = false;
     bool stopping = false;
