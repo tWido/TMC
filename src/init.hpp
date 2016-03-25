@@ -186,11 +186,11 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     device.ft_opened = true;
     device.handle = &handle;
     int ret;
-    ret = device_calls::FlashProgNo(handle, device, 0x50, 0x01);
+    ret = device_calls::FlashProgNo(handle, 0x50, 0x01);
     if (ret != 0) return ret;
     
     HwInfo *info = NULL;
-    ret = device_calls::GetHwInfo(handle, device, info, 0x50, 0x01);
+    ret = device_calls::GetHwInfo(handle,  info, 0x50, 0x01);
     if (ret != 0) return ret;
     device.hw_type = info->HWType();
     device.dest = info->GetSource();
@@ -202,7 +202,7 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     device.channels = Channels(device.device_type);
     device.bays = Bays(device.device_type);
     GetHubBayUsed *hub = NULL;
-    ret = device_calls::GetHubUsed(handle, device, hub, device.dest);
+    ret = device_calls::GetHubUsed(handle, hub, device.dest);
     if (ret != 0) return ret;
     device.in_hub = hub->GetBayID();
     delete(hub);

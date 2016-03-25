@@ -82,6 +82,11 @@ public:
        bytes[4] = dest;
     }
     
+    int GetMotorID(){
+        if (opened_device.bays == -1) return GetFirstParam()-1;    // channel type, channels numbered from 1, in field from 0
+        else return ((GetDest() | 0x0f) -1 );               // bay type, numbering 0x21 ..0x23, 
+    }
+    
     uint16_t GetType(){ return le16toh(*((uint16_t *) &bytes[0])) ;}
     
 };
@@ -110,8 +115,8 @@ public:
 
     uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
     
-    int GetMotorID(controller_device &device){
-        if (device.bays == -1) return GetChanID()-1;    // channel type, channels numbered from 1, in field from 0
+    int GetMotorID(){
+        if (opened_device.bays == -1) return GetChanID()-1;    // channel type, channels numbered from 1, in field from 0
         else return ((GetDest() | 0x0f) -1 );           // bay type, numbering 0x21 ..0x23, 
     }
     
@@ -307,7 +312,7 @@ public:
     }
     
     int SetPosition(int32_t pos){
-        if (opened_device.motor[GetMotorID(opened_device)].max_pos < pos) return INVALID_PARAM;
+        if (opened_device.motor[GetMotorID()].max_pos < pos) return INVALID_PARAM;
         *((int32_t *) &bytes[8]) = htole32(pos);  
         return WARNING;
     }
@@ -332,7 +337,7 @@ public:
     }
     
     int SetEncoderCount(int32_t count){
-        if (opened_device.motor[GetMotorID(opened_device)].enc_count == -1 ) return IGNORED_PARAM;
+        if (opened_device.motor[GetMotorID()].enc_count == -1 ) return IGNORED_PARAM;
         *((int32_t *) &bytes[8]) = htole32(count); 
         return WARNING;
     }
@@ -359,12 +364,12 @@ public:
     };
     
     int SetAcceleration(int32_t acc){
-        if( abs(acc) > opened_device.motor[GetMotorID(opened_device)].max_acc ) return INVALID_PARAM;
+        if( abs(acc) > opened_device.motor[GetMotorID()].max_acc ) return INVALID_PARAM;
         *((int32_t *) &bytes[12]) = htole32(acc);
         return 0;
     }
     int SetMaxVel(int32_t max){ 
-        if( abs(max) > opened_device.motor[GetMotorID(opened_device)].max_vel ) return INVALID_PARAM;
+        if( abs(max) > opened_device.motor[GetMotorID()].max_vel ) return INVALID_PARAM;
         *((int32_t *) &bytes[16]) = htole32(max);
         return 0;
     }
@@ -403,12 +408,12 @@ public:
     void SetStepSize(int32_t stepSize){ *((int32_t *) &bytes[10]) = htole32(stepSize); }
     
     int SetMaxVelocity(int32_t velocity){
-        if( abs(velocity) > opened_device.motor[GetMotorID(opened_device)].max_vel ) return INVALID_PARAM;
+        if( abs(velocity) > opened_device.motor[GetMotorID()].max_vel ) return INVALID_PARAM;
         *((int32_t *) &bytes[22]) = htole32(velocity);
         return 0;
     }
     int SetAcceleration(int32_t acc){
-        if( abs(acc) > opened_device.motor[GetMotorID(opened_device)].max_acc ) return INVALID_PARAM;
+        if( abs(acc) > opened_device.motor[GetMotorID()].max_acc ) return INVALID_PARAM;
         *((int32_t *) &bytes[18]) = htole32(acc);
         return 0;
     }
@@ -543,7 +548,7 @@ public:
         }
             
     int SetAbsolutePos(int32_t pos){ 
-        if (pos < 0 || pos > opened_device.motor[GetMotorID(opened_device)].max_pos ) return INVALID_PARAM;
+        if (pos < 0 || pos > opened_device.motor[GetMotorID()].max_pos ) return INVALID_PARAM;
         *((int32_t *) &bytes[8]) = htole32(pos); 
         return 0;
     }
@@ -568,7 +573,7 @@ public:
     }
     
     int SetHomingVelocity(int32_t vel){
-        if (vel < 0 || vel > opened_device.motor[GetMotorID(opened_device)].max_vel ) return INVALID_PARAM;
+        if (vel < 0 || vel > opened_device.motor[GetMotorID()].max_vel ) return INVALID_PARAM;
         *((int32_t *) &bytes[12]) = htole32(vel); 
         return 0;
     }
@@ -683,7 +688,7 @@ public:
     };
      
     int SetAbsoluteDistance(int32_t dist){
-        if (dist < 0 || dist > opened_device.motor[GetMotorID(opened_device)].max_pos ) return INVALID_PARAM;
+        if (dist < 0 || dist > opened_device.motor[GetMotorID()].max_pos ) return INVALID_PARAM;
         *((int32_t *) &bytes[8]) = htole32(dist); 
         return 0;
     }
@@ -797,12 +802,12 @@ public:
         return 0;
     }
     int SetPosition1(int32_t pos){
-        if (pos < 0 || pos > opened_device.motor[GetMotorID(opened_device)].max_pos ) return INVALID_PARAM;
+        if (pos < 0 || pos > opened_device.motor[GetMotorID()].max_pos ) return INVALID_PARAM;
         *((int32_t *) &bytes[10]) = htole32(pos);
         return 0;
     }
     int SetPosition2(int32_t pos){
-        if (pos < 0 || pos > opened_device.motor[GetMotorID(opened_device)].max_pos ) return INVALID_PARAM;
+        if (pos < 0 || pos > opened_device.motor[GetMotorID()].max_pos ) return INVALID_PARAM;
         *((int32_t *) &bytes[14]) = htole32(pos);
         return 0;
     }
