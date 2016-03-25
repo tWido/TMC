@@ -207,12 +207,8 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     device.in_hub = hub->GetBayID();
     delete(hub);
     
-<<<<<<< HEAD
-    //motors connected - bay occcupied
-=======
     device.bays = Bays(device.device_type);
     //motors connected
->>>>>>> 3979727b8f406dd39ce5adf8c4a0716ed05b0b36
     LoadRestrictions(handle, device);
     //not implemented
     return -1;
