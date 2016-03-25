@@ -75,19 +75,6 @@ uint8_t DeafultRate(){
     return 1;
 }
 
-int ListDevices(){
-    printf("Connected devices: %d\n", devices_connected);
-    for (unsigned int i = 0; i< devices_connected; i++){
-        printf("Device %d\n", i+1);
-        printf("\tSN: %s\n", connected_device[i].SN);
-        //printf("\nName: %d\n",connected_device[i].device_type);
-        if (connected_device[i].channels != -1) printf("\tChannels: %d\n", connected_device[i].channels);
-        if (connected_device[i].bays != -1) printf("\tChannels: %d\n", connected_device[i].bays);
-        printf("\tDestination address: %d", connected_device[i].dest );
-    }
-    return 0;
-};
-
 int OpenDevice(unsigned int index){
     if (index <=0 || index > devices_connected) return INVALID_PARAM_1;
     opened_device = connected_device[index-1];
