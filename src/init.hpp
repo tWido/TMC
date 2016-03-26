@@ -168,24 +168,25 @@ int ToDevType(std::string name){
     return -1;
 }
 int Bays(int type){
-
+    if (type == BBD101 || type == BBD201 || type == BSC201) return 1;
+    if (type == BBD102 || type == BBD202 || type == BSC202) return 2;
+    if (type == BSC103 || type == BBD103  || type == BSC203  || type== BBD203) return 3;
     return -1;
 }
 
 int Channels(int type){
-    if ( type == BSC001 || type == BMS001 || type == BSC101 || type == BSC201 || type == BBD101 || type == BBD201 
-            || type == OST001 || type == ODC001 || type == TST001 || type == TDC001 || type == TSC001 || type == TBD001 ) return 1;
+    if ( type == BSC001 || type == BMS001 || type == BSC101 || type == OST001 || type == ODC001
+      || type == TST001 || type == TDC001 || type == TSC001 || type == TBD001 ) return 1;
     
-    if ( type == BSC002 || type == BMS002 || type == MST601 || type == MST601 || type == BSC102 || type == BSC202
-            || type == BBD102 || type== BBD202) return 2;
+    if ( type == BSC002 || type == BMS002 || type == MST601 || type == MST601 || type == BSC102 ) return 2;
     
-    if ( type == BSC103 || type == BSC203 || type == BBD103 || type== BBD203 ) return 3;
     return 0;
 };
 
 int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     device.ft_opened = true;
     device.handle = &handle;
+    device.dest = 0x11;
     int ret;
     ret = device_calls::FlashProgNo(handle, 0x50, 0x01);
     if (ret != 0) return ret;
@@ -194,10 +195,21 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     ret = device_calls::GetHwInfo(handle,  info, 0x50, 0x01);
     if (ret != 0) return ret;
     device.hw_type = info->HWType();
-    device.dest = info->GetSource();
     std::string model_num = info->ModelNumber();
     device.device_type = ToDevType(model_num);
-    if (device.device_type == -1 ) printf("WARNING: unrecognized controller device");// TODO manually get channels
+    if (device.device_type == -1 ){ 
+        printf("WARNING: unrecognized controller device\n");
+        printf("Select device manually? Y/n\n");
+        std::string option;
+        cin >> option;
+        if (option.compare("Y")==0 || option.compare("y") == 0 ){
+            printf("Insert device code name (example \"TDC001\")\n");
+            cin >> model_num;
+            device.device_type = ToDevType(model_num);
+            if (device.device_type == -1) printf("Unrecognized by program, exiting\n");
+        }
+        else return STOP;
+    }
     delete(info);
     
     device.channels = Channels(device.device_type);
