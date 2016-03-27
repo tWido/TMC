@@ -6,11 +6,13 @@
 #include <stdio.h>
 #include <string>
 #include <errno.h>
+#include <climits>
 #include <dirent.h>
 #include <vector>
 #include "device.hpp"
 #include "api_calls.hpp"
 
+#define NO_RESTRICTIONS 2
 #define STOP 1
 #define SYSTEM_ERROR -3
 #define FIND_DEV(code) if (name.compare(#code)== 0){ printf("Found controller device, type: %s", name.c_str()) ; return code;}
@@ -133,9 +135,24 @@ int CheckCron(){
 }
 
 int LoadRestrictions(FT_HANDLE &handle, controller_device &device){
-    // for connected motors load restrictions
     //not implemented
-    return -1;
+    if( device.channels != -1 ){
+        for (int i = 0; i< device.channels; i++){
+            device.motor[i].max_acc = INT_MAX;
+            device.motor[i].max_pos = INT_MAX;
+            device.motor[i].max_vel = INT_MAX;
+        }
+        return NO_RESTRICTIONS;    
+    } 
+    else {
+        for(int i = 0; i< device.bays; i++){
+            if(device.bay_used[i] == false) continue;
+            device.motor[i].max_acc = INT_MAX;
+            device.motor[i].max_pos = INT_MAX;
+            device.motor[i].max_vel = INT_MAX;
+        }
+        return NO_RESTRICTIONS;        
+    }
 }
 
 int ToDevType(std::string name){
@@ -180,7 +197,7 @@ int Channels(int type){
     
     if ( type == BSC002 || type == BMS002 || type == MST601 || type == MST601 || type == BSC102 ) return 2;
     
-    return 0;
+    return -1;
 };
 
 int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
@@ -188,7 +205,7 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     device.handle = &handle;
     device.dest = 0x11;
     int ret;
-    ret = device_calls::FlashProgNo(handle, 0x50, 0x01);
+    ret = device_calls::FlashProgNo(handle, device.dest, 0x01);
     if (ret != 0) return ret;
     
     HwInfo *info = NULL;
@@ -206,25 +223,36 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
             printf("Insert device code name (example \"TDC001\")\n");
             cin >> model_num;
             device.device_type = ToDevType(model_num);
-            if (device.device_type == -1) printf("Unrecognized by program, exiting\n");
+            if (device.device_type == -1) printf("Unrecognized by program\n");
         }
         else return STOP;
     }
     delete(info);
     
-    device.channels = Channels(device.device_type);
-    device.bays = Bays(device.device_type);
     GetHubBayUsed *hub = NULL;
     ret = device_calls::GetHubUsed(handle, hub, device.dest);
     if (ret != 0) return ret;
     device.in_hub = hub->GetBayID();
     delete(hub);
     
+    device.channels = Channels(device.device_type);
     device.bays = Bays(device.device_type);
-    //motors connected
-    LoadRestrictions(handle, device);
-    //not implemented
-    return -1;
+    
+    if (device.bays != -1){
+        for (uint8_t i = 0; i< device.bays; i++){
+            GetRackBayUsed *bayused = NULL;
+            ret = device_calls::GetBayUsed(handle, bayused, i, device.dest, 0x01 );
+            if (ret != 0) return ret;
+            if (bayused->GetBayState() == 1) device.bay_used[i]=true;
+            else device.bay_used[i]=false;
+            delete (bayused);
+        }
+    }
+    
+    if ( LoadRestrictions(handle, device) == NO_RESTRICTIONS ) 
+        printf("WARNING: no restrictions used on acceleration and velocity\n");
+
+    return 0;
 }
 
 int init(){
@@ -235,7 +263,7 @@ int init(){
     
     devices_connected = SN.size();
     if (devices_connected == 0) {
-        printf("No Thorlabs device found. Exiting\n");
+        printf("No Thorlabs device found\n");
         return STOP;
     }
     connected_device = (controller_device*) malloc(  sizeof(controller_device) * devices_connected );
@@ -253,6 +281,7 @@ int init(){
     ft_status = FT_GetDeviceInfoList( ftdi_devs, &num_ftdi_devices) ;  
     if (ft_status != FT_OK) {
         printf("Detecting devices failed\n");
+        free(ftdi_devs);
         return FT_ERROR;
     }
     
@@ -262,14 +291,21 @@ int init(){
             if ( strncmp(ftdi_devs[i].SerialNumber, connected_device[j].SN, 8) == 0 ){
                 FT_HANDLE handle;
                 ft_status = FT_OpenEx( connected_device[j].SN, FT_OPEN_BY_SERIAL_NUMBER, &handle);
-                if (ft_status != FT_OK ) return FT_ERROR; 
-                LoadDeviceInfo(handle, connected_device[j]);
+                if (ft_status != FT_OK ) { free(ftdi_devs); return FT_ERROR; }
+                int ret = LoadDeviceInfo(handle, connected_device[j]);
+                if (ret != 0 ){ free(ftdi_devs); return ret; }
             }
         }
     }
     
     opened_device = connected_device[0];
     free(ftdi_devs);        
-    //not implemented yet
-    return -1;
+    return 0;
+}
+
+void exit(){
+    free(connected_device);
+    for (unsigned int i = 0; i < devices_connected; i++){
+        FT_Close(*connected_device[i].handle);
+    }
 }

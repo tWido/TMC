@@ -30,6 +30,7 @@ typedef struct{
     int in_hub;
     uint8_t dest;
     char *SN;
+    bool bay_used[3];
     motor_device motor[3];
     bool end_of_move_messages = false;
 } controller_device;
