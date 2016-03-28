@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "api.hpp"
+#include "log.hpp"
 
 #define MAX_RESPONSE_SIZE 128
 
@@ -159,6 +160,8 @@ int CheckIncomingQueue(FT_HANDLE &handle, uint16_t *ret_msgID){
             if (error_cause != 0) printf("\tMessage causing error: %d\n ", error_cause);
             printf("\tThorlabs error code: %d \n", response.GetCode());
             printf("\tDescription: %s\n", response.GetDescription());
+            LOG("Device encountered error: ")
+            LOG(response.GetDescription())
             free(buff);
             return DEVICE_ERROR;
         }

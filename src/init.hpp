@@ -11,6 +11,7 @@
 #include <vector>
 #include "device.hpp"
 #include "api_calls.hpp"
+#include "log.hpp"
 
 #define NO_RESTRICTIONS 2
 #define STOP 1
@@ -105,20 +106,20 @@ int RemoveModules(std::string module_name){
     FILE* out = popen(lsmod_cmd.c_str(), "r");
     if (out == NULL){
         printf("Failed to run system command. Modules not checked. \n");
-        return -1;
+        return SYSTEM_ERROR;
     }
     
     char buff[64];
     if (fgets(buff, 64, out) != NULL){
         string rmmod_cmd = "rmmod ";
         rmmod_cmd.append(module_name);
-        system(rmmod_cmd.c_str());
+        if (system(rmmod_cmd.c_str()) != 0) return SYSTEM_ERROR;
         printf("Removing loaded module : %s \n",module_name.c_str());
     }
     
     if( pclose(out) == -1 ){ 
         printf("Failed to close input from system. \n");
-        return -1;
+        return SYSTEM_ERROR;
     }
     return 0;
 }
@@ -245,14 +246,28 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
 }
 
 int init(){
+    int ret;
     printf("Starting.\n");
-    if( RemoveModules("ftdi_sio")  != 0) return -1;
-    if( RemoveModules("usbserial")  != 0) return -1;
-    if (addVidPid() != 0) return -1;
+    LOG("Starting\n")
+    if( RemoveModules("ftdi_sio")  != 0){ 
+        LOG("Failed to remove module\n")
+        return SYSTEM_ERROR;
+    }
+    if( RemoveModules("usbserial")  != 0){
+        LOG("Failed to remove module\n")
+        return SYSTEM_ERROR;
+    }
+    LOG("Modules checked/unloaded\n");
+    ret = addVidPid();
+    if (ret != 0 ){ 
+        LOG("Loading devices failed\n");
+        return ret;
+    }
     
     devices_connected = SN.size();
     if (devices_connected == 0) {
         printf("No Thorlabs device found\n");
+        LOG("No Thorlabs device found\n")
         return STOP;
     }
     connected_device = (controller_device*) malloc(  sizeof(controller_device) * devices_connected );
@@ -281,12 +296,12 @@ int init(){
                 FT_HANDLE handle;
                 ft_status = FT_OpenEx( connected_device[j].SN, FT_OPEN_BY_SERIAL_NUMBER, &handle);
                 if (ft_status != FT_OK ) { free(ftdi_devs); return FT_ERROR; }
-                int ret = LoadDeviceInfo(handle, connected_device[j]);
+                 ret = LoadDeviceInfo(handle, connected_device[j]);
                 if (ret != 0 ){ free(ftdi_devs); return ret; }
             }
         }
     }
-    
+    LOG("Info for devices loaded\n");
     opened_device = connected_device[0];
     free(ftdi_devs);        
     return 0;
@@ -297,4 +312,5 @@ void exit(){
     for (unsigned int i = 0; i < devices_connected; i++){
         FT_Close(*connected_device[i].handle);
     }
+    LOG("Exiting\n")
 }
