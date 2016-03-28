@@ -8,6 +8,8 @@
 
 using namespace std;
 
+int UI = 1; // 1 -> cmd, 2-> graphical
+
 int ParseCmdArgs(int argc, char** argv){
     return 0;
 }
@@ -48,6 +50,7 @@ int main(int argc, char** argv) {
         }
     }
     
+    if (UI == 1) run_cmd();
     
     exit();
     return 0;
