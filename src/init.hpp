@@ -123,17 +123,6 @@ int RemoveModules(std::string module_name){
     return 0;
 }
 
-
-int CheckLog(){
-    //not implemented;
-    return -1;
-}
-
-int CheckCron(){
-    //not implemented;
-    return -1;
-}
-
 int LoadRestrictions(FT_HANDLE &handle, controller_device &device){
     //not implemented
     if( device.channels != -1 ){

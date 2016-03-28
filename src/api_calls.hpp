@@ -56,7 +56,8 @@
         EMPTY_IN_QUEUE                                          
 
 uint8_t DefaultDest(){
-    return 0x50;
+    if (opened_device.bays != -1 ) return 0x21;
+    else return 0x50;
 }
 
 uint8_t DefaultSource(){
@@ -82,7 +83,24 @@ int OpenDevice(unsigned int index){
 };
 
 int CheckParams(uint8_t source, uint8_t dest, int chanID){
-    //not implemented
+    if (source != 0x01 ) return INVALID_SOURCE;
+    if (chanID > opened_device.channels && chanID != -1) return INVALID_CHANNEL;
+    if (dest == 0x11 || dest == 0x50) return 0;
+    switch (chanID){
+        case 0x21: {
+            if (opened_device.bays >= 1 && opened_device.bay_used[0]) return 0;
+            else return INVALID_DEST;
+        }
+        case 0x22:{
+            if (opened_device.bays >= 2 && opened_device.bay_used[1]) return 0;
+            else return INVALID_DEST;
+        }
+        case 0x23: {
+            if (opened_device.bays == 3 && opened_device.bay_used[2]) return 0;
+            else return INVALID_DEST;
+        }
+        default : return INVALID_DEST;
+    };
     return 0;
 };
 
