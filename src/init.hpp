@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string>
 #include <errno.h>
+#include <unistd.h>
 #include <climits>
 #include <dirent.h>
 #include <vector>
@@ -296,7 +297,17 @@ int init(){
                 FT_HANDLE handle;
                 ft_status = FT_OpenEx( connected_device[j].SN, FT_OPEN_BY_SERIAL_NUMBER, &handle);
                 if (ft_status != FT_OK ) { free(ftdi_devs); return FT_ERROR; }
-                 ret = LoadDeviceInfo(handle, connected_device[j]);
+                
+                if (FT_SetBaudRate(handle, 115200) != FT_OK) return FT_ERROR;
+                if (FT_SetDataCharacteristics(handle, FT_BITS_8, FT_STOP_BITS_1, FT_PARITY_NONE) != FT_OK ) return FT_ERROR;
+                usleep(50);
+                if (FT_Purge(handle, FT_PURGE_RX | FT_PURGE_TX) != FT_OK ) return FT_ERROR;
+                usleep(50);
+                if (FT_SetFlowControl(handle, FT_FLOW_RTS_CTS, 0, 0) != FT_OK) return FT_ERROR;
+                if (FT_SetRts(handle) != FT_OK ) return FT_ERROR;
+                usleep(50);
+                
+                ret = LoadDeviceInfo(handle, connected_device[j]);
                 if (ret != 0 ){ free(ftdi_devs); return ret; }
             }
         }
@@ -314,4 +325,5 @@ void exit(){
     }
     LOG("Exiting\n")
     if (use_log) LogEnd();
+    printf("End");
 }

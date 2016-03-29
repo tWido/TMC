@@ -51,9 +51,9 @@
         SendMessage(mes, handle);                               \
         uint8_t *buff = (uint8_t *) malloc(buff_size);          \
         ret = GetResponseMess(handle, get_mess_code, buff_size, buff); \
-        free(buff);                                             \
-        if ( ret != 0) return ret;                              \
         message = new get_mess_class(buff);                     \
+        if ( ret != 0) return ret;                              \
+        free(buff);                                             \
         EMPTY_IN_QUEUE                                          
 
 uint8_t DefaultDest(){
@@ -295,9 +295,9 @@ int ChannelState(FT_HANDLE &handle, GetChannelState *info, uint8_t dest = Defaul
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess(handle, GET_CHANENABLESTATE, HEADER_SIZE , buff);
-    free(buff);
-    if ( ret != 0) return ret;
     info = new GetChannelState(buff);
+    if ( ret != 0) return ret;
+    free(buff);
     EMPTY_IN_QUEUE
     return 0;
 }
@@ -338,10 +338,10 @@ int GetHwInfo(FT_HANDLE &handle, HwInfo *message, uint8_t dest = DefaultDest(), 
     ReqHwInfo mes(dest,source);
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(90);
-    ret = GetResponseMess(handle, RACK_GET_BAYUSED, 90, buff);
-    free(buff);
-    if ( ret != 0) return ret;
+    ret = GetResponseMess(handle, HW_GET_INFO, 90, buff);
     message = new HwInfo(buff);
+    if ( ret != 0) return ret;
+    free(buff);
     EMPTY_IN_QUEUE
     return 0;
 }
@@ -354,9 +354,9 @@ int GetBayUsed(FT_HANDLE &handle, GetRackBayUsed *message, uint8_t bayID, uint8_
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess(handle, RACK_GET_BAYUSED, HEADER_SIZE , buff);
-    free(buff);
-    if ( ret != 0) return ret;
     message = new GetRackBayUsed(buff);
+    if ( ret != 0) return ret;
+    free(buff);
     EMPTY_IN_QUEUE
     return 0;
 }
@@ -368,9 +368,9 @@ int GetHubUsed(FT_HANDLE &handle, GetHubBayUsed *message, uint8_t dest = Default
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess(handle, HUB_GET_BAYUSED, HEADER_SIZE , buff);
-    free(buff);
-    if ( ret != 0) return ret;
     message = new GetHubBayUsed(buff);
+    if ( ret != 0) return ret;
+    free(buff);
     EMPTY_IN_QUEUE
     return 0;
 }
