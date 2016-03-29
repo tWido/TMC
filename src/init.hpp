@@ -17,7 +17,7 @@
 #define NO_RESTRICTIONS 2
 #define STOP 1
 #define SYSTEM_ERROR -3
-#define FIND_DEV(code) if (name.compare(#code)== 0){ printf("Found controller device, type: %s", name.c_str()) ; return code;}
+#define FIND_DEV(code) if (strncmp(name.c_str(), #code, 6) == 0){ printf("Found controller device, type: %s\n", name.c_str()) ; return code;}
 
 #define USB_PATH path = dev_path; path.append(loc);
 
@@ -170,7 +170,6 @@ int ToDevType(std::string name){
     FIND_DEV(TST001)
     FIND_DEV(TDC001)
     FIND_DEV(TSC001)
-    FIND_DEV(TDIxxx)
     FIND_DEV(TBD001)
     return -1;
 }
@@ -217,25 +216,19 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
         }
         else return STOP;
     }
-    delete(info);
-    
-    GetHubBayUsed *hub = NULL;
-    ret = device_calls::GetHubUsed(handle, hub, device.dest);
-    if (ret != 0) return ret;
-    device.in_hub = hub->GetBayID();
-    delete(hub);
+    free(info);
     
     device.channels = Channels(device.device_type);
     device.bays = Bays(device.device_type);
     
     if (device.bays != -1){
         for (uint8_t i = 0; i< device.bays; i++){
-            GetRackBayUsed *bayused = NULL;
+            GetRackBayUsed *bayused =  (GetRackBayUsed*) malloc(sizeof(GetRackBayUsed));
             ret = device_calls::GetBayUsed(handle, bayused, i, device.dest, 0x01 );
             if (ret != 0) return ret;
             if (bayused->GetBayState() == 1) device.bay_used[i]=true;
             else device.bay_used[i]=false;
-            delete (bayused);
+            free (bayused);
         }
     }
     

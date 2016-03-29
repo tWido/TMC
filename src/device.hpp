@@ -27,7 +27,6 @@ typedef struct{
     int hw_type;
     int bays;      
     int channels;
-    int in_hub;
     uint8_t dest;
     char *SN;
     bool bay_used[3];
@@ -64,7 +63,6 @@ enum {
     TST001,
     TDC001,
     TSC001,
-    TDIxxx,
     TBD001
 };
 
