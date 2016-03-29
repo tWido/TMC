@@ -313,4 +313,5 @@ void exit(){
         FT_Close(*connected_device[i].handle);
     }
     LOG("Exiting\n")
+    if (use_log) LogEnd();
 }
