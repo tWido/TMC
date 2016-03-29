@@ -172,7 +172,6 @@ int ToDevType(std::string name){
     FIND_DEV(TSC001)
     FIND_DEV(TDIxxx)
     FIND_DEV(TBD001)
-    printf("Unknown device type\n");
     return -1;
 }
 int Bays(int type){
@@ -199,8 +198,8 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     ret = device_calls::FlashProgNo(handle, device.dest, 0x01);
     if (ret != 0) return ret;
     
-    HwInfo *info = NULL;
-    ret = device_calls::GetHwInfo(handle,  info, 0x50, 0x01);
+    HwInfo *info = (HwInfo*) malloc(sizeof(HwInfo));
+    ret = device_calls::GetHwInfo(handle, info, 0x50, 0x01);
     if (ret != 0) return ret;
     device.hw_type = info->HWType();
     std::string model_num = info->ModelNumber();

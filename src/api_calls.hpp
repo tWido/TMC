@@ -51,9 +51,10 @@
         SendMessage(mes, handle);                               \
         uint8_t *buff = (uint8_t *) malloc(buff_size);          \
         ret = GetResponseMess(handle, get_mess_code, buff_size, buff); \
-        message = new get_mess_class(buff);                     \
-        if ( ret != 0) return ret;                              \
+        get_mess_class mess(buff);                              \
+        *message = mess;                                        \
         free(buff);                                             \
+        if ( ret != 0) return ret;                              \
         EMPTY_IN_QUEUE                                          
 
 uint8_t DefaultDest(){
@@ -129,7 +130,8 @@ int CheckIncomingQueue(FT_HANDLE &handle, uint16_t *ret_msgID){
     }
     if (bytes == 0 ) return EMPTY;
     uint8_t *buff = (uint8_t *) malloc(MAX_RESPONSE_SIZE);
-    ftStatus = FT_Read(handle, buff, 2, NULL);          
+    unsigned int red;
+    ftStatus = FT_Read(handle, buff, 2, &red);          
     if (ftStatus != FT_OK) {
         printf("FT_Error occured, error code :%d", ftStatus );
         free(buff);
@@ -208,7 +210,7 @@ int CheckIncomingQueue(FT_HANDLE &handle, uint16_t *ret_msgID){
             return 0;
         }
         default: {
-            ret_msgID = &msgID;
+            *ret_msgID = msgID;
             free(buff);
             return OTHER_MESSAGE;
         } 
@@ -240,11 +242,13 @@ int GetResponseMess(FT_HANDLE &handle, uint16_t expected_msg, int size, uint8_t 
         if (ret == OTHER_MESSAGE){
             if (msgID == expected_msg) {
                 *((int16_t *) &mess[0]) =  htole16(msgID);
-                FT_STATUS read_status = FT_Read(handle, &mess[2], size-2, NULL);
+                unsigned int red;
+                FT_STATUS read_status = FT_Read(handle, &mess[2], size-2, &red);
                 if ( read_status != FT_OK ) {
-                    printf("FT_Error occured, error code :%d", read_status );
+                    printf("FT_Error occured, error code :%d\n", read_status );
                     return FT_ERROR;
                 }
+                return 0;
             }
             else return FATAL_ERROR;
         } 
@@ -295,9 +299,10 @@ int ChannelState(FT_HANDLE &handle, GetChannelState *info, uint8_t dest = Defaul
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess(handle, GET_CHANENABLESTATE, HEADER_SIZE , buff);
-    info = new GetChannelState(buff);
-    if ( ret != 0) return ret;
+    GetChannelState mess(buff);
+    *info = mess;
     free(buff);
+    if ( ret != 0) return ret;  
     EMPTY_IN_QUEUE
     return 0;
 }
@@ -339,9 +344,10 @@ int GetHwInfo(FT_HANDLE &handle, HwInfo *message, uint8_t dest = DefaultDest(), 
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(90);
     ret = GetResponseMess(handle, HW_GET_INFO, 90, buff);
-    message = new HwInfo(buff);
-    if ( ret != 0) return ret;
+    HwInfo info(buff);
+    *message = info; 
     free(buff);
+    if ( ret != 0) return ret;
     EMPTY_IN_QUEUE
     return 0;
 }
@@ -354,7 +360,8 @@ int GetBayUsed(FT_HANDLE &handle, GetRackBayUsed *message, uint8_t bayID, uint8_
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess(handle, RACK_GET_BAYUSED, HEADER_SIZE , buff);
-    message = new GetRackBayUsed(buff);
+    GetRackBayUsed bayused(buff);
+    *message = bayused;
     if ( ret != 0) return ret;
     free(buff);
     EMPTY_IN_QUEUE
@@ -368,7 +375,8 @@ int GetHubUsed(FT_HANDLE &handle, GetHubBayUsed *message, uint8_t dest = Default
     SendMessage(mes, handle);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess(handle, HUB_GET_BAYUSED, HEADER_SIZE , buff);
-    message = new GetHubBayUsed(buff);
+    GetHubBayUsed hubused(buff);
+    *message = hubused;
     if ( ret != 0) return ret;
     free(buff);
     EMPTY_IN_QUEUE
