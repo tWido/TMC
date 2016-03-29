@@ -191,7 +191,7 @@ int Channels(int type){
 
 int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     device.ft_opened = true;
-    device.handle = &handle;
+    device.handle = handle;
     device.dest = 0x11;
     int ret;
     ret = device_calls::FlashProgNo(handle, device.dest, 0x01);
@@ -313,7 +313,7 @@ int init(){
 void exit(){
     free(connected_device);
     for (unsigned int i = 0; i < devices_connected; i++){
-        FT_Close(*connected_device[i].handle);
+        FT_Close(connected_device[i].handle);
     }
     LOG("Exiting\n")
     if (use_log) LogEnd();
