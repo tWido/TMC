@@ -125,7 +125,7 @@ int RemoveModules(std::string module_name){
     return 0;
 }
 
-int LoadRestrictions(FT_HANDLE &handle, controller_device &device){
+int LoadRestrictions(controller_device &device){
     //not implemented
     if( device.channels != -1 ){
         for (int i = 0; i< device.channels; i++){
@@ -189,16 +189,15 @@ int Channels(int type){
     return -1;
 };
 
-int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
+int LoadDeviceInfo( controller_device &device){
     device.ft_opened = true;
-    device.handle = handle;
     device.dest = 0x11;
     int ret;
-    ret = device_calls::FlashProgNo(handle, device.dest, 0x01);
+    ret = device_calls::FlashProgNo(device.dest, 0x01);
     if (ret != 0) return ret;
     
     HwInfo *info = (HwInfo*) malloc(sizeof(HwInfo));
-    ret = device_calls::GetHwInfo(handle, info, 0x50, 0x01);
+    ret = device_calls::GetHwInfo( info, 0x50, 0x01);
     if (ret != 0) return ret;
     device.hw_type = info->HWType();
     std::string model_num = info->ModelNumber();
@@ -224,7 +223,7 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
     if (device.bays != -1){
         for (uint8_t i = 0; i< device.bays; i++){
             GetRackBayUsed *bayused =  (GetRackBayUsed*) malloc(sizeof(GetRackBayUsed));
-            ret = device_calls::GetBayUsed(handle, bayused, i, device.dest, 0x01 );
+            ret = device_calls::GetBayUsed(bayused, i, device.dest, 0x01 );
             if (ret != 0) return ret;
             if (bayused->GetBayState() == 1) device.bay_used[i]=true;
             else device.bay_used[i]=false;
@@ -232,7 +231,7 @@ int LoadDeviceInfo(FT_HANDLE &handle, controller_device &device){
         }
     }
     
-    if ( LoadRestrictions(handle, device) == NO_RESTRICTIONS ) 
+    if ( LoadRestrictions(device) == NO_RESTRICTIONS ) 
         printf("WARNING: no restrictions used on acceleration and velocity\n");
 
     return 0;
@@ -299,7 +298,9 @@ int init(){
                 if (FT_SetRts(handle) != FT_OK ) return FT_ERROR;
                 usleep(50);
                 
-                ret = LoadDeviceInfo(handle, connected_device[j]);
+                OpenDevice(j);
+                opened_device.handle = handle;
+                ret = LoadDeviceInfo(connected_device[j]);
                 if (ret != 0 ){ free(ftdi_devs); return ret; }
             }
         }
