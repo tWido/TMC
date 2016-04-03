@@ -31,7 +31,7 @@
 #define INVALID_PARAM_4 -18
 #define INVALID_PARAM_5 -19
 
-#define READ_REST(x) ftStatus = FT_Read(opened_device.handle, &buff[2], x, NULL); \
+#define READ_REST(x)  unsigned int bytes_red; ftStatus = FT_Read(opened_device.handle, &buff[2], x, &bytes_red); \
         if (ftStatus != FT_OK) {                                    \
         printf("FT_Error occured, error code :%d", ftStatus );      \
         return FT_ERROR;                                            \
