@@ -4,6 +4,7 @@
 #include "device.hpp"
 #include <map>
 #include <vector>
+#include <string.h>
 
 
 typedef int (*helper)(std::vector<string>);
@@ -200,6 +201,28 @@ call_map calls = {
 
 int run_cmd(){
    
+    while(true){
+        std::string line = "";
+        std::getline(std::cin, line);
+        if (line == "" ) continue;
+        
+        std::vector<std::string> args;
+        const char delimiter = ' ';
+        char* token = strtok(strdup(line.c_str()), &delimiter);
+        while(token != NULL){
+            args.push_back(std::string(token));
+        }
+        
+        if ( args.at(0).compare("exit") ) break;
+        if ( calls.count(args.at(0))== 0 ) {
+            printf("Unrecognized command %s\n", args.at(0).c_str() );
+            continue;
+        }
+        
+        int ret_val = calls.at(args.at(0))(args);
+        if ( ret_val != 0 ) return ret_val;
+    }
+    
     return 0;
 }
 
