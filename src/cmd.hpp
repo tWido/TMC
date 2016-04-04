@@ -12,32 +12,32 @@ typedef std::map<std::string,helper> call_map;
 
 int HelpC(std::vector<string> args){
     if (args.size() > 0) printf("No arguments needed\n");
-    printf("help \t\t prints this help message, for command info use -h\n");
-    printf("open \t\tswitch between controlled devices \n");
-    printf("devinfo \t\tprints connected device information \n");
-    printf("flash \t\t flashes front panel LED \n");
-    printf("chan \t\t channel state \n");
-    printf("poscount \t\t device's position counter \n");
-    printf("enccount \t\t device's encoder counter \n");
-    printf("velp \t\t acceleration and maximum velocity \n");
-    printf("jogp \t\t jog move parameters \n");
-    printf("powerp \t\t power used while motor moves or rests \n");
-    printf("bdist \t\t backlash distance value \n");
-    printf("relmovep \t\t relative move parameters \n");
-    printf("absmovep \t\t absolute move parameters \n");
-    printf("limitsw \t\t limit switch parameters \n");
-    printf("homingvel \t\t homing velocity \n");
-    printf("home \t\t move to home position \n");
-    printf("relmove \t\t start relative move \n");
-    printf("absmove \t\t start absolute move \n");
-    printf("jogmove \t\t start jog move \n");
-    printf("velmove \t\t start move with set velocity \n");
-    printf("stop \t\t stop movement \n");
-    printf("ledp \t\t front LED parameters \n");
-    printf("buttp \t\t device's buttons parameters \n");
-    printf("status \t\t get status \n");
-    printf("statusdc \t\t get status for dc servo controller \n");
-    printf("eom \t\t trigger parameters \n");
+    printf(" help        prints this help message, for command info use -h\n");
+    printf(" open        switch between controlled devices \n");
+    printf(" devinfo     prints connected device information \n");
+    printf(" flash       flashes front panel LED \n");
+    printf(" chan        channel state \n");
+    printf(" poscount    device's position counter \n");
+    printf(" enccount    device's encoder counter \n");
+    printf(" velp        acceleration and maximum velocity \n");
+    printf(" jogp        jog move parameters \n");
+    printf(" powerp      power used while motor moves or rests \n");
+    printf(" bdist       backlash distance value \n");
+    printf(" relmovep    relative move parameters \n");
+    printf(" absmovep    absolute move parameters \n");
+    printf(" limitsw     limit switch parameters \n");
+    printf(" homingvel   homing velocity \n");
+    printf(" home        move to home position \n");
+    printf(" relmove     start relative move \n");
+    printf(" absmove     start absolute move \n");
+    printf(" jogmove     start jog move \n");
+    printf(" velmove     start move with set velocity \n");
+    printf(" stop        stop movement \n");
+    printf(" ledp        front LED parameters \n");
+    printf(" buttp       device's buttons parameters \n");
+    printf(" status      get status \n");
+    printf(" statusdc    get status for dc servo controller \n");
+    printf(" eom         trigger parameters \n");
     return 0;
 }
 
@@ -238,9 +238,10 @@ int run_cmd(){
         char* token = strtok(strdup(line.c_str()), &delimiter);
         while(token != NULL){
             args.push_back(std::string(token));
+            token = strtok(NULL, &delimiter);
         }
         
-        if ( args.at(0).compare("exit") ) break;
+        if ( args.at(0).compare("exit") == 0 ) break;
         if ( calls.count(args.at(0))== 0 ) {
             printf("Unrecognized command %s\n", args.at(0).c_str() );
             continue;
