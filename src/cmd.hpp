@@ -5,6 +5,8 @@
 #include <map>
 #include <vector>
 #include <string.h>
+#include <iostream>
+#include <string>
 
 
 typedef int (*helper)(std::vector<string>);
@@ -42,7 +44,29 @@ int HelpC(std::vector<string> args){
 }
 
 int OpenDeviceC(std::vector<string> args){
-    //not implemented
+    if (args.size() == 1 ) printf("No arguments\n");
+    else{
+        if (args.at(1) == "-h"){ 
+            printf("Choose which connected device to control\n");
+            printf("-n=NUMBER       device number in list created by program, see devinfo\n");
+            printf("-s=SN           serial number of device\n");
+            return 0;
+        }
+        if ( args.at(1).substr(0,2).compare("-n=") ) {
+            unsigned int num = std::stoi(args.at(1).substr(3,args.at(1).size()));
+            if (OpenDevice(num) != 0 ) printf("Incorrect device number\n");
+            return 0;
+        }
+        if ( args.at(1).substr(0,3).compare("-s=") ) {
+            for ( unsigned int i = 0; i< devices_connected; i++ ){
+                std::string to_comp (connected_device[i].SN);
+                if ( to_comp.compare(args.at(1).substr(3,args.at(1).size())) ) OpenDevice(i);
+            }
+            printf("Device with specified serial number not present\n");
+            return 0;
+        }
+    }
+    printf("Unrecognized parameter %s, see -h for help\n", args.at(1).c_str());
     return 0;
 }
 
