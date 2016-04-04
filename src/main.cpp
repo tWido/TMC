@@ -15,43 +15,50 @@ int ParseCmdArgs(int argc, char** argv){
     return 0;
 }
         
-int main(int argc, char** argv) {
-    ParseCmdArgs(argc, argv);
-    int ret_code;
-    ret_code = init();
-    switch (ret_code){
+void FailExit(int ret_code){
+
+switch (ret_code){
         case STOP : {
-            printf("Exiting\n");
             exit();
-            return 0;
         }
         case SYSTEM_ERROR : {
-            printf("Encountered system error. Exiting\n");
+            printf("Encountered system error.\n");
             LOG("System error\n")
             exit();
-            return -1;
         }
         case FT_ERROR : {
-            printf("Encountered error with FTDI library. Exiting\n");
+            printf("Encountered error with FTDI library.\n");
             LOG("FTDI library error\n")
             exit();
-            return -1;
         }
         case DEVICE_ERROR : {
-            printf("Motor device encountered while initializing. Exiting\n");
+            printf("Motor device encountered error.\n");
             LOG("Device error\n")
             exit();
-            return -1;
         }
         case FATAL_ERROR :{
-            printf("Fatal error. Exiting\n");
+            printf("Fatal error.\n");
             LOG("Other fatal error\n")
             exit();
-            return -1;
         }
     }
+
+}
+
+int main(int argc, char** argv) {
+    ParseCmdArgs(argc, argv);
+    int ret_code = 0;
+    ret_code = init();
+    if ( ret_code != 0 ){ 
+        FailExit(ret_code);
+        return ret_code;
+    }
     
-    if (UI == 1) run_cmd();
+    if (UI == 1) ret_code = run_cmd();
+    if ( ret_code != 0 ) {
+        FailExit(ret_code);
+        return ret_code;
+    }
     
     exit();
     return 0;

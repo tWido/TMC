@@ -318,5 +318,5 @@ void exit(){
     }
     LOG("Exiting\n")
     if (use_log) LogEnd();
-    printf("End");
+    printf("EXiting\n");
 }

@@ -11,7 +11,33 @@ typedef int (*helper)(std::vector<string>);
 typedef std::map<std::string,helper> call_map;
 
 int HelpC(std::vector<string> args){
-    //not implemented
+    if (args.size() > 0) printf("No arguments needed\n");
+    printf("help \t\t prints this help message, for command info use -h\n");
+    printf("open \t\tswitch between controlled devices \n");
+    printf("devinfo \t\tprints connected device information \n");
+    printf("flash \t\t flashes front panel LED \n");
+    printf("chan \t\t channel state \n");
+    printf("poscount \t\t device's position counter \n");
+    printf("enccount \t\t device's encoder counter \n");
+    printf("velp \t\t acceleration and maximum velocity \n");
+    printf("jogp \t\t jog move parameters \n");
+    printf("powerp \t\t power used while motor moves or rests \n");
+    printf("bdist \t\t backlash distance value \n");
+    printf("relmovep \t\t relative move parameters \n");
+    printf("absmovep \t\t absolute move parameters \n");
+    printf("limitsw \t\t limit switch parameters \n");
+    printf("homingvel \t\t homing velocity \n");
+    printf("home \t\t move to home position \n");
+    printf("relmove \t\t start relative move \n");
+    printf("absmove \t\t start absolute move \n");
+    printf("jogmove \t\t start jog move \n");
+    printf("velmove \t\t start move with set velocity \n");
+    printf("stop \t\t stop movement \n");
+    printf("ledp \t\t front LED parameters \n");
+    printf("buttp \t\t device's buttons parameters \n");
+    printf("status \t\t get status \n");
+    printf("statusdc \t\t get status for dc servo controller \n");
+    printf("eom \t\t trigger parameters \n");
     return 0;
 }
 
@@ -21,6 +47,7 @@ int OpenDeviceC(std::vector<string> args){
 }
 
 int DeviceInfoC(std::vector<string> args){
+    // saved info, ask for bay used, ask for hw info, get hub used
     //not implemented
     return 0;
 }
