@@ -34,7 +34,7 @@
 
 #define READ_REST(x)  unsigned int bytes_red; ftStatus = FT_Read(opened_device.handle, &buff[2], x, &bytes_red); \
         if (ftStatus != FT_OK) {                                    \
-        printf("FT_Error occured, error code :%d", ftStatus );      \
+        printf("FT_Error occured, error code :%d\n", ftStatus );      \
         return FT_ERROR;                                            \
         }  
 
@@ -121,7 +121,7 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
     unsigned int bytes;
     ftStatus = FT_GetQueueStatus(opened_device.handle, &bytes);
     if (ftStatus != FT_OK ) {
-        printf("FT_Error occured, error code :%d", ftStatus );
+        printf("FT_Error occured, error code :%d\n", ftStatus );
         return FT_ERROR;
     }
     if (bytes == 0 ) return EMPTY;
@@ -129,7 +129,7 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
     unsigned int red;
     ftStatus = FT_Read(opened_device.handle, buff, 2, &red);          
     if (ftStatus != FT_OK) {
-        printf("FT_Error occured, error code :%d", ftStatus );
+        printf("FT_Error occured, error code :%d\n", ftStatus );
         free(buff);
         return FT_ERROR;
     }
