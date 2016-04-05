@@ -85,7 +85,7 @@ int OpenDevice(unsigned int index){
 int CheckParams( uint8_t dest, int chanID){
     if (chanID > opened_device.channels && chanID != -1) return INVALID_CHANNEL;
     if (dest == 0x11 || dest == 0x50) return 0;
-    switch (chanID){
+    switch (dest){
         case 0x21: {
             if (opened_device.bays >= 1 && opened_device.bay_used[0]) return 0;
             else return INVALID_DEST;
