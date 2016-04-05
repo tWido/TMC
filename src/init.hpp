@@ -193,11 +193,11 @@ int LoadDeviceInfo( controller_device &device){
     device.ft_opened = true;
     device.dest = 0x11;
     int ret;
-    ret = device_calls::FlashProgNo(device.dest, 0x01);
+    ret = device_calls::FlashProgNo(device.dest);
     if (ret != 0) return ret;
     
     HwInfo *info = (HwInfo*) malloc(sizeof(HwInfo));
-    ret = device_calls::GetHwInfo( info, 0x50, 0x01);
+    ret = device_calls::GetHwInfo( info, 0x50);
     if (ret != 0) return ret;
     device.hw_type = info->HWType();
     std::string model_num = info->ModelNumber();
@@ -223,7 +223,7 @@ int LoadDeviceInfo( controller_device &device){
     if (device.bays != -1){
         for (uint8_t i = 0; i< device.bays; i++){
             GetRackBayUsed *bayused =  (GetRackBayUsed*) malloc(sizeof(GetRackBayUsed));
-            ret = device_calls::GetBayUsed(bayused, i, device.dest, 0x01 );
+            ret = device_calls::GetBayUsed(bayused, i, device.dest);
             if (ret != 0) return ret;
             if (bayused->GetBayState() == 1) device.bay_used[i]=true;
             else device.bay_used[i]=false;
