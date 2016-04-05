@@ -13,7 +13,7 @@ typedef int (*helper)(std::vector<string>);
 typedef std::map<std::string,helper> call_map;
 
 int HelpC(std::vector<string> args){
-    if (args.size() > 0) printf("No arguments needed\n");
+    if (args.size() > 1) printf("No arguments needed\n");
     printf(" help        prints this help message, for command info use -h\n");
     printf(" open        switch between controlled devices \n");
     printf(" devinfo     prints connected device information \n");
@@ -44,27 +44,47 @@ int HelpC(std::vector<string> args){
 }
 
 int OpenDeviceC(std::vector<string> args){
-    if (args.size() == 1 ) printf("No arguments\n");
-    else{
-        if (args.at(1) == "-h"){ 
-            printf("Choose which connected device to control\n");
-            printf("-n=NUMBER       device number in list created by program, see devinfo\n");
-            printf("-s=SN           serial number of device\n");
+    if (args.size() == 1 ) {
+        printf("No arguments\n");
+        return 0;
+    }
+    if (args.size() > 3 ) {
+        printf("Unexpected number of arguments, see -h for help\n");
+        return 0;
+    } 
+    if (args.at(1) == "-h"){ 
+        printf("Choose which connected device to control\n");
+        printf("-n NUMBER       device number in list created by program, see devinfo\n");
+        printf("-s SN           serial number of device\n");
+        return 0;
+    }
+    if ( args.at(1).compare("-n") == 0 ) {
+        if (args.size() == 2 ) {
+            printf("Number not given\n");
             return 0;
         }
-        if ( args.at(1).substr(0,2).compare("-n=") ) {
-            unsigned int num = std::stoi(args.at(1).substr(3,args.at(1).size()));
-            if (OpenDevice(num) != 0 ) printf("Incorrect device number\n");
+        unsigned int num = -1;
+        try {
+            num = std::stoi(args.at(2));
+        }
+        catch(const std::exception& e) { 
+            printf("Given argument is not a valid number\n");
             return 0;
         }
-        if ( args.at(1).substr(0,3).compare("-s=") ) {
-            for ( unsigned int i = 0; i< devices_connected; i++ ){
-                std::string to_comp (connected_device[i].SN);
-                if ( to_comp.compare(args.at(1).substr(3,args.at(1).size())) ) OpenDevice(i);
-            }
-            printf("Device with specified serial number not present\n");
+        if (OpenDevice(num-1) != 0 ) printf("Incorrect device number\n");       //for user devices are numbered from 1
+        return 0;
+    }
+    if ( args.at(1).compare("-s") == 0) {
+        if (args.size() == 2 ) {
+            printf("Serial not specified\n");
             return 0;
         }
+        for ( unsigned int i = 0; i< devices_connected; i++ ){
+            std::string to_comp (connected_device[i].SN);
+            if ( to_comp.compare(args.at(2)) == 0 ) OpenDevice(i); 
+        }
+        printf("Device with specified serial number not present\n");
+        return 0;
     }
     printf("Unrecognized parameter %s, see -h for help\n", args.at(1).c_str());
     return 0;
@@ -77,6 +97,16 @@ int DeviceInfoC(std::vector<string> args){
 }
 
 int IdentC(std::vector<string> args){
+    if (args.size() == 1 ) device_calls::Identify();
+    if (args.size() > 3 ) printf("Too many arguments\n");
+    uint8_t dest, source;
+    for ( unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i) == "-h"){
+            printf("-d     destination address\n");
+            printf("-s     source address\n");
+        }
+    
+    }
     //not implemented
     return 0;
 }
