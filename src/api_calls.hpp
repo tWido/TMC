@@ -59,8 +59,7 @@
         EMPTY_IN_QUEUE                                          
 
 uint8_t DefaultDest(){
-    if (opened_device.bays != -1 ) return 0x21;
-    else return 0x50;
+    return 0x50;
 }
 
 uint8_t DefaultChanel8(){
