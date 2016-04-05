@@ -94,13 +94,32 @@ int OpenDeviceC(std::vector<string> args){
 }
 
 int DeviceInfoC(std::vector<string> args){
-    if (args.at(1) == "-h"){ 
+    if (args.size() > 1 && args.at(1) == "-h"){ 
         printf("Prints information to all compatible devices connected\n");
         return 0;
     }
-    if (args.size() > 2) printf("No arguments except -h\n");
+    if (args.size() > 1) printf("No arguments except -h\n");
+    int prev_opened = opened_device_index;
+    for (unsigned int i = 0; i< devices_connected; i++){
+        OpenDevice(i);
+        printf(" Device number %d\n", i+1);
+        printf(" Serial: %s\n",connected_device[i].SN);
+        if (connected_device[i].bays != -1 ){ 
+            printf(" Bays: %d\n", connected_device[i].bays);
+            for (int j = 0; j < connected_device[j].bays; j++ ) printf("Bay %d:%d  ",i,connected_device[i].bay_used[j]);
+            printf("\n");
+        }
+        if (connected_device[i].channels != -1 ) printf(" Channels: %d\n", connected_device[i].channels);
+        
+        HwInfo *info = (HwInfo*) malloc(sizeof(HwInfo));
+        if (device_calls::GetHwInfo(info) != 0) printf("Error occured while receiving info from device\n");
+        printf("  Model number: %s\n",info->ModelNumber().c_str());
+        printf("  Hardware version: %d\n", info->HwVersion());
+        printf("  Notes: %s", info->Notes().c_str());
+        free(info);
+    }
     
-    //not implemented
+    OpenDevice(prev_opened);
     return 0;
 }
 
