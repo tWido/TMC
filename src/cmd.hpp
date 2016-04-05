@@ -97,17 +97,46 @@ int DeviceInfoC(std::vector<string> args){
 }
 
 int IdentC(std::vector<string> args){
-    if (args.size() == 1 ) device_calls::Identify();
-    if (args.size() > 3 ) printf("Too many arguments\n");
-    uint8_t dest, source;
-    for ( unsigned int i = 1; i< args.size(); i++){
-        if (args.at(i) == "-h"){
-            printf("-d     destination address\n");
-            printf("-s     source address\n");
-        }
-    
+    if (args.size() == 1 ) {
+        device_calls::Identify();
+        return 0;
     }
-    //not implemented
+    uint8_t dest;
+
+    if (args.at(1) == "-h"){
+        printf("Flashes front LED on device, optional destination parameter\n");
+        printf("-d     destination address in decimal\n");
+        printf("-D     destination address in hexadecimal\n");
+        return 0;
+    }
+    if (args.at(1).compare("-d") == 0 ){
+        if (args.size() == 2 ) {
+            printf("Address not given\n");
+            return 0;
+        }
+        try {
+            dest = std::stoi(args.at(2), 0, 10);
+        }
+        catch(const std::exception& e) { 
+            printf("Given argument is not a valid number\n");
+            return 0;
+        }
+    }
+    else if (args.at(1).compare("-D") == 0 ){
+        if (args.size() == 2 ) {
+            printf("Address not given\n");
+            return 0;
+        }
+        try {
+            dest = std::stoi(args.at(2), 0, 16);
+        }
+        catch(const std::exception& e) { 
+            printf("Given argument is not a valid number\n");
+            return 0;
+        }
+    }
+    else printf("Unrecognized parameter %s, see -h for help\n", args.at(1).c_str());
+    if (device_calls::Identify(dest) == INVALID_DEST) printf("Invalid destination given\n");
     return 0;
 }
 
@@ -281,7 +310,7 @@ call_map calls = {
 
 
 int run_cmd(){
-   
+      
     while(true){
         std::string line = "";
         std::getline(std::cin, line);
@@ -303,8 +332,8 @@ int run_cmd(){
         
         int ret_val = calls.at(args.at(0))(args);
         if ( ret_val != 0 ) return ret_val;
-    }
-    
+        }
+      
     return 0;
 }
 
