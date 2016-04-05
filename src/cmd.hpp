@@ -8,9 +8,12 @@
 #include <iostream>
 #include <string>
 
+#define INVALID_CALL -1
 
 typedef int (*helper)(std::vector<string>);
 typedef std::map<std::string,helper> call_map;
+
+bool validation = false;
 
 int HelpC(std::vector<string> args){
     if (args.size() > 1) printf("No arguments needed\n");
@@ -46,11 +49,11 @@ int HelpC(std::vector<string> args){
 int OpenDeviceC(std::vector<string> args){
     if (args.size() == 1 ) {
         printf("No arguments\n");
-        return 0;
+        return INVALID_CALL;
     }
     if (args.size() > 3 ) {
         printf("Unexpected number of arguments, see -h for help\n");
-        return 0;
+        return INVALID_CALL;
     } 
     if (args.at(1) == "-h"){ 
         printf("Choose which connected device to control\n");
@@ -61,7 +64,7 @@ int OpenDeviceC(std::vector<string> args){
     if ( args.at(1).compare("-n") == 0 ) {
         if (args.size() == 2 ) {
             printf("Number not given\n");
-            return 0;
+            return INVALID_CALL;
         }
         unsigned int num = -1;
         try {
@@ -69,21 +72,21 @@ int OpenDeviceC(std::vector<string> args){
         }
         catch(const std::exception& e) { 
             printf("Given argument is not a valid number\n");
-            return 0;
+            return INVALID_CALL;
         }
-        if (OpenDevice(num-1) != 0 ) printf("Incorrect device number\n");       //for user devices are numbered from 1
+        if (!validation) if (OpenDevice(num-1) != 0 ) printf("Incorrect device number\n");       //for user devices are numbered from 1
         return 0;
     }
     if ( args.at(1).compare("-s") == 0) {
         if (args.size() == 2 ) {
             printf("Serial not specified\n");
-            return 0;
+            return INVALID_CALL;
         }
         for ( unsigned int i = 0; i< devices_connected; i++ ){
             std::string to_comp (connected_device[i].SN);
             if ( to_comp.compare(args.at(2)) == 0 ) OpenDevice(i); 
         }
-        printf("Device with specified serial number not present\n");
+        if (!validation) printf("Device with specified serial number not present\n");
         return 0;
     }
     printf("Unrecognized parameter %s, see -h for help\n", args.at(1).c_str());
@@ -91,14 +94,19 @@ int OpenDeviceC(std::vector<string> args){
 }
 
 int DeviceInfoC(std::vector<string> args){
-    // saved info, ask for bay used, ask for hw info, get hub used
+    if (args.at(1) == "-h"){ 
+        printf("Prints information to all compatible devices connected\n");
+        return 0;
+    }
+    if (args.size() > 2) printf("No arguments except -h\n");
+    
     //not implemented
     return 0;
 }
 
 int IdentC(std::vector<string> args){
     if (args.size() == 1 ) {
-        device_calls::Identify();
+        if (!validation) device_calls::Identify();
         return 0;
     }
     uint8_t dest;
@@ -112,31 +120,31 @@ int IdentC(std::vector<string> args){
     if (args.at(1).compare("-d") == 0 ){
         if (args.size() == 2 ) {
             printf("Address not given\n");
-            return 0;
+            return INVALID_CALL;
         }
         try {
             dest = std::stoi(args.at(2), 0, 10);
         }
         catch(const std::exception& e) { 
             printf("Given argument is not a valid number\n");
-            return 0;
+            return INVALID_CALL;
         }
     }
     else if (args.at(1).compare("-D") == 0 ){
         if (args.size() == 2 ) {
             printf("Address not given\n");
-            return 0;
+            return INVALID_CALL;
         }
         try {
             dest = std::stoi(args.at(2), 0, 16);
         }
         catch(const std::exception& e) { 
             printf("Given argument is not a valid number\n");
-            return 0;
+            return INVALID_CALL;
         }
     }
     else printf("Unrecognized parameter %s, see -h for help\n", args.at(1).c_str());
-    if (device_calls::Identify(dest) == INVALID_DEST) printf("Invalid destination given\n");
+    if (!validation) if (device_calls::Identify(dest) == INVALID_DEST) printf("Invalid destination given\n");
     return 0;
 }
 
@@ -330,8 +338,8 @@ int run_cmd(){
             continue;
         }
         
-        int ret_val = calls.at(args.at(0))(args);
-        if ( ret_val != 0 ) return ret_val;
+        calls.at(args.at(0))(args);
+        device_calls::SendServerAlive(0x50);
         }
       
     return 0;
