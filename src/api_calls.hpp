@@ -78,6 +78,7 @@ uint8_t DeafultRate(){
 int OpenDevice(unsigned int index){
     if (index >= devices_connected) return INVALID_PARAM_1;
     opened_device = connected_device[index];
+    opened_device_index = index;
     return 0;
 };
 

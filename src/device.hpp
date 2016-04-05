@@ -37,6 +37,7 @@ typedef struct{
 unsigned int devices_connected;
 controller_device *connected_device;
 controller_device opened_device;
+unsigned int opened_device_index;
 
 // enum for device types
 enum {
