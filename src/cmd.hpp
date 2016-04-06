@@ -292,12 +292,6 @@ int DCStatusC(std::vector<string> args){
     return 0;
 }
 
-int EOMC(std::vector<string> args){
-    //enable, disable
-    //not implemented
-    return 0;
-}
-
 int TriggerParamC(std::vector<string> args){
     // get, set
     //not implemented
@@ -331,7 +325,6 @@ call_map calls = {
     std::make_pair("buttp", &ButtonsParamC),
     std::make_pair("status", &StatusC),
     std::make_pair("statusdc", &DCStatusC),
-    std::make_pair("eom", &EOMC),
     std::make_pair("triggp", &TriggerParamC)
 };
 
