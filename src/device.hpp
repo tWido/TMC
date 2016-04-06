@@ -8,7 +8,7 @@ typedef struct {
     int max_vel;
     int max_acc;
     int tick;
-    int enc_count;
+    int enc_count = 0;
     uint8_t dest;
     bool status_updates = false;
     int32_t status_position;

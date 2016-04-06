@@ -9,6 +9,7 @@
 #include <string>
 
 #define INVALID_CALL -1
+#define HAS_FLAG(x) if ((connected_device[dev_index].motor[mot_index].status_status_bits & x) == x) 
 
 typedef int (*helper)(std::vector<string>);
 typedef std::map<std::string,helper> call_map;
@@ -93,6 +94,32 @@ int OpenDeviceC(std::vector<string> args){
     return 0;
 }
 
+void DeviceInfoHelper(int dev_index, int mot_index){
+    if (connected_device[dev_index].motor[mot_index].enc_count != 0) printf("  Encoder count : %d\n",connected_device[dev_index].motor[mot_index].enc_count);
+        if (connected_device[dev_index].motor[mot_index].homing) printf("  Moving to home position\n");
+        if (connected_device[dev_index].motor[mot_index].moving) printf("  Moving\n");
+        if (connected_device[dev_index].motor[mot_index].stopping) printf("  Stopping\n");
+        if (connected_device[dev_index].motor[mot_index].status_updates){
+            if (connected_device[dev_index].motor[mot_index].enc_count != 0) printf("  Status message - encoder count : %d\n",connected_device[dev_index].motor[mot_index].status_enc_count);
+            else printf("  Status message - position : %d\n",connected_device[dev_index].motor[mot_index].status_position);
+            printf("  Status message - velocity : %d\n",connected_device[dev_index].motor[mot_index].status_velocity);
+            printf("  Status bits info: \n");
+            HAS_FLAG(0x00000001) printf("   Forward hardware limit switch active\n");
+            HAS_FLAG(0x00000002) printf("   Reverse hardware limit switch active\n");
+            HAS_FLAG(0x00000010) printf("   Moving forward\n");
+            HAS_FLAG(0x00000020) printf("   Moving reverse\n");
+            HAS_FLAG(0x00000040) printf("   Jogging forward\n");
+            HAS_FLAG(0x00000080) printf("   Jogging reverse\n");
+            HAS_FLAG(0x00000200) printf("   Homing\n");
+            HAS_FLAG(0x00000400) printf("   Homed\n");
+            HAS_FLAG(0x00001000) printf("   Tracking\n");
+            HAS_FLAG(0x00002000) printf("   Settled\n");
+            HAS_FLAG(0x00004000) printf("   Motion error\n");
+            HAS_FLAG(0x01000000) printf("   Motor limit reached\n");
+            HAS_FLAG(0x80000000) printf("   Channel enabled\n");
+        }
+}
+
 int DeviceInfoC(std::vector<string> args){
     if (args.size() > 1 && args.at(1) == "-h"){ 
         printf("Prints information to all compatible devices connected\n");
@@ -106,11 +133,25 @@ int DeviceInfoC(std::vector<string> args){
         printf(" Serial: %s\n",connected_device[i].SN);
         if (connected_device[i].bays != -1 ){ 
             printf(" Bays: %d\n", connected_device[i].bays);
-            for (int j = 0; j < connected_device[j].bays; j++ ) printf("Bay %d:%d  ",i,connected_device[i].bay_used[j]);
-            printf("\n");
+            for (int j = 0; j < connected_device[i].bays; j++ ){ 
+                printf(" Motor in bay %d: ",j+1);                           //bays numbered from 1 for user
+                if (connected_device[i].bay_used[j]) printf("Unused\n");
+                else{
+                    printf("Used\n");
+                    printf("  Destination address : %d\n",connected_device[i].motor[j].dest);
+                    DeviceInfoHelper(i,j);
+                }
+            }
         }
-        if (connected_device[i].channels != -1 ) printf(" Channels: %d\n", connected_device[i].channels);
-        
+        if (connected_device[i].channels != -1 ){ 
+            printf(" Channels: %d\n", connected_device[i].channels);
+            printf(" Channel 1\n");
+            DeviceInfoHelper(i,0);
+            if (connected_device[i].channels == 2 ){
+                printf(" Channel 2\n");
+                DeviceInfoHelper(i,1);
+            }
+        }
         HwInfo *info = (HwInfo*) malloc(sizeof(HwInfo));
         if (device_calls::GetHwInfo(info) != 0) printf("Error occured while receiving info from device\n");
         printf("  Model number: %s\n",info->ModelNumber().c_str());
