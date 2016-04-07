@@ -10,6 +10,32 @@
 
 #define INVALID_CALL -1
 #define HAS_FLAG(x) if ((connected_device[dev_index].motor[mot_index].status_status_bits & x) == x) 
+#define CHANNEL_OPERATION(operation) if (args.size() <= i+1 ) {             \
+                printf("Channel\\bay number not specified\n");              \
+                return INVALID_CALL;                                        \
+            }                                                               \
+            try {                                                           \
+            id = std::stoi(args.at(i+1), 0, 10);                            \
+            }                                                               \
+            catch(const std::exception& e) {                                \
+                printf("Given argument is not a valid number\n");           \
+                return INVALID_CALL;                                        \
+            }                                                               \
+            if (opened_device.bays == -1){                                  \
+                if (operation(0x50,id) == INVALID_CHANNEL ){                \
+                    printf("Not existing channel number given\n");          \
+                    return 0;                                               \
+                }                                                           \
+            }                                                               \
+            else {                                                          \
+                id += 0x20;                                                 \
+                if (operation(id) == INVALID_DEST ){                        \
+                    printf("Not existing channel number given\n");          \
+                    return 0;                                               \
+                }                                                           \
+            }                                                               \
+            i++;
+
 
 typedef int (*helper)(std::vector<string>);
 typedef std::map<std::string,helper> call_map;
@@ -173,8 +199,8 @@ int IdentC(std::vector<string> args){
 
     if (args.at(1) == "-h"){
         printf("Flashes front LED on device, optional destination parameter\n");
-        printf("-d     destination address in decimal\n");
-        printf("-D     destination address in hexadecimal\n");
+        printf("-d VALUE    optional parameter - destination address in decimal\n");
+        printf("-D VALUE    optional parameter - destination address in hexadecimal\n");
         return 0;
     }
     if (args.at(1).compare("-d") == 0 ){
@@ -209,8 +235,52 @@ int IdentC(std::vector<string> args){
 }
 
 int ChannelAbleC(std::vector<string> args){
-    // enable, disable, info 
-    //not implemented
+    for (unsigned int i = 0; i< args.size(); i++){
+        int id;
+        if (args.at(i).compare("-h") == 0){
+            printf("Operating channels or bays, numbers range from 1 \n");
+            printf("-e NUMBER    enable channel or bay with given number\n");
+            printf("-d NUMBER    disable channel or bay with given number\n");
+            printf("-i NUMBER    channel or bay info\n");
+        }
+        if (args.at(i).compare("-e") == 0){ CHANNEL_OPERATION(device_calls::EnableChannel) }
+        if (args.at(i).compare("-d") == 0){ CHANNEL_OPERATION(device_calls::DisableChannel) }
+        if (args.at(i).compare("-i") == 0){
+            if (args.size() <= i+1 ) {             
+                printf("Channel\\bay number not specified\n");              
+                return INVALID_CALL;                                        
+            }
+            try {                                                           
+            id = std::stoi(args.at(i+1), 0, 10);                            
+            }                                                               
+            catch(const std::exception& e) {                                
+                printf("Given argument is not a valid number\n");           
+                return INVALID_CALL;                                        
+            }
+            GetChannelState *state = (GetChannelState*) malloc(sizeof(GetChannelState));
+            if (opened_device.bays == -1){     
+                if (device_calls::ChannelState(state,0x50,id) != 0 ){                
+                    printf("Error while receiving information from device\n");
+                    free(state);
+                    return 0;                                               
+                }
+                if (state->GetSecondParam() == 0x01 ) printf("Enabled\n");
+                else printf("Disabled\n");
+            }                                                               
+            else {                                                          
+                id += 0x20;                                                
+                if (device_calls::ChannelState(state,id) != 0 ){                        
+                    printf("Error while receiving information from device\n");
+                    free(state);
+                    return 0;  
+                }
+                if(state->GetSecondParam() == 0x01 ) printf("Enabled\n");
+                else printf("Disabled\n");
+            }
+            free(state);
+            i++; 
+        }
+    }
     return 0;
 }
 
