@@ -285,8 +285,14 @@ int ChannelAbleC(std::vector<string> args){
 }
 
 int PosCounterC(std::vector<string> args){
-    // set, get
-    //not implemented
+    if (args.at(1).compare("-h") == 0){
+        printf("WARNING: \n");
+        printf("Set or get actual position counter in device\n");
+        printf("-s NUMBER    channel or bay info\n");
+        printf("-g           channel or bay info\n");
+    }
+    if (args.at(1).compare("-s") == 0){}
+    if (args.at(1).compare("-g") == 0){}
     return 0;
 }
 
