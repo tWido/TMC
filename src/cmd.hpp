@@ -241,7 +241,7 @@ int ChannelAbleC(std::vector<string> args){
             printf("Operating channels or bays, numbers range from 1 \n");
             printf("-e NUMBER    enable channel or bay with given number\n");
             printf("-d NUMBER    disable channel or bay with given number\n");
-            printf("-i NUMBER    channel or bay info\n");
+            printf("-i NUMBER    information about ability state for channel or bay at given position\n");
         }
         if (args.at(i).compare("-e") == 0){ CHANNEL_OPERATION(device_calls::EnableChannel) }
         if (args.at(i).compare("-d") == 0){ CHANNEL_OPERATION(device_calls::DisableChannel) }
@@ -288,11 +288,9 @@ int PosCounterC(std::vector<string> args){
     if (args.at(1).compare("-h") == 0){
         printf("WARNING: \n");
         printf("Set or get actual position counter in device\n");
-        printf("-s NUMBER    channel or bay info\n");
-        printf("-g           channel or bay info\n");
+        printf("-s NUMBER    set\n");
+        printf("-g           get\n");
     }
-    if (args.at(1).compare("-s") == 0){}
-    if (args.at(1).compare("-g") == 0){}
     return 0;
 }
 
