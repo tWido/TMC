@@ -312,7 +312,6 @@ public:
     }
     
     int SetPosition(int32_t pos){
-        if (opened_device.motor[GetMotorID()].max_pos < pos) return INVALID_PARAM;
         *((int32_t *) &bytes[8]) = htole32(pos);  
         return WARNING;
     }

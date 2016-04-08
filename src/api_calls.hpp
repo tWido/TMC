@@ -403,7 +403,6 @@ int SetPositionCounter(int32_t pos, uint8_t dest = DefaultDest(), uint16_t chann
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetPosCounter mes(dest, SOURCE, channel);
-    if ( mes.SetPosition(pos) == INVALID_PARAM ) return INVALID_PARAM_1;
     SendMessage(mes);
     EMPTY_IN_QUEUE
     return ret; //return WARNING
