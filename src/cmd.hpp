@@ -245,8 +245,14 @@ int IdentC(std::vector<string> args){
 }
 
 int ChannelAbleC(std::vector<string> args){
-    for (unsigned int i = 0; i< args.size(); i++){
-        int id;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") != 0 && args.at(i).compare("-e") != 0 && args.at(i).compare("-d") != 0 && args.at(i).compare("-i") != 0 ){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    for (unsigned int i = 1; i< args.size(); i++){
+        uint8_t id;
         if (args.at(i).compare("-h") == 0){
             printf("Operating channels or bays, numbers range from 1 \n");
             printf("-e NUMBER    enable channel or bay with given number\n");
@@ -261,7 +267,7 @@ int ChannelAbleC(std::vector<string> args){
                 return INVALID_CALL;                                        
             }
             try {                                                           
-            id = std::stoi(args.at(i+1), 0, 10);                            
+                id = std::stoi(args.at(i+1), 0, 10);                            
             }                                                               
             catch(const std::exception& e) {                                
                 printf("Given argument is not a valid number\n");           
@@ -295,19 +301,160 @@ int ChannelAbleC(std::vector<string> args){
 }
 
 int PosCounterC(std::vector<string> args){
-    if (args.at(1).compare("-h") == 0){
-        printf("WARNING: Setting position counter isn't standard operation and may result in unexpected behavior\n");
-        printf("Set or get actual position counter in device\n");
-        printf("-m NUMBER    \n")
-        printf("-s NUMBER    set\n");
-        printf("-g           get\n");
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") != 0 && args.at(i).compare("-s") != 0 && args.at(i).compare("-g") != 0){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("WARNING: Setting position counter isn't standard operation and may result in unexpected behavior\n");
+            printf("Set or get actual position counter in device\n");
+            printf("-s NUMBER VALUE      set position counter at NUMBER (channel or bay number ) to given VALUE\n");
+            printf("-g NUMBER            get position counter at given NUMBER\n");
+        }
+        if (args.at(i).compare("-s") == 0){
+            if (args.size() <= i+2){ 
+                printf("Not enough paramaters\n");
+                return INVALID_CALL;
+            }
+            uint8_t index;
+            int32_t value;
+            try {
+                index = std::stoi(args.at(i+1), 0, 10);
+                value = std::stoi(args.at(i+2), 0, 10);
+            }
+            catch(const std::exception& e) { 
+                printf("Given argument is not a valid number\n");
+                return INVALID_CALL;
+            } 
+            if (opened_device.bays == -1){
+                if (device_calls::SetPositionCounter(value, 0x50, index) == INVALID_CHANNEL){
+                    printf("Not existing channel number given\n");
+                    return ERR_CALL;
+                }
+            }
+            else {
+                index += 0x20;
+                if (device_calls::SetPositionCounter(value, index) == INVALID_DEST){
+                    printf("Wrong address given\n");
+                    return ERR_CALL;
+                }
+            }
+        }
+        
+        if (args.at(i).compare("-g") == 0){
+            if (args.size() <= i+i){ 
+                printf("Not enough paramaters\n");
+                return INVALID_CALL;
+            }
+            int32_t index;
+            try {
+                index = std::stoi(args.at(i+1), 0, 10);
+            }
+            catch(const std::exception& e) { 
+                printf("Given argument is not a valid number\n");
+                return INVALID_CALL;
+            }
+            GetPosCounter* counter = (GetPosCounter*) malloc(sizeof(GetPosCounter));
+            if (opened_device.bays == -1){
+                if (device_calls::GetPositionCounter(counter, 0x50, index) == INVALID_CHANNEL){
+                    printf("Not existing channel number given\n");
+                    free(counter);
+                    return ERR_CALL;
+                }
+            }
+            else {
+                index += 0x20;
+                if (device_calls::GetPositionCounter(counter, index) == INVALID_DEST){
+                    printf("Wrong address given\n");
+                    free(counter);
+                    return ERR_CALL;
+                }
+            }
+            printf("Position counter: %d\n", counter->GetPosition());
+        }
     }
     return 0;
 }
 
 int EncCountC(std::vector<string> args){
-    // set, get
-    //not implemented
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") != 0 && args.at(i).compare("-s") != 0 && args.at(i).compare("-g") != 0){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("WARNING: Setting encoder counter isn't standard operation and may result in unexpected behavior\n");
+            printf("Set or get actual encoder counter in device\n");
+            printf("-s NUMBER VALUE      set encoder counter at NUMBER (channel or bay number ) to given VALUE\n");
+            printf("-g NUMBER            get encoder counter at given NUMBER\n");
+        }
+        if (args.at(i).compare("-s") == 0){
+            if (args.size() <= i+2){ 
+                printf("Not enough paramaters\n");
+                return INVALID_CALL;
+            }
+            uint8_t index;
+            int32_t value;
+            try {
+                index = std::stoi(args.at(i+1), 0, 10);
+                value = std::stoi(args.at(i+2), 0, 10);
+            }
+            catch(const std::exception& e) { 
+                printf("Given argument is not a valid number\n");
+                return INVALID_CALL;
+            } 
+            if (opened_device.bays == -1){
+                if (device_calls::SetEncoderCounter(value, 0x50, index) == INVALID_CHANNEL){
+                    printf("Not existing channel number given\n");
+                    return ERR_CALL;
+                }
+            }
+            else {
+                index += 0x20;
+                if (device_calls::SetEncoderCounter(value, index) == INVALID_DEST){
+                    printf("Wrong address given\n");
+                    return ERR_CALL;
+                }
+            }
+        }
+        
+        if (args.at(i).compare("-g") == 0){
+            if (args.size() <= i+i){ 
+                printf("Not enough paramaters\n");
+                return INVALID_CALL;
+            }
+            int32_t index;
+            try {
+                index = std::stoi(args.at(i+1), 0, 10);
+            }
+            catch(const std::exception& e) { 
+                printf("Given argument is not a valid number\n");
+                return INVALID_CALL;
+            }
+            GetEncCount* counter = (GetEncCount*) malloc(sizeof(GetEncCount));
+            if (opened_device.bays == -1){
+                if (device_calls::GetEncoderCounter(counter, 0x50, index) == INVALID_CHANNEL){
+                    printf("Not existing channel number given\n");
+                    free(counter);
+                    return ERR_CALL;
+                }
+            }
+            else {
+                index += 0x20;
+                if (device_calls::GetEncoderCounter(counter, index) == INVALID_DEST){
+                    printf("Wrong address given\n");
+                    free(counter);
+                    return ERR_CALL;
+                }
+            }
+            printf("Encoder counter: %d\n", counter->GetEncCounter());
+        }
+    }
     return 0;
 }
 
