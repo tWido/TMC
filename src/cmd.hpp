@@ -9,6 +9,7 @@
 #include <string>
 
 #define INVALID_CALL -1
+#define ERR_CALL -2
 #define HAS_FLAG(x) if ((connected_device[dev_index].motor[mot_index].status_status_bits & x) == x) 
 #define CHANNEL_OPERATION(operation) if (args.size() <= i+1 ) {             \
                 printf("Channel\\bay number not specified\n");              \
@@ -24,14 +25,14 @@
             if (opened_device.bays == -1){                                  \
                 if (operation(0x50,id) == INVALID_CHANNEL ){                \
                     printf("Not existing channel number given\n");          \
-                    return 0;                                               \
+                    return ERR_CALL;                                        \
                 }                                                           \
             }                                                               \
             else {                                                          \
                 id += 0x20;                                                 \
                 if (operation(id) == INVALID_DEST ){                        \
                     printf("Not existing channel number given\n");          \
-                    return 0;                                               \
+                    return ERR_CALL;                                        \
                 }                                                           \
             }                                                               \
             i++;
@@ -101,7 +102,10 @@ int OpenDeviceC(std::vector<string> args){
             printf("Given argument is not a valid number\n");
             return INVALID_CALL;
         }
-        if (!validation) if (OpenDevice(num-1) != 0 ) printf("Incorrect device number\n");       //for user devices are numbered from 1
+        if (!validation) if (OpenDevice(num-1) != 0 ){ //for user devices are numbered from 1
+            printf("Incorrect device number\n");
+            return ERR_CALL;
+        }       
         return 0;
     }
     if ( args.at(1).compare("-s") == 0) {
@@ -113,7 +117,10 @@ int OpenDeviceC(std::vector<string> args){
             std::string to_comp (connected_device[i].SN);
             if ( to_comp.compare(args.at(2)) == 0 ) OpenDevice(i); 
         }
-        if (!validation) printf("Device with specified serial number not present\n");
+        if (!validation){ 
+            printf("Device with specified serial number not present\n");
+            return ERR_CALL;
+        }
         return 0;
     }
     printf("Unrecognized parameter %s, see -h for help\n", args.at(1).c_str());
@@ -230,7 +237,10 @@ int IdentC(std::vector<string> args){
         }
     }
     else printf("Unrecognized parameter %s, see -h for help\n", args.at(1).c_str());
-    if (!validation) if (device_calls::Identify(dest) == INVALID_DEST) printf("Invalid destination given\n");
+    if (!validation) if (device_calls::Identify(dest) == INVALID_DEST){ 
+        printf("Invalid destination given\n");
+        return ERR_CALL;
+    }
     return 0;
 }
 
@@ -262,7 +272,7 @@ int ChannelAbleC(std::vector<string> args){
                 if (device_calls::ChannelState(state,0x50,id) != 0 ){                
                     printf("Error while receiving information from device\n");
                     free(state);
-                    return 0;                                               
+                    return ERR_CALL;                                               
                 }
                 if (state->GetSecondParam() == 0x01 ) printf("Enabled\n");
                 else printf("Disabled\n");
@@ -272,7 +282,7 @@ int ChannelAbleC(std::vector<string> args){
                 if (device_calls::ChannelState(state,id) != 0 ){                        
                     printf("Error while receiving information from device\n");
                     free(state);
-                    return 0;  
+                    return ERR_CALL;  
                 }
                 if(state->GetSecondParam() == 0x01 ) printf("Enabled\n");
                 else printf("Disabled\n");
@@ -286,8 +296,9 @@ int ChannelAbleC(std::vector<string> args){
 
 int PosCounterC(std::vector<string> args){
     if (args.at(1).compare("-h") == 0){
-        printf("WARNING: \n");
+        printf("WARNING: Setting position counter isn't standard operation and may result in unexpected behavior\n");
         printf("Set or get actual position counter in device\n");
+        printf("-m NUMBER    \n")
         printf("-s NUMBER    set\n");
         printf("-g           get\n");
     }
