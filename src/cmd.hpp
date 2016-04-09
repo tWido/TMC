@@ -107,7 +107,7 @@ typedef std::map<std::string,helper> call_map;
                 return INVALID_CALL;                    \
             }                                           \
             GET_NUM(int_val)                            \
-            acc_spec = true;                            \
+            bool_val = true;                            \
         }
 
 bool validation = false;
@@ -682,8 +682,8 @@ int PowerParamC(std::vector<string> args){
             printf("Set or get power used when motor is moving and resting\n");
             printf("-s NUMBER       set power parameters\n");
             printf("-g NUMBER       get power parameters\n");
-            printf("-m VALUE        move factor in %\n");
-            printf("-r VALUE        rest factor in %\n");
+            printf("-m VALUE        move factor in %%\n");
+            printf("-r VALUE        rest factor in %%\n");
         }
         
         SET_FLAG
@@ -767,14 +767,14 @@ int BacklashDistC(std::vector<string> args){
             return INVALID_CALL;
         }
         if (opened_device.bays == -1){
-            ret = device_calls::SetPowerUsed(dist, 0x50, index); 
+            ret = device_calls::SetBacklashDist(dist, 0x50, index); 
             switch (ret){
                 case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
             };
         }
         else {
             index += 0x20;
-            ret = device_calls::SetPowerUsed(dist, index); 
+            ret = device_calls::SetBacklashDist(dist, index); 
             switch (ret){
                 case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
             };
@@ -784,8 +784,58 @@ int BacklashDistC(std::vector<string> args){
 }
 
 int RelMoveParamC(std::vector<string> args){
-    // set, get
-    //not implemented
+    NULL_ARGS
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-d") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    int operation = -1; // -1 unspecified, 0 get, 1 set
+    uint8_t index;
+    int32_t dist;
+    bool dist_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Set or get relative move distance, value is used in next call for relative move\n");
+            printf("-s NUMBER       set power parameters\n");
+            printf("-g NUMBER       get power parameters\n");
+            printf("-d VALUE        distance to move\n");
+        }
+        
+        SET_FLAG
+        GET_FLAG
+        FLAG("-d", dist, dist_spec, "Distance already specified\n")
+    }
+    if (operation == -1) {
+        printf("Operation not specified\n");
+        return INVALID_CALL;
+    }
+    if (operation == 0){
+        GET_MESSAGE(GetRelativeMoveParams, device_calls::GetRelativeMoveP)
+        printf("Relative distance held in controller: %d\n",mess->GetRelativeDist());
+    }
+    if (operation == 1){
+        int ret;
+        if(!dist_spec) {
+            printf("Not all mandatory parameters specified\n");
+            return INVALID_CALL;
+        }
+        if (opened_device.bays == -1){
+            ret = device_calls::SetRelativeMoveP(dist, 0x50, index); 
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+            };
+        }
+        else {
+            index += 0x20;
+            ret = device_calls::SetRelativeMoveP(dist, index); 
+            switch (ret){
+                case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+            };
+        }
+    }
     return 0;
 }
 
