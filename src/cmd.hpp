@@ -245,7 +245,11 @@ int IdentC(std::vector<string> args){
 }
 
 int ChannelAbleC(std::vector<string> args){
-for (unsigned int i = 1; i< args.size(); i++){
+    if (args.size() == 1) {
+        printf("Specify operation\n");
+        return INVALID_CALL;
+    }
+    for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-e") == 0 || args.at(i).compare("-d") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
         if (args.at(i).compare("-h") != 0 ){
                 printf("Unknown parameter %s\n",args.at(i).c_str());
@@ -302,6 +306,10 @@ for (unsigned int i = 1; i< args.size(); i++){
 }
 
 int PosCounterC(std::vector<string> args){
+    if (args.size() == 1) {
+        printf("Specify operation\n");
+        return INVALID_CALL;
+    }
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0) {i++; continue; }
         if (args.at(i).compare("-s") == 0) {i += 2; continue; }
@@ -385,6 +393,10 @@ int PosCounterC(std::vector<string> args){
 }
 
 int EncCountC(std::vector<string> args){
+    if (args.size() == 1) {
+        printf("Specify operation\n");
+        return INVALID_CALL;
+    }
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0) {i++; continue; }
         if (args.at(i).compare("-s") == 0) {i += 2; continue; }
@@ -468,6 +480,10 @@ int EncCountC(std::vector<string> args){
 }
 
 int VelParamC(std::vector<string> args){
+    if (args.size() == 1) {
+        printf("Specify operation\n");
+        return INVALID_CALL;
+    }
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-m") == 0 || args.at(i).compare("-a") == 0) {i++; continue; }
         if (args.at(i).compare("-h") != 0 ){
@@ -493,7 +509,7 @@ int VelParamC(std::vector<string> args){
         
         if (args.at(i).compare("-s") == 0){
             if (operation != -1) {
-                printf("Operation has to be specified exactly once");
+                printf("Operation has to be specified exactly once\n");
                 return INVALID_CALL;
             }
             operation = 1;
