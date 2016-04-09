@@ -428,8 +428,7 @@ int GetEncoderCounter(GetEncCount *message ,uint8_t dest = DefaultDest(), uint8_
     return 0;
 };
 
-int SetVelocityP(int32_t acc, int32_t maxVel, 
-        uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+int SetVelocityP(int32_t acc, int32_t maxVel, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetVelocityParams mes(dest, SOURCE, channel);
@@ -464,8 +463,7 @@ int GetJogP(GetJogParams *message ,uint8_t dest = DefaultDest(), uint8_t channel
     return 0;
 };
 
-int SetPowerUsed(uint16_t rest_power, uint16_t move_power,
-        int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+int SetPowerUsed(uint16_t rest_power, uint16_t move_power, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetPowerParams mes(dest, SOURCE, channel);
