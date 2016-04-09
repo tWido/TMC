@@ -953,12 +953,6 @@ int HomingVelC(std::vector<string> args){
     return 0;
 }
 
-int LimitSwitchC(std::vector<string> args){
-    // set, get
-    //not implemented
-    return 0;
-}
-
 int HomeC(std::vector<string> args){
     //not implemented
     return 0;
@@ -1039,7 +1033,6 @@ call_map calls = {
     std::make_pair("relmovep", &RelMoveParamC),
     std::make_pair("absmovep", &AbsMoveParamC),
     std::make_pair("homingvel", &HomingVelC),
-    std::make_pair("limitsw", &LimitSwitchC),
     std::make_pair("home", &HomeC),
     std::make_pair("relmove", &StartRelMoveC),
     std::make_pair("absmove", &StartAbsMoveC),
