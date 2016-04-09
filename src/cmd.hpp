@@ -8,38 +8,67 @@
 #include <iostream>
 #include <string>
 
+typedef int (*helper)(std::vector<string>);
+typedef std::map<std::string,helper> call_map;
+
 #define INVALID_CALL -1
 #define ERR_CALL -2
+
 #define HAS_FLAG(x) if ((connected_device[dev_index].motor[mot_index].status_status_bits & x) == x) 
+
+#define GET_NUM(x) try {                                         \
+                x = std::stoi(args.at(i+1), 0, 10);         \
+            }                                                   \
+            catch(const std::exception& e) {                    \
+                printf("Given argument is not a valid number\n");\
+                return INVALID_CALL;                            \
+            }
+
+
 #define CHANNEL_OPERATION(operation) if (args.size() <= i+1 ) {             \
                 printf("Channel\\bay number not specified\n");              \
                 return INVALID_CALL;                                        \
             }                                                               \
-            try {                                                           \
-            id = std::stoi(args.at(i+1), 0, 10);                            \
-            }                                                               \
-            catch(const std::exception& e) {                                \
-                printf("Given argument is not a valid number\n");           \
-                return INVALID_CALL;                                        \
-            }                                                               \
+            GET_NUM(index)                                                  \
             if (opened_device.bays == -1){                                  \
-                if (operation(0x50,id) == INVALID_CHANNEL ){                \
+                if (operation(0x50,index) == INVALID_CHANNEL ){             \
                     printf("Not existing channel number given\n");          \
                     return ERR_CALL;                                        \
                 }                                                           \
             }                                                               \
             else {                                                          \
-                id += 0x20;                                                 \
-                if (operation(id) == INVALID_DEST ){                        \
+                index += 0x20;                                              \
+                if (operation(index) == INVALID_DEST ){                     \
                     printf("Not existing channel number given\n");          \
                     return ERR_CALL;                                        \
                 }                                                           \
             }                                                               \
             i++;
 
+#define GET_MESSAGE(mess_type, call)   \
+        mess_type* mess = (mess_type*) malloc(sizeof(mess_type));\
+        if (opened_device.bays == -1){  \
+            if (call(mess, 0x50, index) == INVALID_CHANNEL){  \
+                printf("Not existing channel number given\n");  \
+                free(mess);         \
+                return ERR_CALL;    \
+            }                       \
+        }                           \
+        else {                      \
+            index += 0x20;          \
+            if (call(mess, index) == INVALID_DEST){   \
+                printf("Wrong address given\n");                            \
+                free(mess);                                                 \
+                return ERR_CALL;                                            \
+            }                                                               \
+        }                                                                   
 
-typedef int (*helper)(std::vector<string>);
-typedef std::map<std::string,helper> call_map;
+
+#define NULL_ARGS if (args.size() == 1) {       \
+        printf("No arguments\n");               \
+        return INVALID_CALL;                    \
+    }
+
 
 bool validation = false;
 
@@ -75,10 +104,7 @@ int HelpC(std::vector<string> args){
 }
 
 int OpenDeviceC(std::vector<string> args){
-    if (args.size() == 1 ) {
-        printf("No arguments\n");
-        return INVALID_CALL;
-    }
+    NULL_ARGS
     if (args.size() > 3 ) {
         printf("Unexpected number of arguments, see -h for help\n");
         return INVALID_CALL;
@@ -245,10 +271,7 @@ int IdentC(std::vector<string> args){
 }
 
 int ChannelAbleC(std::vector<string> args){
-    if (args.size() == 1) {
-        printf("Specify operation\n");
-        return INVALID_CALL;
-    }
+    NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-e") == 0 || args.at(i).compare("-d") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
         if (args.at(i).compare("-h") != 0 ){
@@ -257,7 +280,7 @@ int ChannelAbleC(std::vector<string> args){
             }
     }
     for (unsigned int i = 1; i< args.size(); i++){
-        uint8_t id;
+        uint8_t index;
         if (args.at(i).compare("-h") == 0){
             printf("Operating channels or bays, numbers range from 1 \n");
             printf("-e NUMBER    enable channel or bay with given number\n");
@@ -271,16 +294,10 @@ int ChannelAbleC(std::vector<string> args){
                 printf("Channel\\bay number not specified\n");              
                 return INVALID_CALL;                                        
             }
-            try {                                                           
-                id = std::stoi(args.at(i+1), 0, 10);                            
-            }                                                               
-            catch(const std::exception& e) {                                
-                printf("Given argument is not a valid number\n");           
-                return INVALID_CALL;                                        
-            }
+            GET_NUM(index)
             GetChannelState *state = (GetChannelState*) malloc(sizeof(GetChannelState));
             if (opened_device.bays == -1){     
-                if (device_calls::ChannelState(state,0x50,id) == INVALID_CHANNEL){
+                if (device_calls::ChannelState(state,0x50,index) == INVALID_CHANNEL){
                     printf("Not existing channel number given\n");
                     free(state);
                     return ERR_CALL;                                               
@@ -289,8 +306,8 @@ int ChannelAbleC(std::vector<string> args){
                 else printf("Disabled\n");
             }                                                               
             else {                                                          
-                id += 0x20;                                                
-                if (device_calls::ChannelState(state,id) == INVALID_DEST){
+                index += 0x20;                                                
+                if (device_calls::ChannelState(state,index) == INVALID_DEST){
                     printf("Wrong address given\n");
                     free(state);
                     return ERR_CALL;  
@@ -306,10 +323,7 @@ int ChannelAbleC(std::vector<string> args){
 }
 
 int PosCounterC(std::vector<string> args){
-    if (args.size() == 1) {
-        printf("Specify operation\n");
-        return INVALID_CALL;
-    }
+    NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0) {i++; continue; }
         if (args.at(i).compare("-s") == 0) {i += 2; continue; }
@@ -361,14 +375,8 @@ int PosCounterC(std::vector<string> args){
                 printf("Not enough paramaters\n");
                 return INVALID_CALL;
             }
-            int32_t index;
-            try {
-                index = std::stoi(args.at(i+1), 0, 10);
-            }
-            catch(const std::exception& e) { 
-                printf("Given argument is not a valid number\n");
-                return INVALID_CALL;
-            }
+            uint8_t index;
+            GET_NUM(index)
             GetPosCounter* counter = (GetPosCounter*) malloc(sizeof(GetPosCounter));
             if (opened_device.bays == -1){
                 if (device_calls::GetPositionCounter(counter, 0x50, index) == INVALID_CHANNEL){
@@ -393,10 +401,7 @@ int PosCounterC(std::vector<string> args){
 }
 
 int EncCountC(std::vector<string> args){
-    if (args.size() == 1) {
-        printf("Specify operation\n");
-        return INVALID_CALL;
-    }
+    NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0) {i++; continue; }
         if (args.at(i).compare("-s") == 0) {i += 2; continue; }
@@ -448,14 +453,8 @@ int EncCountC(std::vector<string> args){
                 printf("Not enough parameters\n");
                 return INVALID_CALL;
             }
-            int32_t index;
-            try {
-                index = std::stoi(args.at(i+1), 0, 10);
-            }
-            catch(const std::exception& e) { 
-                printf("Given argument is not a valid number\n");
-                return INVALID_CALL;
-            }
+            uint8_t index;
+            GET_NUM(index)
             GetEncCount* counter = (GetEncCount*) malloc(sizeof(GetEncCount));
             if (opened_device.bays == -1){
                 if (device_calls::GetEncoderCounter(counter, 0x50, index) == INVALID_CHANNEL){
@@ -480,10 +479,7 @@ int EncCountC(std::vector<string> args){
 }
 
 int VelParamC(std::vector<string> args){
-    if (args.size() == 1) {
-        printf("Specify operation\n");
-        return INVALID_CALL;
-    }
+    NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-m") == 0 || args.at(i).compare("-a") == 0) {i++; continue; }
         if (args.at(i).compare("-h") != 0 ){
@@ -517,13 +513,7 @@ int VelParamC(std::vector<string> args){
                 printf("Not enough paramaters\n");
                 return INVALID_CALL;
             }
-            try {
-                index = std::stoi(args.at(i+1), 0, 10);
-            }
-            catch(const std::exception& e) { 
-                printf("Given argument is not a valid number\n");
-                return INVALID_CALL;
-            }
+            GET_NUM(index)
         }
         
         if (args.at(i).compare("-g") == 0){
@@ -536,13 +526,7 @@ int VelParamC(std::vector<string> args){
                 printf("Not enough parameters\n");
                 return INVALID_CALL;
             }
-            try {
-                index = std::stoi(args.at(i+1), 0, 10);
-            }
-            catch(const std::exception& e) { 
-                printf("Given argument is not a valid number\n");
-                return INVALID_CALL;
-            }
+            GET_NUM(index)
         }
         
         if (args.at(i).compare("-m") == 0){
@@ -550,13 +534,11 @@ int VelParamC(std::vector<string> args){
                 printf("Not enough parameters\n");
                 return INVALID_CALL;
             }
-            try {
-                maxvel = std::stoi(args.at(i+1), 0, 10);
-            }
-            catch(const std::exception& e) { 
-                printf("Given argument is not a valid number\n");
+            if (maxvel_spec){
+                printf("Maximum velocity already specified\n");
                 return INVALID_CALL;
             }
+            GET_NUM(maxvel)
             maxvel_spec = true;
         }
         
@@ -565,37 +547,21 @@ int VelParamC(std::vector<string> args){
                 printf("Not enough parameters\n");
                 return INVALID_CALL;
             }
-            try {
-                acc = std::stoi(args.at(i+1), 0, 10);
-            }
-            catch(const std::exception& e) { 
-                printf("Given argument is not a valid number\n");
+            if (acc_spec){
+                printf("Acceleration already specified\n");
                 return INVALID_CALL;
             }
+            GET_NUM(acc)
             acc_spec = true;
         }
     }
+    
     if (operation == -1) {
         printf("Operation not specified\n");
         return INVALID_CALL;
     }
     if (operation == 0){
-        GetVelocityParams* mess = (GetVelocityParams*) malloc(sizeof(GetVelocityParams));
-        if (opened_device.bays == -1){
-            if (device_calls::GetVelocityP(mess, 0x50, index) == INVALID_CHANNEL){
-                printf("Not existing channel number given\n");
-                free(mess);
-                return ERR_CALL;
-            }
-        }
-        else {
-            index += 0x20;
-            if (device_calls::GetVelocityP(mess, index) == INVALID_DEST){
-                printf("Wrong address given\n");
-                free(mess);
-                return ERR_CALL;
-            }
-        }
+        GET_MESSAGE(GetVelocityParams, device_calls::GetVelocityP)
         printf("Acceleration: %d\n",mess->GetAcceleration());
         printf("Maximum velocity: %d\n",mess->GetMaxVel());
     }
