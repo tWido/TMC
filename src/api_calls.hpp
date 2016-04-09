@@ -509,8 +509,7 @@ int GetRelativeMoveP(GetRelativeMoveParams *message ,uint8_t dest = DefaultDest(
     return 0;
 };
 
-int SetAbsoluteMoveP(uint32_t pos, 
-        int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+int SetAbsoluteMoveP(uint32_t pos, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetAbsoluteMoveParams mes(dest, SOURCE, channel);
