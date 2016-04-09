@@ -728,8 +728,58 @@ int PowerParamC(std::vector<string> args){
 }
 
 int BacklashDistC(std::vector<string> args){
-    // set, get
-    //not implemented
+    NULL_ARGS
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-d") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    int operation = -1; // -1 unspecified, 0 get, 1 set
+    uint8_t index;
+    int32_t dist;
+    bool dist_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Set or get backlash distance\n");
+            printf("-s NUMBER       set power parameters\n");
+            printf("-g NUMBER       get power parameters\n");
+            printf("-d VALUE        value of backlash distance\n");
+        }
+        
+        SET_FLAG
+        GET_FLAG
+        FLAG("-d", dist, dist_spec, "Distance already specified\n")
+    }
+    if (operation == -1) {
+        printf("Operation not specified\n");
+        return INVALID_CALL;
+    }
+    if (operation == 0){
+        GET_MESSAGE(GetGeneralMoveParams, device_calls::GetBacklashDist)
+        printf("Backlash distance: %d\n",mess->GetBakclashDist());
+    }
+    if (operation == 1){
+        int ret;
+        if(!dist_spec) {
+            printf("Not all mandatory parameters specified\n");
+            return INVALID_CALL;
+        }
+        if (opened_device.bays == -1){
+            ret = device_calls::SetPowerUsed(dist, 0x50, index); 
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+            };
+        }
+        else {
+            index += 0x20;
+            ret = device_calls::SetPowerUsed(dist, index); 
+            switch (ret){
+                case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+            };
+        }
+    }
     return 0;
 }
 
