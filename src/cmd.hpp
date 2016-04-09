@@ -954,7 +954,10 @@ int HomingVelC(std::vector<string> args){
 }
 
 int HomeC(std::vector<string> args){
-    if (args.size() == 1) device_calls::MoveToHome();
+    if (args.size() == 1){ 
+        device_calls::MoveToHome();
+        return 0;
+    }
     if (args.at(1).compare("-h") == 0) {
         printf("Start move to home position\n");
         printf("-i NUMBER           index of motor to start homing, default is 1\n");
@@ -969,14 +972,14 @@ int HomeC(std::vector<string> args){
         int i = 1;
         GET_NUM(index)
         if (opened_device.bays == -1){
-           if( device_calls::SetHomingVel(0x50, index) == INVALID_CHANNEL ){
+           if( device_calls::MoveToHome(0x50, index) == INVALID_CHANNEL ){
                printf("Not existing channel given\n");
                return ERR_CALL;
            } 
         }
         else {
             index += 0x20;
-            if ( device_calls::SetHomingVel(index) == INVALID_DEST){
+            if ( device_calls::MoveToHome(index) == INVALID_DEST){
                 printf("Wrong address given\n"); 
                 return ERR_CALL;
             }; 
@@ -1010,7 +1013,10 @@ int StartVelMoveC(std::vector<string> args){
 }
 
 int StopC(std::vector<string> args){
-    if (args.size() == 1) device_calls::StopMovement();
+    if (args.size() == 1){ 
+        device_calls::StopMovement();
+        return 0;
+    }
     for (unsigned int i = 1; i< args.size(); i++){
     if (args.at(i).compare("-m") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
     if (args.at(i).compare("-h") != 0 ){
@@ -1034,7 +1040,7 @@ int StopC(std::vector<string> args){
 
     int ret;
     if (opened_device.bays == -1){
-        ret = device_calls::SetAbsoluteMoveP(stop_mode, 0x50, index); 
+        ret = device_calls::StopMovement(stop_mode, 0x50, index); 
         switch (ret){
             case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
             case INVALID_PARAM_1: {printf("Invalid stop mode\n"); return ERR_CALL;}
@@ -1042,7 +1048,7 @@ int StopC(std::vector<string> args){
     }
     else {
         index += 0x20;
-        ret = device_calls::SetAbsoluteMoveP(stop_mode, index); 
+        ret = device_calls::StopMovement(stop_mode, index); 
         switch (ret){
             case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
             case INVALID_PARAM_1: {printf("Invalid stop mode\n"); return ERR_CALL;}
