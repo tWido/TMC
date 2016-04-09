@@ -70,6 +70,32 @@ typedef std::map<std::string,helper> call_map;
     }
 
 
+#define SET_FLAG if (args.at(i).compare("-s") == 0){    \
+            if (operation != -1) {  \
+                printf("Operation has to be specified exactly once\n"); \
+                return INVALID_CALL;    \
+            }   \
+            operation = 1;  \
+            if (args.size() <= i+1){    \
+                printf("Not enough paramaters\n");  \
+                return INVALID_CALL;    \
+            }   \
+            GET_NUM(index)  \
+        }
+
+#define GET_FLAG if (args.at(i).compare("-g") == 0){    \
+            if (operation != -1) {  \
+                printf("Operation has to be specified exactly once");   \
+                return INVALID_CALL;    \
+            }   \
+            operation = 0;  \
+            if (args.size() <= i+1){    \
+                printf("Not enough parameters\n");  \
+                return INVALID_CALL;    \
+            }   \
+            GET_NUM(index)  \
+        }
+
 bool validation = false;
 
 int HelpC(std::vector<string> args){
@@ -503,31 +529,9 @@ int VelParamC(std::vector<string> args){
             printf("-a VALUE        acceleration");
         }
         
-        if (args.at(i).compare("-s") == 0){
-            if (operation != -1) {
-                printf("Operation has to be specified exactly once\n");
-                return INVALID_CALL;
-            }
-            operation = 1;
-            if (args.size() <= i+1){ 
-                printf("Not enough paramaters\n");
-                return INVALID_CALL;
-            }
-            GET_NUM(index)
-        }
+        SET_FLAG
         
-        if (args.at(i).compare("-g") == 0){
-            if (operation != -1) {
-                printf("Operation has to be specified exactly once");
-                return INVALID_CALL;
-            }
-            operation = 0;
-            if (args.size() <= i+1){ 
-                printf("Not enough parameters\n");
-                return INVALID_CALL;
-            }
-            GET_NUM(index)
-        }
+        GET_FLAG
         
         if (args.at(i).compare("-m") == 0){
             if (args.size() <= i+1){ 
@@ -588,8 +592,24 @@ int VelParamC(std::vector<string> args){
 }
 
 int JogParamC(std::vector<string> args){
-    // set, get
-    //not implemented
+    NULL_ARGS
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-m") == 0 || args.at(i).compare("-a") == 0) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Set or get velocity parameters for specified motor channel. Parameters are acceleration and maximum velocity.\n");
+            printf("Velocity is specified in encoder counts per second or microsteps per second, depending on controller. Acceleration is specified in counts/sec/sec or microsteps/sec/sec. \n");
+            printf("-s NUMBER       set operation for given motor channel, setting both parameters is mandatory\n");
+            printf("-g NUMBER       get parameters for given motor channel\n");
+            printf("-m VALUE        set maximum velocity\n");
+            printf("-a VALUE        acceleration");
+        }
+    }
     return 0;
 }
 
