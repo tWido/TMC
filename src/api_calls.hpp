@@ -74,6 +74,10 @@ uint8_t DeafultRate(){
     return 1;
 }
 
+uint8_t DefaultStopMode(){
+    return 0x02;
+}
+
 int OpenDevice(unsigned int index){
     if (index >= devices_connected) return INVALID_PARAM_1;
     opened_device = connected_device[index];
@@ -634,7 +638,7 @@ int StartSetVelocityMove( uint8_t direction, uint8_t dest = DefaultDest(), uint8
     return 0;
 };
 
-int StopMovement(uint8_t stopMode, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+int StopMovement(uint8_t stopMode = DefaultStopMode(), uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     StopMove mes(dest,SOURCE,channel);  
