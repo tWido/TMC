@@ -840,8 +840,58 @@ int RelMoveParamC(std::vector<string> args){
 }
 
 int AbsMoveParamC(std::vector<string> args){
-    // set, get
-    //not implemented
+    NULL_ARGS
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-p") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    int operation = -1; // -1 unspecified, 0 get, 1 set
+    uint8_t index;
+    int32_t pos;
+    bool pos_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Set or get absolute move distance, value is used in next call for absolute move\n");
+            printf("-s NUMBER       set power parameters\n");
+            printf("-g NUMBER       get power parameters\n");
+            printf("-p VALUE        position to move to\n");
+        }
+        
+        SET_FLAG
+        GET_FLAG
+        FLAG("-p", pos, pos_spec, "Position already specified\n")
+    }
+    if (operation == -1) {
+        printf("Operation not specified\n");
+        return INVALID_CALL;
+    }
+    if (operation == 0){
+        GET_MESSAGE(GetAbsoluteMoveParams, device_calls::GetAbsoluteMoveP)
+        printf("Absolute position for next move held in controller: %d\n",mess->GetAbsolutePos());
+    }
+    if (operation == 1){
+        int ret;
+        if(!pos_spec) {
+            printf("Not all mandatory parameters specified\n");
+            return INVALID_CALL;
+        }
+        if (opened_device.bays == -1){
+            ret = device_calls::SetAbsoluteMoveP(pos, 0x50, index); 
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+            };
+        }
+        else {
+            index += 0x20;
+            ret = device_calls::SetAbsoluteMoveP(pos, index); 
+            switch (ret){
+                case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+            };
+        }
+    }
     return 0;
 }
 
