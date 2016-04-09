@@ -96,6 +96,20 @@ typedef std::map<std::string,helper> call_map;
             GET_NUM(index)  \
         }
 
+#define FLAG(lookup_str, int_val, bool_val, err_string) \
+            if (args.at(i).compare(lookup_str) == 0){   \
+            if (args.size() <= i+1){                    \
+                printf("Not enough parameters\n");      \
+                return INVALID_CALL;                    \
+            }                                           \
+            if (bool_val){                              \
+                printf(err_string);                     \
+                return INVALID_CALL;                    \
+            }                                           \
+            GET_NUM(int_val)                            \
+            acc_spec = true;                            \
+        }
+
 bool validation = false;
 
 int HelpC(std::vector<string> args){
@@ -526,38 +540,14 @@ int VelParamC(std::vector<string> args){
             printf("-s NUMBER       set operation for given motor channel, setting both parameters is mandatory\n");
             printf("-g NUMBER       get parameters for given motor channel\n");
             printf("-m VALUE        set maximum velocity\n");
-            printf("-a VALUE        acceleration");
+            printf("-a VALUE        acceleration\n");
         }
         
-        SET_FLAG
-        
+        SET_FLAG   
         GET_FLAG
+        FLAG("-m", maxvel, maxvel_spec, "Maximum velocity already specified\n")
+        FLAG("-a", acc, acc_spec, "Acceleration already specified\n")
         
-        if (args.at(i).compare("-m") == 0){
-            if (args.size() <= i+1){ 
-                printf("Not enough parameters\n");
-                return INVALID_CALL;
-            }
-            if (maxvel_spec){
-                printf("Maximum velocity already specified\n");
-                return INVALID_CALL;
-            }
-            GET_NUM(maxvel)
-            maxvel_spec = true;
-        }
-        
-        if (args.at(i).compare("-a") == 0){
-            if (args.size() <= i+1){ 
-                printf("Not enough parameters\n");
-                return INVALID_CALL;
-            }
-            if (acc_spec){
-                printf("Acceleration already specified\n");
-                return INVALID_CALL;
-            }
-            GET_NUM(acc)
-            acc_spec = true;
-        }
     }
     
     if (operation == -1) {
@@ -570,22 +560,27 @@ int VelParamC(std::vector<string> args){
         printf("Maximum velocity: %d\n",mess->GetMaxVel());
     }
     if (operation == 1){
+        int ret;
         if(!acc_spec || !maxvel_spec) {
             printf("Not all mandatory parameters specified\n");
             return INVALID_CALL;
         }
         if (opened_device.bays == -1){
-            if (device_calls::SetVelocityP(acc, maxvel, 0x50, index) == INVALID_CHANNEL){
-                printf("Not existing channel number given\n");
-                return ERR_CALL;
-            }
+            ret = device_calls::SetVelocityP(acc, maxvel, 0x50, index);
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Velocity given exceeds maximal velocity\n"); return ERR_CALL;}
+                case INVALID_PARAM_2: {printf("Acceleration given exceed maximal acceleration\n"); return ERR_CALL;}
+            };
         }
         else {
             index += 0x20;
-            if (device_calls::SetVelocityP(acc, maxvel, index) == INVALID_DEST){
-                printf("Wrong address given\n");
-                return ERR_CALL;
-            }
+            ret = device_calls::SetVelocityP(acc, maxvel, index);
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Velocity given exceeds maximal velocity\n"); return ERR_CALL;}
+                case INVALID_PARAM_2: {printf("Acceleration given exceed maximal acceleration\n"); return ERR_CALL;}
+            };
         }
     }
     return 0;
@@ -600,14 +595,70 @@ int JogParamC(std::vector<string> args){
                 return INVALID_CALL;
             }
     }
+    int operation = -1; // -1 unspecified, 0 get, 1 set
+    uint8_t index;
+    int32_t maxvel, acc, step_size;
+    uint16_t mode, stop_mode;
+    bool acc_spec = false, maxvel_spec = false, step_size_spec = false, mode_spec = false, stop_mode_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
-            printf("Set or get velocity parameters for specified motor channel. Parameters are acceleration and maximum velocity.\n");
-            printf("Velocity is specified in encoder counts per second or microsteps per second, depending on controller. Acceleration is specified in counts/sec/sec or microsteps/sec/sec. \n");
-            printf("-s NUMBER       set operation for given motor channel, setting both parameters is mandatory\n");
+            printf("Set or get jog parameters\n");
+            printf("-s NUMBER       set operation for given motor channel, setting all parameters is mandatory\n");
             printf("-g NUMBER       get parameters for given motor channel\n");
-            printf("-m VALUE        set maximum velocity\n");
-            printf("-a VALUE        acceleration");
+            printf("-m VALUE        mode: 1 for continuous jogging, 2 for single step\n");
+            printf("-v VALUE        maximal velocity\n");
+            printf("-a VALUE        acceleration\n");
+            printf("-z VALUE        step size\n");
+            printf("-s VALUE        stop mode: 1 for immediate stop, 2 for profiled\n");
+        }
+        
+        SET_FLAG
+        GET_FLAG
+        FLAG("-m", mode, mode_spec, "Mode already specified\n")
+        FLAG("-v", maxvel, maxvel_spec, "Maximal velocity already specified\n")
+        FLAG("-a", acc, acc_spec, "Acceleration already specified\n")
+        FLAG("-z", step_size, step_size_spec, "Step size already specified\n")
+        FLAG("-s", stop_mode, stop_mode_spec, "Stop mode already specified\n")
+    }
+    
+    if (operation == -1) {
+        printf("Operation not specified\n");
+        return INVALID_CALL;
+    }
+    if (operation == 0){
+        GET_MESSAGE(GetJogParams, device_calls::GetJogP)
+        printf("Acceleration: %d\n",mess->GetAcceleration());
+        printf("Maximum velocity: %d\n",mess->GetMaxVel());
+        printf("Mode: %d\n",mess->GetJogMode());
+        printf("Stop mode: %d\n",mess->GetStopMode());
+        printf("Step size: %d\n",mess->GetStepSize());
+    }
+    if (operation == 1){
+        int ret;
+        if(!acc_spec || !maxvel_spec || !step_size_spec || !mode_spec || !stop_mode_spec) {
+            printf("Not all mandatory parameters specified\n");
+            return INVALID_CALL;
+        }
+        if (opened_device.bays == -1){
+            ret = device_calls::SetJogP(mode, step_size, maxvel, acc, stop_mode, 0x50, index); 
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Invalid mode given\n"); return ERR_CALL;}
+                case INVALID_PARAM_3: {printf("Velocity given exceeds maximal velocity\n"); return ERR_CALL;}
+                case INVALID_PARAM_4: {printf("Acceleration given exceed maximal acceleration\n"); return ERR_CALL;}
+                case INVALID_PARAM_5: {printf("Invalid stop mode given\n"); return ERR_CALL;}
+            };
+        }
+        else {
+            index += 0x20;
+            ret = device_calls::SetJogP(mode, step_size, maxvel, acc, stop_mode, index); 
+            switch (ret){
+                case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Invalid mode given\n"); return ERR_CALL;}
+                case INVALID_PARAM_3: {printf("Velocity given exceeds maximal velocity\n"); return ERR_CALL;}
+                case INVALID_PARAM_4: {printf("Acceleration given exceed maximal acceleration\n"); return ERR_CALL;}
+                case INVALID_PARAM_5: {printf("Invalid stop mode given\n"); return ERR_CALL;}
+            };
         }
     }
     return 0;
