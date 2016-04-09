@@ -954,7 +954,38 @@ int HomingVelC(std::vector<string> args){
 }
 
 int HomeC(std::vector<string> args){
-    //not implemented
+    if (args.size() == 1) device_calls::MoveToHome();
+    if (args.at(1).compare("-h") == 0) {
+        printf("Start move to home position\n");
+        printf("-i NUMBER           index of motor to start homing, default is 1\n");
+        return 0;
+    }
+    else if (args.at(1).compare("-i") == 0){
+        if (args.size() == 2) {
+            printf("Motor index not specified\n");
+            return INVALID_CALL;
+        }
+        uint8_t index;
+        int i = 1;
+        GET_NUM(index)
+        if (opened_device.bays == -1){
+           if( device_calls::SetHomingVel(0x50, index) == INVALID_CHANNEL ){
+               printf("Not existing channel given\n");
+               return ERR_CALL;
+           } 
+        }
+        else {
+            index += 0x20;
+            if ( device_calls::SetHomingVel(index) == INVALID_DEST){
+                printf("Wrong address given\n"); 
+                return ERR_CALL;
+            }; 
+        }       
+    }
+    else {
+        printf("Unknown argument %s\n",args.at(1).c_str());
+        return INVALID_CALL;
+    }
     return 0;
 }
 
@@ -979,7 +1010,45 @@ int StartVelMoveC(std::vector<string> args){
 }
 
 int StopC(std::vector<string> args){
-    //not implemented
+    if (args.size() == 1) device_calls::StopMovement();
+    for (unsigned int i = 1; i< args.size(); i++){
+    if (args.at(i).compare("-m") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
+    if (args.at(i).compare("-h") != 0 ){
+            printf("Unknown parameter %s\n",args.at(i).c_str());
+            return INVALID_CALL;
+        }
+    }
+    uint8_t index = 1;
+    uint8_t stop_mode = 2;
+    bool mode_spec = false, index_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Stops any move on specified motor\n");
+            printf("-i NUMBER       motor index, optional argument, default is 1\n");
+            printf("-m NUMBER       stop mode: 1 -> immediate stop, 2 -> profiled stop, optional argument, default is 2\n");
+        }
+        
+        FLAG("-i", index, index_spec, "Index set more than once\n")
+        FLAG("-m", stop_mode, mode_spec, "Stop mode set more than once\n")
+    }
+
+    int ret;
+    if (opened_device.bays == -1){
+        ret = device_calls::SetAbsoluteMoveP(stop_mode, 0x50, index); 
+        switch (ret){
+            case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+            case INVALID_PARAM_1: {printf("Invalid stop mode\n"); return ERR_CALL;}
+        };
+    }
+    else {
+        index += 0x20;
+        ret = device_calls::SetAbsoluteMoveP(stop_mode, index); 
+        switch (ret){
+            case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+            case INVALID_PARAM_1: {printf("Invalid stop mode\n"); return ERR_CALL;}
+        };
+    }
+    
     return 0;
 }
 
