@@ -245,8 +245,9 @@ int IdentC(std::vector<string> args){
 }
 
 int ChannelAbleC(std::vector<string> args){
-    for (unsigned int i = 1; i< args.size(); i++){
-        if (args.at(i).compare("-h") != 0 && args.at(i).compare("-e") != 0 && args.at(i).compare("-d") != 0 && args.at(i).compare("-i") != 0 ){
+for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-e") == 0 || args.at(i).compare("-d") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
                 printf("Unknown parameter %s\n",args.at(i).c_str());
                 return INVALID_CALL;
             }
@@ -275,8 +276,8 @@ int ChannelAbleC(std::vector<string> args){
             }
             GetChannelState *state = (GetChannelState*) malloc(sizeof(GetChannelState));
             if (opened_device.bays == -1){     
-                if (device_calls::ChannelState(state,0x50,id) != 0 ){                
-                    printf("Error while receiving information from device\n");
+                if (device_calls::ChannelState(state,0x50,id) == INVALID_CHANNEL){
+                    printf("Not existing channel number given\n");
                     free(state);
                     return ERR_CALL;                                               
                 }
@@ -285,8 +286,8 @@ int ChannelAbleC(std::vector<string> args){
             }                                                               
             else {                                                          
                 id += 0x20;                                                
-                if (device_calls::ChannelState(state,id) != 0 ){                        
-                    printf("Error while receiving information from device\n");
+                if (device_calls::ChannelState(state,id) == INVALID_DEST){
+                    printf("Wrong address given\n");
                     free(state);
                     return ERR_CALL;  
                 }
@@ -302,7 +303,9 @@ int ChannelAbleC(std::vector<string> args){
 
 int PosCounterC(std::vector<string> args){
     for (unsigned int i = 1; i< args.size(); i++){
-        if (args.at(i).compare("-h") != 0 && args.at(i).compare("-s") != 0 && args.at(i).compare("-g") != 0){
+        if (args.at(i).compare("-g") == 0) {i++; continue; }
+        if (args.at(i).compare("-s") == 0) {i += 2; continue; }
+        if (args.at(i).compare("-h") != 0 ){
                 printf("Unknown parameter %s\n",args.at(i).c_str());
                 return INVALID_CALL;
             }
@@ -311,12 +314,12 @@ int PosCounterC(std::vector<string> args){
         if (args.at(i).compare("-h") == 0){
             printf("WARNING: Setting position counter isn't standard operation and may result in unexpected behavior\n");
             printf("Set or get actual position counter in device\n");
-            printf("-s NUMBER VALUE      set position counter at NUMBER (channel or bay number ) to given VALUE\n");
-            printf("-g NUMBER            get position counter at given NUMBER\n");
+            printf("-s NUMBER VALUE      set position counter for given motor channel to specified VALUE\n");
+            printf("-g NUMBER            get position counter for given motor channel\n");
         }
         if (args.at(i).compare("-s") == 0){
             if (args.size() <= i+2){ 
-                printf("Not enough paramaters\n");
+                printf("Not enough parameters\n");
                 return INVALID_CALL;
             }
             uint8_t index;
@@ -342,6 +345,7 @@ int PosCounterC(std::vector<string> args){
                     return ERR_CALL;
                 }
             }
+            i+=2;
         }
         
         if (args.at(i).compare("-g") == 0){
@@ -374,6 +378,7 @@ int PosCounterC(std::vector<string> args){
                 }
             }
             printf("Position counter: %d\n", counter->GetPosition());
+            i++;
         }
     }
     return 0;
@@ -381,7 +386,9 @@ int PosCounterC(std::vector<string> args){
 
 int EncCountC(std::vector<string> args){
     for (unsigned int i = 1; i< args.size(); i++){
-        if (args.at(i).compare("-h") != 0 && args.at(i).compare("-s") != 0 && args.at(i).compare("-g") != 0){
+        if (args.at(i).compare("-g") == 0) {i++; continue; }
+        if (args.at(i).compare("-s") == 0) {i += 2; continue; }
+        if (args.at(i).compare("-h") != 0 ){
                 printf("Unknown parameter %s\n",args.at(i).c_str());
                 return INVALID_CALL;
             }
@@ -390,8 +397,8 @@ int EncCountC(std::vector<string> args){
         if (args.at(i).compare("-h") == 0){
             printf("WARNING: Setting encoder counter isn't standard operation and may result in unexpected behavior\n");
             printf("Set or get actual encoder counter in device\n");
-            printf("-s NUMBER VALUE      set encoder counter at NUMBER (channel or bay number ) to given VALUE\n");
-            printf("-g NUMBER            get encoder counter at given NUMBER\n");
+            printf("-s NUMBER VALUE      set encoder counter for given motor channel to specified VALUE\n");
+            printf("-g NUMBER            get encoder counter for given motor channel\n");
         }
         if (args.at(i).compare("-s") == 0){
             if (args.size() <= i+2){ 
@@ -421,11 +428,12 @@ int EncCountC(std::vector<string> args){
                     return ERR_CALL;
                 }
             }
+            i+=2;
         }
         
         if (args.at(i).compare("-g") == 0){
             if (args.size() <= i+i){ 
-                printf("Not enough paramaters\n");
+                printf("Not enough parameters\n");
                 return INVALID_CALL;
             }
             int32_t index;
@@ -453,14 +461,147 @@ int EncCountC(std::vector<string> args){
                 }
             }
             printf("Encoder counter: %d\n", counter->GetEncCounter());
+            i++;
         }
     }
     return 0;
 }
 
 int VelParamC(std::vector<string> args){
-    // set, get
-    //not implemented
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-m") == 0 || args.at(i).compare("-a") == 0) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    int operation = -1; // -1 unspecified, 0 get, 1 set
+    uint8_t index;
+    int32_t acc;
+    int32_t maxvel;
+    bool acc_spec = false;
+    bool maxvel_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Set or get velocity parameters for specified motor channel. Parameters are acceleration and maximum velocity.\n");
+            printf("Velocity is specified in encoder counts per second or microsteps per second, depending on controller. Acceleration is specified in counts/sec/sec or microsteps/sec/sec. \n");
+            printf("-s NUMBER       set operation for given motor channel, setting both parameters is mandatory\n");
+            printf("-g NUMBER       get parameters for given motor channel\n");
+            printf("-m VALUE        set maximum velocity\n");
+            printf("-a VALUE        acceleration");
+        }
+        
+        if (args.at(i).compare("-s") == 0){
+            if (operation != -1) {
+                printf("Operation has to be specified exactly once");
+                return INVALID_CALL;
+            }
+            operation = 1;
+            if (args.size() <= i+1){ 
+                printf("Not enough paramaters\n");
+                return INVALID_CALL;
+            }
+            try {
+                index = std::stoi(args.at(i+1), 0, 10);
+            }
+            catch(const std::exception& e) { 
+                printf("Given argument is not a valid number\n");
+                return INVALID_CALL;
+            }
+        }
+        
+        if (args.at(i).compare("-g") == 0){
+            if (operation != -1) {
+                printf("Operation has to be specified exactly once");
+                return INVALID_CALL;
+            }
+            operation = 0;
+            if (args.size() <= i+1){ 
+                printf("Not enough parameters\n");
+                return INVALID_CALL;
+            }
+            try {
+                index = std::stoi(args.at(i+1), 0, 10);
+            }
+            catch(const std::exception& e) { 
+                printf("Given argument is not a valid number\n");
+                return INVALID_CALL;
+            }
+        }
+        
+        if (args.at(i).compare("-m") == 0){
+            if (args.size() <= i+1){ 
+                printf("Not enough parameters\n");
+                return INVALID_CALL;
+            }
+            try {
+                maxvel = std::stoi(args.at(i+1), 0, 10);
+            }
+            catch(const std::exception& e) { 
+                printf("Given argument is not a valid number\n");
+                return INVALID_CALL;
+            }
+            maxvel_spec = true;
+        }
+        
+        if (args.at(i).compare("-a") == 0){
+            if (args.size() <= i+1){ 
+                printf("Not enough parameters\n");
+                return INVALID_CALL;
+            }
+            try {
+                acc = std::stoi(args.at(i+1), 0, 10);
+            }
+            catch(const std::exception& e) { 
+                printf("Given argument is not a valid number\n");
+                return INVALID_CALL;
+            }
+            acc_spec = true;
+        }
+    }
+    if (operation == -1) {
+        printf("Operation not specified\n");
+        return INVALID_CALL;
+    }
+    if (operation == 0){
+        GetVelocityParams* mess = (GetVelocityParams*) malloc(sizeof(GetVelocityParams));
+        if (opened_device.bays == -1){
+            if (device_calls::GetVelocityP(mess, 0x50, index) == INVALID_CHANNEL){
+                printf("Not existing channel number given\n");
+                free(mess);
+                return ERR_CALL;
+            }
+        }
+        else {
+            index += 0x20;
+            if (device_calls::GetVelocityP(mess, index) == INVALID_DEST){
+                printf("Wrong address given\n");
+                free(mess);
+                return ERR_CALL;
+            }
+        }
+        printf("Acceleration: %d\n",mess->GetAcceleration());
+        printf("Maximum velocity: %d\n",mess->GetMaxVel());
+    }
+    if (operation == 1){
+        if(!acc_spec || !maxvel_spec) {
+            printf("Not all mandatory parameters specified\n");
+            return INVALID_CALL;
+        }
+        if (opened_device.bays == -1){
+            if (device_calls::SetVelocityP(acc, maxvel, 0x50, index) == INVALID_CHANNEL){
+                printf("Not existing channel number given\n");
+                return ERR_CALL;
+            }
+        }
+        else {
+            index += 0x20;
+            if (device_calls::SetVelocityP(acc, maxvel, index) == INVALID_DEST){
+                printf("Wrong address given\n");
+                return ERR_CALL;
+            }
+        }
+    }
     return 0;
 }
 
