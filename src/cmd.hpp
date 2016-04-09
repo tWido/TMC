@@ -665,8 +665,65 @@ int JogParamC(std::vector<string> args){
 }
 
 int PowerParamC(std::vector<string> args){
-    // set, get
-    //not implemented
+    NULL_ARGS
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-r") == 0  || args.at(i).compare("-m") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    int operation = -1; // -1 unspecified, 0 get, 1 set
+    uint8_t index;
+    uint16_t mfact, rfact;
+    bool mfact_spec = false, rfact_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Set or get power used when motor is moving and resting\n");
+            printf("-s NUMBER       set power parameters\n");
+            printf("-g NUMBER       get power parameters\n");
+            printf("-m VALUE        move factor in %\n");
+            printf("-r VALUE        rest factor in %\n");
+        }
+        
+        SET_FLAG
+        GET_FLAG
+        FLAG("-m", mfact, mfact_spec, "Move power factor already specified\n")
+        FLAG("-r", rfact, rfact_spec, "Rest power factor already specified\n")
+    }
+    if (operation == -1) {
+        printf("Operation not specified\n");
+        return INVALID_CALL;
+    }
+    if (operation == 0){
+        GET_MESSAGE(GetPowerParams, device_calls::GetPowerUsed)
+        printf("Rest factor: %d\n",mess->GetRestFactor());
+        printf("Move factor: %d\n",mess->GetMoveFactor());
+    }
+    if (operation == 1){
+        int ret;
+        if(!mfact_spec || !rfact ) {
+            printf("Not all mandatory parameters specified\n");
+            return INVALID_CALL;
+        }
+        if (opened_device.bays == -1){
+            ret = device_calls::SetPowerUsed(rfact, mfact, 0x50, index); 
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Invalid rest factor given\n"); return ERR_CALL;}
+                case INVALID_PARAM_2: {printf("Invalid move factor given\n"); return ERR_CALL;}
+            };
+        }
+        else {
+            index += 0x20;
+            ret = device_calls::SetPowerUsed(rfact, mfact, index); 
+            switch (ret){
+                case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Invalid rest factor given\n"); return ERR_CALL;}
+                case INVALID_PARAM_2: {printf("Invalid move factor given\n"); return ERR_CALL;}
+            };
+        }
+    }
     return 0;
 }
 
