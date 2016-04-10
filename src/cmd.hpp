@@ -993,7 +993,51 @@ int HomeC(std::vector<string> args){
 }
 
 int StartRelMoveC(std::vector<string> args){
-    //not implemented
+    if (args.size() == 1){ 
+        device_calls::StartSetRelativeMove();
+        return 0;
+    }
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-d") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+            printf("Unknown parameter %s\n",args.at(i).c_str());
+            return INVALID_CALL;
+        }
+    }
+    uint8_t index;
+    int32_t dist;
+    bool dist_spec = false, index_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Start relative move. Distance can be either specified or previously set by relmovep command.\n");
+            printf("-i NUMBER           index of motor to start move, default is 1\n");
+            printf("-d VALUE            distance to move, if not specified parameter stored in device is used");
+        }
+        
+        FLAG("-i", index, index_spec, "Index set more than once\n")
+        FLAG("-d", dist, dist_spec, "Distance set more than once\n")
+    }
+
+    int ret;
+    if(!index) {
+        printf("Not all mandatory parameters specified\n");
+        return INVALID_CALL;
+    }
+    if (opened_device.bays == -1){
+        if (dist_spec) ret = device_calls::StartSetRelativeMove(0x50, index);
+        else ret = device_calls::StartRelativeMove(dist, 0x50, index); 
+        switch (ret){
+            case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+        };
+    }
+    else {
+        index += 0x20;
+        if (dist_spec) ret = device_calls::StartSetRelativeMove(index);
+        else ret = device_calls::StartRelativeMove(dist, index); 
+        switch (ret){
+            case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+        };
+    }
     return 0;
 }
 
@@ -1018,8 +1062,8 @@ int StopC(std::vector<string> args){
         return 0;
     }
     for (unsigned int i = 1; i< args.size(); i++){
-    if (args.at(i).compare("-m") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
-    if (args.at(i).compare("-h") != 0 ){
+        if (args.at(i).compare("-m") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
             printf("Unknown parameter %s\n",args.at(i).c_str());
             return INVALID_CALL;
         }
