@@ -318,5 +318,5 @@ void exit(){
     for (unsigned int i = 0; i < devices_connected; i++){
         FT_Close(connected_device[i].handle);
     }
-    printf("EXiting\n");
+    printf("Exiting\n");
 }

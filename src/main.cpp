@@ -19,22 +19,27 @@ void FailExit(int ret_code){
 switch (ret_code){
         case STOP : {
             exit();
+            break;
         }
         case SYSTEM_ERROR : {
             printf("Encountered system error.\n");
             exit();
+            break;
         }
         case FT_ERROR : {
             printf("Encountered error with FTDI library.\n");
             exit();
+            break;
         }
         case DEVICE_ERROR : {
             printf("Motor device encountered error.\n");
             exit();
+            break;
         }
         case FATAL_ERROR :{
             printf("Fatal error.\n");
             exit();
+            break;
         }
     }
 
