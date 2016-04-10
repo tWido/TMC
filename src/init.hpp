@@ -1,5 +1,5 @@
 /*
- * Startup functions. Finding devices, controlling logs, etc
+ * Startup functions. Finding devices, initializing
  */
 #include "../ftdi_lib/ftd2xx.h"
 #include <stdint.h>
@@ -12,7 +12,6 @@
 #include <vector>
 #include "device.hpp"
 #include "api_calls.hpp"
-#include "log.hpp"
 
 #define NO_RESTRICTIONS 2
 #define STOP 1
@@ -240,26 +239,20 @@ int LoadDeviceInfo( controller_device &device){
 int init(){
     int ret;
     printf("Starting.\n");
-    LOG("Starting\n")
     if( RemoveModules("ftdi_sio")  != 0){ 
-        LOG("Failed to remove module\n")
         return SYSTEM_ERROR;
     }
     if( RemoveModules("usbserial")  != 0){
-        LOG("Failed to remove module\n")
         return SYSTEM_ERROR;
     }
-    LOG("Modules checked/unloaded\n");
     ret = addVidPid();
     if (ret != 0 ){ 
-        LOG("Loading devices failed\n");
         return ret;
     }
     
     devices_connected = SN.size();
     if (devices_connected == 0) {
         printf("No Thorlabs device found\n");
-        LOG("No Thorlabs device found\n")
         return STOP;
     }
     connected_device = (controller_device*) malloc(  sizeof(controller_device) * devices_connected );
@@ -305,7 +298,6 @@ int init(){
             }
         }
     }
-    LOG("Info for devices loaded\n");
     opened_device = connected_device[0];
     free(ftdi_devs);        
     return 0;
@@ -316,7 +308,5 @@ void exit(){
     for (unsigned int i = 0; i < devices_connected; i++){
         FT_Close(connected_device[i].handle);
     }
-    LOG("Exiting\n")
-    if (use_log) LogEnd();
     printf("EXiting\n");
 }

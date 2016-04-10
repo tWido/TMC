@@ -2,7 +2,6 @@
 #include <iostream>
 #include "api_calls.hpp"
 #include "init.hpp"
-#include "log.hpp"
 #include "cmd.hpp"
 #include "../ftdi_lib/ftd2xx.h"
 #include "../ftdi_lib/WinTypes.h"
@@ -23,22 +22,18 @@ switch (ret_code){
         }
         case SYSTEM_ERROR : {
             printf("Encountered system error.\n");
-            LOG("System error\n")
             exit();
         }
         case FT_ERROR : {
             printf("Encountered error with FTDI library.\n");
-            LOG("FTDI library error\n")
             exit();
         }
         case DEVICE_ERROR : {
             printf("Motor device encountered error.\n");
-            LOG("Device error\n")
             exit();
         }
         case FATAL_ERROR :{
             printf("Fatal error.\n");
-            LOG("Other fatal error\n")
             exit();
         }
     }
