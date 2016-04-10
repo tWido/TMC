@@ -1042,7 +1042,53 @@ int StartRelMoveC(std::vector<string> args){
 }
 
 int StartAbsMoveC(std::vector<string> args){
-    //not implemented
+    if (args.size() == 1){ 
+        device_calls::StartSetAbsoluteMove();
+        return 0;
+    }
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-p") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+            printf("Unknown parameter %s\n",args.at(i).c_str());
+            return INVALID_CALL;
+        }
+    }
+    uint8_t index;
+    int32_t pos;
+    bool pos_spec = false, index_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Start absolute move. Position can be either specified or previously set by absmovep command.\n");
+            printf("-i NUMBER           index of motor to start move, default is 1\n");
+            printf("-p VALUE            position to move to, if not specified parameter stored in device is used");
+        }
+        
+        FLAG("-i", index, index_spec, "Index set more than once\n")
+        FLAG("-p", pos, pos_spec, "Position set more than once\n")
+    }
+
+    int ret;
+    if(!index) {
+        printf("Not all mandatory parameters specified\n");
+        return INVALID_CALL;
+    }
+    if (opened_device.bays == -1){
+        if (pos_spec) ret = device_calls::StartSetAbsoluteMove(0x50, index);
+        else ret = device_calls::StartAbsoluteMove(pos, 0x50, index); 
+        switch (ret){
+            case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+            case INVALID_PARAM_1: {printf("Position given exceeds maximal position\n"); return ERR_CALL;}
+        };
+    }
+    else {
+        index += 0x20;
+        if (pos_spec) ret = device_calls::StartSetAbsoluteMove(index);
+        else ret = device_calls::StartAbsoluteMove(pos, index); 
+        switch (ret){
+            case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+            case INVALID_PARAM_1: {printf("Position given exceeds maximal position\n"); return ERR_CALL;}
+        };
+    }
     return 0;
 }
 
