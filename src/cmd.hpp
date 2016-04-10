@@ -1223,8 +1223,60 @@ int StopC(std::vector<string> args){
 }
 
 int AccParamC(std::vector<string> args){
-    // get, set
-    //not implemented
+    NULL_ARGS
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-d") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    int operation = -1; // -1 unspecified, 0 get, 1 set
+    uint8_t index;
+    uint16_t accp;
+    bool accp_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Set or get acceleration profile used by controller.\n");
+            printf("-s NUMBER       set acceleration profile\n");
+            printf("-g NUMBER       get acceleration profile\n");
+            printf("-p NUMBER       acceleration profile: range from 0 to 18, 0 for trapezoidal profile, 1-18 are S-curve profiles\n");
+        }
+        
+        SET_FLAG
+        GET_FLAG
+        FLAG("-p", accp, v, "Acceleration profile already set\n")
+    }
+    if (operation == -1) {
+        printf("Operation not specified\n");
+        return INVALID_CALL;
+    }
+    if (operation == 0){
+        GET_MESSAGE(GetRelativeMoveParams, device_calls::GetRelativeMoveP)
+        printf("Relative distance held in controller: %d\n",mess->GetRelativeDist());
+    }
+    if (operation == 1){
+        int ret;
+        if(!accp_spec) {
+            printf("Not all mandatory parameters specified\n");
+            return INVALID_CALL;
+        }
+        if (opened_device.bays == -1){
+            ret = device_calls::SetAccelerationProfile(accp, 0x50, index); 
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Not existing profile number\n"); return ERR_CALL;}
+            };
+        }
+        else {
+            index += 0x20;
+            ret = device_calls::SetAccelerationProfile(accp, index); 
+            switch (ret){
+                case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Not existing profile number\n"); return ERR_CALL;}
+            };
+        }
+    }
     return 0;
 }
 
