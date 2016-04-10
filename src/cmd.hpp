@@ -1420,7 +1420,7 @@ void PrintStatus(int at){
 }
 
 int StatusC(std::vector<string> args){
-    int index;
+    uint8_t index;
     NULL_ARGS
     if (args.at(1).compare("-h") == 0){
         printf("Prints info from status message.\n");
@@ -1437,17 +1437,9 @@ int StatusC(std::vector<string> args){
             }
             if (opened_device.motor[index-1].status_updates) PrintStatus(index-1);
             else {
-                if (opened_device.motor[index-1].enc_count != -1){    
-                    GET_MESSAGE(GetStatusUpdate, device_calls::GetStatus)
-                    printf("Position: %d\n", mess->GetPosition());
-                    printf("Encoder count: %d\n", mess->GetEncCount());
-                }
-                else {
-                    GET_MESSAGE(GetMotChanStatusUpdate, device_calls::GetDcStatus)
-                    printf("Position: %d\n", mess->GetPosition());
-                    printf("Velocity: %d\n", mess->GetVelocity());
-                }
-            }    
+                if (opened_device.enc_counter == 1) device_calls::ReqStatus(0x50,index);
+                else device_calls::ReqDcStatus(0x50, index);
+            }
         }
         else {
             if (opened_device.bays < index || opened_device.bay_used[index-1] == false){
@@ -1456,16 +1448,8 @@ int StatusC(std::vector<string> args){
             }
             if (opened_device.motor[index-1].status_updates) PrintStatus(index-1);
             else {
-                if (opened_device.motor[index-1].enc_count != -1){    
-                    GET_MESSAGE(GetStatusUpdate, device_calls::GetStatus)
-                    printf("Position: %d\n", mess->GetPosition());
-                    printf("Encoder count: %d\n", mess->GetEncCount());
-                }
-                else {
-                    GET_MESSAGE(GetMotChanStatusUpdate, device_calls::GetDcStatus)
-                    printf("Position: %d\n", mess->GetPosition());
-                    printf("Velocity: %d\n", mess->GetVelocity());
-                }
+                if (opened_device.enc_counter == 1) device_calls::ReqStatus(index);
+                else device_calls::ReqDcStatus(index);
             }
         }
     }
@@ -1473,6 +1457,34 @@ int StatusC(std::vector<string> args){
         printf("Unknown parameter\n");
         return INVALID_CALL;
     }
+    return 0;
+}
+
+int WaitForStopC(std::vector<string> args){
+    NULL_ARGS
+    if (args.at(1).compare("-h") == 0){
+        printf("Blocks any command until motor is in stable position\n");
+        printf("-i        motor index, mandatory\n");
+    }
+    else if (args.at(1).compare("-i")){
+        if (args.size() == 2){ 
+            printf("Motor index not specified\n");
+            return INVALID_CALL;
+        }
+        int i = 1;
+        uint8_t index;
+        GET_NUM(index);
+        while(opened_device.motor[index-1].moving || opened_device.motor[index-1].stopping || opened_device.motor[index-1].homing){
+            sleep(1);
+            int ret = EmptyIncomingQueue();
+            if (ret == FATAL_ERROR || ret == DEVICE_ERROR || ret == FT_ERROR ) return ERR_CALL;
+        }
+        printf("Motor in stable position\n");
+    }
+    else {
+        printf("Unknown argument\n");
+        return INVALID_CALL;
+    }    
     return 0;
 }
 
@@ -1500,7 +1512,8 @@ call_map calls = {
     std::make_pair("accp", &AccParamC),
     std::make_pair("ledp", &LedParamC),
     std::make_pair("buttp", &ButtonsParamC),
-    std::make_pair("status", &StatusC)
+    std::make_pair("status", &StatusC),
+    std::make_pair("swait", &WaitForStopC)
 };
 
 

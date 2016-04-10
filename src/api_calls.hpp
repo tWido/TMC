@@ -695,13 +695,23 @@ int GetButtonsInfo(GetButtonParams *message ,uint8_t dest = DefaultDest(), uint8
     return 0;
 };
 
-int GetStatus(GetStatusUpdate *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
-    GET_MESS(ReqStatusUpdate,20,GET_STATUSUPDATE,GetStatusUpdate) 
+// only requests for data, automatically stored in device info
+int ReqStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)                
+    EMPTY_IN_QUEUE                                          
+    ReqStatusUpdate mes(dest, SOURCE, channel);              
+    SendMessage(mes);                                       
+    EMPTY_IN_QUEUE  
     return 0;
 };
 
-int GetDcStatus(GetMotChanStatusUpdate *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
-    GET_MESS(ReqMotChanStatusUpdate,20,GET_DCSTATUSUPDATE,GetMotChanStatusUpdate) 
+// only requests for data, automatically s
+int ReqDcStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)                
+    EMPTY_IN_QUEUE                                          
+    ReqMotChanStatusUpdate mes(dest, SOURCE, channel);              
+    SendMessage(mes);                                       
+    EMPTY_IN_QUEUE  
     return 0;
 };
 
