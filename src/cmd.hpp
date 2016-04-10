@@ -127,7 +127,6 @@ int HelpC(std::vector<string> args){
     printf(" bdist       backlash distance value \n");
     printf(" relmovep    relative move parameters \n");
     printf(" absmovep    absolute move parameters \n");
-    printf(" limitsw     limit switch parameters \n");
     printf(" homingvel   homing velocity \n");
     printf(" home        move to home position \n");
     printf(" relmove     start relative move \n");
@@ -137,9 +136,9 @@ int HelpC(std::vector<string> args){
     printf(" stop        stop movement \n");
     printf(" ledp        front LED parameters \n");
     printf(" buttp       device's buttons parameters \n");
-    printf(" status      get status \n");
-    printf(" statusdc    get status for dc servo controller \n");
-    printf(" eom         trigger parameters \n");
+    printf(" accp        acceleration profile");
+    printf(" status      get motor status \n");
+    printf(" swait       wait for stop");
     return 0;
 }
 
