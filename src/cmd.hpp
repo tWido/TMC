@@ -1443,7 +1443,7 @@ int StatusC(std::vector<string> args){
         }
         else {
             if (opened_device.bays < index || opened_device.bay_used[index-1] == false){
-                printf("Not existing motor index given");
+                printf("Not existing motor index given\n");
                 return ERR_CALL;
             }
             if (opened_device.motor[index-1].status_updates) PrintStatus(index-1);
