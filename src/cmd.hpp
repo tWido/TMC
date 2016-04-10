@@ -1355,7 +1355,7 @@ int ButtonsParamC(std::vector<string> args){
     bool mode_spec = false, timeout_spec = false, pos1_spec = false, pos2_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
-            printf("Set or get button parameters. When craeting new setting, all parameters has to be specified.\n");
+            printf("Set or get button parameters. When creating new setting, all parameters has to be specified.\n");
             printf("-s NUMBER       set new buttons configuration\n");
             printf("-g NUMBER       get current buttons configuration\n");
             printf("-m NUMBER       mode: 1 -> jog move (parameters can be set by jogp), 2 -> move to position specified by -p(button 1) and -P(button 2)\n");
@@ -1413,14 +1413,66 @@ int ButtonsParamC(std::vector<string> args){
     return 0;
 }
 
-int StatusC(std::vector<string> args){
-    //GetStatBits, GetStatus
-    //not implemented
-    return 0;
+void PrintStatus(int at){
+    printf("Position: %d", opened_device.motor[at].status_position);
+    if (opened_device.motor[at].enc_count != -1) printf("Encoder count: %d", opened_device.motor[at].status_enc_count);
+    else printf("Velocity: %d", opened_device.motor[at].status_velocity);
 }
 
-int DCStatusC(std::vector<string> args){
-    //not implemented
+int StatusC(std::vector<string> args){
+    int index;
+    NULL_ARGS
+    if (args.at(1).compare("-h") == 0){
+        printf("Prints info from status message.\n");
+        printf("-i NUMBER           index of motor to get info from\n");
+        return 0;
+    }
+    else  if (args.at(1).compare("-i") == 0){
+        int i = 1;
+        GET_NUM(index);
+        if (opened_device.bays == -1){
+            if ( opened_device.channels < index ){
+                printf("Not existing motor index given\n");
+                return ERR_CALL;
+            }
+            if (opened_device.motor[index-1].status_updates) PrintStatus(index-1);
+            else {
+                if (opened_device.motor[index-1].enc_count != -1){    
+                    GET_MESSAGE(GetStatusUpdate, device_calls::GetStatus)
+                    printf("Position: %d\n", mess->GetPosition());
+                    printf("Encoder count: %d\n", mess->GetEncCount());
+                }
+                else {
+                    GET_MESSAGE(GetMotChanStatusUpdate, device_calls::GetDcStatus)
+                    printf("Position: %d\n", mess->GetPosition());
+                    printf("Velocity: %d\n", mess->GetVelocity());
+                }
+            }    
+        }
+        else {
+            if (opened_device.bays < index || opened_device.bay_used[index-1] == false){
+                printf("Not existing motor index given");
+                return ERR_CALL;
+            }
+            if (opened_device.motor[index-1].status_updates) PrintStatus(index-1);
+            else {
+                if (opened_device.motor[index-1].enc_count != -1){    
+                    GET_MESSAGE(GetStatusUpdate, device_calls::GetStatus)
+                    printf("Position: %d\n", mess->GetPosition());
+                    printf("Encoder count: %d\n", mess->GetEncCount());
+                }
+                else {
+                    GET_MESSAGE(GetMotChanStatusUpdate, device_calls::GetDcStatus)
+                    printf("Position: %d\n", mess->GetPosition());
+                    printf("Velocity: %d\n", mess->GetVelocity());
+                }
+            }
+        }
+    }
+    else {
+        printf("Unknown parameter\n");
+        return INVALID_CALL;
+    }
     return 0;
 }
 
@@ -1455,21 +1507,21 @@ call_map calls = {
     std::make_pair("ledp", &LedParamC),
     std::make_pair("buttp", &ButtonsParamC),
     std::make_pair("status", &StatusC),
-    std::make_pair("statusdc", &DCStatusC),
     std::make_pair("triggp", &TriggerParamC)
 };
 
 
 int run_cmd(){
-      
+    const char delimiter = ' ';  
     while(true){
         std::string line = "";
         std::getline(std::cin, line);
         if (line == "" ) continue;
         
         std::vector<std::string> args;
-        const char delimiter = ' ';
-        char* token = strtok(strdup(line.c_str()), &delimiter);
+        
+        char *args_line = strdup(line.c_str());
+        char* token = strtok(args_line, &delimiter);
         while(token != NULL){
             args.push_back(std::string(token));
             token = strtok(NULL, &delimiter);
