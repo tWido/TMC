@@ -680,8 +680,7 @@ int GetLedP(GetLedMode *message ,uint8_t dest = DefaultDest(), uint8_t channel =
     return 0;
 };
 
-int SetButtons(uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout, 
-        int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+int SetButtons(uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetButtonParams mes(dest, SOURCE, channel);

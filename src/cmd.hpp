@@ -1339,8 +1339,77 @@ int LedParamC(std::vector<string> args){
 }
 
 int ButtonsParamC(std::vector<string> args){
-    // get, set
-    //not implemented
+    NULL_ARGS
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-m") == 0 || args.at(i).compare("-p") == 0  
+                || args.at(i).compare("-P") == 0 || args.at(i).compare("-t") == 0 ){ i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+                printf("Unknown parameter %s\n",args.at(i).c_str());
+                return INVALID_CALL;
+            }
+    }
+    int operation = -1; // -1 unspecified, 0 get, 1 set
+    uint8_t index;
+    uint16_t mode, timeout;
+    int32_t pos1, pos2;
+    bool mode_spec = false, timeout_spec = false, pos1_spec = false, pos2_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Set or get button parameters. When craeting new setting, all parameters has to be specified.\n");
+            printf("-s NUMBER       set new buttons configuration\n");
+            printf("-g NUMBER       get current buttons configuration\n");
+            printf("-m NUMBER       mode: 1 -> jog move (parameters can be set by jogp), 2 -> move to position specified by -p(button 1) and -P(button 2)\n");
+            printf("-p VALUE        position to move to, when button 1 is pressed\n");
+            printf("-P VALUE        position to move to, when button 2 is pressed \n");
+            printf("-t VALUE        specifies time in ms that the button must be depressed\n");
+        }
+        
+        SET_FLAG
+        GET_FLAG
+        FLAG("-m", mode, mode_spec, "Mode already set\n")
+        FLAG("-p", pos1, pos1_spec, "Position 1 already set\n")
+        FLAG("-P", pos2, pos2_spec, "Position 2 already set\n")
+        FLAG("-t", timeout, timeout_spec, "Timeout already set\n")
+    }
+    if (operation == -1) {
+        printf("Operation not specified\n");
+        return INVALID_CALL;
+    }
+    if (operation == 0){
+        GET_MESSAGE(GetButtonParams, device_calls::GetButtonsInfo)
+        printf("Mode actually set: %d\n", mess->GetMode());
+        printf("Position 1: %d\n", mess->GetPosition1());
+        printf("Position 2: %d\n", mess->GetPosition2());
+        printf("Timeout: %d\n", mess->GetTimeout());
+    }
+    if (operation == 1){
+        int ret;
+        if(!mode_spec || !pos1_spec || !pos2_spec || !timeout_spec) {
+            printf("Not all mandatory parameters specified\n");
+            return INVALID_CALL;
+        }
+        if (opened_device.bays == -1){
+            ret = device_calls::SetButtons(mode, pos1, pos2, timeout, 0x50, index); 
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Not existing mode number\n"); return ERR_CALL;}
+                case INVALID_PARAM_2: {printf("Position 1 exceeds maximal position\n"); return ERR_CALL;}
+                case INVALID_PARAM_3: {printf("Position 2 exceeds maximal position\n"); return ERR_CALL;}
+                case IGNORED_PARAM: {printf("NOTE: Timeout is ignored in this controller device\n"); }
+            };
+        }
+        else {
+            index += 0x20;
+            ret = device_calls::SetButtons(mode, pos1, pos2, timeout, index); 
+            switch (ret){
+                case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+                case INVALID_PARAM_1: {printf("Not existing mode number\n"); return ERR_CALL;}
+                case INVALID_PARAM_2: {printf("Position 1 exceeds maximal position\n"); return ERR_CALL;}
+                case INVALID_PARAM_3: {printf("Position 2 exceeds maximal position\n"); return ERR_CALL;}
+                case IGNORED_PARAM: {printf("NOTE: Timeout is ignored in this controller device\n"); }
+            };
+        }
+    }
     return 0;
 }
 
