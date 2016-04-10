@@ -1131,7 +1131,48 @@ int StartJogMoveC(std::vector<string> args){
 }
 
 int StartVelMoveC(std::vector<string> args){
-    //not implemented
+    NULL_ARGS
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-d") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
+        if (args.at(i).compare("-h") != 0 ){
+            printf("Unknown parameter %s\n",args.at(i).c_str());
+            return INVALID_CALL;
+        }
+    }
+    uint8_t index = 1;
+    uint8_t direction;
+    bool direction_spec = false, index_spec = false;
+    for (unsigned int i = 1; i< args.size(); i++){
+        if (args.at(i).compare("-h") == 0){
+            printf("Start move in specified direction. Velocity parameters can be set with velp call. Setting direction is mandatory.\n");
+            printf("-i NUMBER           index of motor to start move, default is 1\n");
+            printf("-d VALUE            direction: 1 -> forward, 2 -> reverse, mandatory argument ");
+        }
+        
+        FLAG("-i", index, index_spec, "Index set more than once\n")
+        FLAG("-d", direction, direction_spec, "Direction set more than once\n")
+    }
+
+    int ret;
+    if(!direction_spec) {
+        printf("Not all mandatory parameters specified\n");
+        return INVALID_CALL;
+    }
+    if (opened_device.bays == -1){
+        ret = device_calls::StartJogMove(direction, 0x50, index); 
+        switch (ret){
+            case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
+            case INVALID_PARAM_1: {printf("Not existing direction parameter given\n"); return ERR_CALL;}
+        };
+    }
+    else {
+        index += 0x20;
+        ret = device_calls::StartJogMove(direction, index); 
+        switch (ret){
+            case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
+            case INVALID_PARAM_1: {printf("Not existing direction parameter given\n"); return ERR_CALL;}
+        };
+    }
     return 0;
 }
 
