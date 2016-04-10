@@ -199,7 +199,7 @@ void DeviceInfoHelper(int dev_index, int mot_index){
     if (connected_device[dev_index].motor[mot_index].moving) printf("  Moving\n");
     if (connected_device[dev_index].motor[mot_index].stopping) printf("  Stopping\n");
         if (connected_device[dev_index].motor[mot_index].status_updates){
-            if (connected_device[dev_index].motor[mot_index].enc_count != -1) printf("  Status message - encoder count : %d\n",connected_device[dev_index].motor[mot_index].status_enc_count);
+            if (connected_device[dev_index].enc_counter == 1) printf("  Status message - encoder count : %d\n",connected_device[dev_index].motor[mot_index].status_enc_count);
             else printf("  Status message - position : %d\n",connected_device[dev_index].motor[mot_index].status_position);
             printf("  Status message - velocity : %d\n",connected_device[dev_index].motor[mot_index].status_velocity);
             printf("  Status bits info: \n");

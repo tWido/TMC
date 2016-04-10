@@ -30,6 +30,7 @@ typedef struct{
     uint8_t dest;
     char *SN;
     bool bay_used[3];
+    int enc_counter;     //controllers use either encoder count(1) or microsteps(0), unspecified (-1)
     motor_device motor[3];
     bool end_of_move_messages = false;
 } controller_device;
