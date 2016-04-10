@@ -1476,12 +1476,6 @@ int StatusC(std::vector<string> args){
     return 0;
 }
 
-int TriggerParamC(std::vector<string> args){
-    // get, set
-    //not implemented
-    return 0;
-}
-
 call_map calls = {
     std::make_pair("help", &HelpC),
     std::make_pair("flash", &IdentC),
@@ -1506,8 +1500,7 @@ call_map calls = {
     std::make_pair("accp", &AccParamC),
     std::make_pair("ledp", &LedParamC),
     std::make_pair("buttp", &ButtonsParamC),
-    std::make_pair("status", &StatusC),
-    std::make_pair("triggp", &TriggerParamC)
+    std::make_pair("status", &StatusC)
 };
 
 
