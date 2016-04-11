@@ -136,7 +136,7 @@ int HelpC(std::vector<string> args){
     printf(" stop        stop movement \n");
     printf(" ledp        front LED parameters \n");
     printf(" buttp       device's buttons parameters \n");
-    printf(" accp        acceleration profile");
+    printf(" accp        acceleration profile\n");
     printf(" status      get motor status \n");
     printf(" swait       wait for stop\n");
     return 0;
