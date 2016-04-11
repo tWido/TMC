@@ -138,7 +138,7 @@ int HelpC(std::vector<string> args){
     printf(" buttp       device's buttons parameters \n");
     printf(" accp        acceleration profile");
     printf(" status      get motor status \n");
-    printf(" swait       wait for stop");
+    printf(" swait       wait for stop\n");
     return 0;
 }
 
@@ -254,7 +254,7 @@ int DeviceInfoC(std::vector<string> args){
         if (device_calls::GetHwInfo(info) != 0) printf("Error occured while receiving info from device\n");
         printf("  Model number: %s\n",info->ModelNumber().c_str());
         printf("  Hardware version: %d\n", info->HwVersion());
-        printf("  Notes: %s", info->Notes().c_str());
+        printf("  Notes: %s\n", info->Notes().c_str());
         free(info);
     }
     

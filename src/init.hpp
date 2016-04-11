@@ -198,7 +198,6 @@ int ContainEncCounter(int type){
 }
 
 int LoadDeviceInfo( controller_device &device){
-    device.ft_opened = true;
     device.dest = 0x11;
     int ret;
     ret = device_calls::FlashProgNo(device.dest);
@@ -287,36 +286,33 @@ int init(){
     //Find additional info to Thorlabs devices
     for (unsigned int j = 0; j<  devices_connected; j++){
         for (unsigned int i = 0; i< num_ftdi_devices; i++){
-            if ( strncmp(ftdi_devs[i].SerialNumber, connected_device[j].SN, 8) == 0 ){
-                FT_HANDLE handle;
-                ft_status = FT_OpenEx( connected_device[j].SN, FT_OPEN_BY_SERIAL_NUMBER, &handle);
-                if (ft_status != FT_OK ) { free(ftdi_devs); return FT_ERROR; }
-                
-                if (FT_SetBaudRate(handle, 115200) != FT_OK) return FT_ERROR;
-                if (FT_SetDataCharacteristics(handle, FT_BITS_8, FT_STOP_BITS_1, FT_PARITY_NONE) != FT_OK ) return FT_ERROR;
-                usleep(50);
-                if (FT_Purge(handle, FT_PURGE_RX | FT_PURGE_TX) != FT_OK ) return FT_ERROR;
-                usleep(50);
-                if (FT_SetFlowControl(handle, FT_FLOW_RTS_CTS, 0, 0) != FT_OK) return FT_ERROR;
-                if (FT_SetRts(handle) != FT_OK ) return FT_ERROR;
-                usleep(50);
-                
-                OpenDevice(j);
-                opened_device.handle = handle;
-                ret = LoadDeviceInfo(connected_device[j]);
-                if (ret != 0 ){ free(ftdi_devs); return ret; }
+            OpenDevice(j);
+            if (ft_status != FT_OK ) { free(ftdi_devs); return FT_ERROR; }
+
+            if (FT_SetBaudRate(opened_device.handle, 115200) != FT_OK) return FT_ERROR;
+            if (FT_SetDataCharacteristics(opened_device.handle, FT_BITS_8, FT_STOP_BITS_1, FT_PARITY_NONE) != FT_OK ) return FT_ERROR;
+            usleep(50);
+            if (FT_Purge(opened_device.handle, FT_PURGE_RX | FT_PURGE_TX) != FT_OK ) return FT_ERROR;
+            usleep(50);
+            if (FT_SetFlowControl(opened_device.handle, FT_FLOW_RTS_CTS, 0, 0) != FT_OK) return FT_ERROR;
+            if (FT_SetRts(opened_device.handle) != FT_OK ) return FT_ERROR;
+            usleep(50);
+                              
+            ret = LoadDeviceInfo(connected_device[j]);
+            if (ret != 0 ){ free(ftdi_devs); return ret; }               
             }
         }
-    }
-    opened_device = connected_device[0];
-    free(ftdi_devs);        
+    
+                   
+    OpenDevice(0);
+    free(ftdi_devs);     
     return 0;
 }
 
 void exit(){
     free(connected_device);
     for (unsigned int i = 0; i < devices_connected; i++){
-        FT_Close(connected_device[i].handle);
+        FT_Close(opened_device.handle);
     }
     printf("Exiting\n");
 }

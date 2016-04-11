@@ -22,7 +22,6 @@ typedef struct {
 
 typedef struct{
     FT_HANDLE handle;
-    bool ft_opened;
     int device_type;
     int hw_type;
     int bays;      
