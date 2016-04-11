@@ -82,8 +82,8 @@ public:
        bytes[4] = dest;
     }
     
-    int GetMotorID(){
-        if (opened_device.bays == -1) return GetFirstParam()-1;    // channel type, channels numbered from 1, in field from 0
+    uint8_t GetMotorID(){
+        if (opened_device.bays == -1) return (GetFirstParam()-1);    // channel type, channels numbered from 1, in field from 0
         else return ((GetSource() | 0x0f) -1 );               // bay type, numbering 0x21 ..0x23, 
     }
     
@@ -115,8 +115,8 @@ public:
 
     uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
     
-    int GetMotorID(){
-        if (opened_device.bays == -1) return GetChanID()-1;    // channel type, channels numbered from 1, in field from 0
+    uint16_t GetMotorID(){
+        if (opened_device.bays == -1) return (GetChanID()-1);    // channel type, channels numbered from 1, in field from 0
         else return ((GetSource() | 0x0f) -1 );           // bay type, numbering 0x21 ..0x23, 
     }
     

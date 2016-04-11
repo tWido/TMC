@@ -1200,6 +1200,7 @@ int StopC(std::vector<string> args){
             printf("Stops any move on specified motor\n");
             printf("-i NUMBER       motor index, optional argument, default is 1\n");
             printf("-m NUMBER       stop mode: 1 -> immediate stop, 2 -> profiled stop, optional argument, default is 2\n");
+            return 0;
         }
         
         FLAG("-i", index, index_spec, "Index set more than once\n")
