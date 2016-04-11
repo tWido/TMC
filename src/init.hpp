@@ -286,7 +286,7 @@ int init(){
     //Find additional info to Thorlabs devices
     for (unsigned int j = 0; j<  devices_connected; j++){
         for (unsigned int i = 0; i< num_ftdi_devices; i++){
-            OpenDevice(j);
+            if (OpenDevice(j) == FT_ERROR ) { free(ftdi_devs); return FT_ERROR; };
             if (ft_status != FT_OK ) { free(ftdi_devs); return FT_ERROR; }
 
             if (FT_SetBaudRate(opened_device.handle, 115200) != FT_OK) return FT_ERROR;
@@ -303,9 +303,8 @@ int init(){
             }
         }
     
-                   
-    OpenDevice(0);
-    free(ftdi_devs);     
+    free(ftdi_devs);  
+    if (OpenDevice(0) == FT_ERROR) return FT_ERROR;
     return 0;
 }
 

@@ -11,8 +11,8 @@
 typedef int (*helper)(std::vector<string>);
 typedef std::map<std::string,helper> call_map;
 
-#define INVALID_CALL -1
-#define ERR_CALL -2
+#define INVALID_CALL -50
+#define ERR_CALL -51
 
 #define HAS_FLAG(x) if ((connected_device[dev_index].motor[mot_index].status_status_bits & x) == x) 
 
@@ -167,10 +167,13 @@ int OpenDeviceC(std::vector<string> args){
             printf("Given argument is not a valid number\n");
             return INVALID_CALL;
         }
-        if (!validation) if (OpenDevice(num-1) != 0 ){ //for user devices are numbered from 1
+        int ret;
+        ret = OpenDevice(num-1); //for user devices are numbered from 1
+        if (ret == FT_ERROR ) return FT_ERROR;
+        if (ret == INVALID_PARAM_1){
             printf("Incorrect device number\n");
             return ERR_CALL;
-        }       
+        }
         return 0;
     }
     if ( args.at(1).compare("-s") == 0) {
@@ -178,12 +181,14 @@ int OpenDeviceC(std::vector<string> args){
             printf("Serial not specified\n");
             return INVALID_CALL;
         }
+        int ret;
         for ( unsigned int i = 0; i< devices_connected; i++ ){
             std::string to_comp (connected_device[i].SN);
-            if ( to_comp.compare(args.at(2)) == 0 ) OpenDevice(i); 
+            if ( to_comp.compare(args.at(2)) == 0 ) ret = OpenDevice(i); 
         }
-        if (!validation){ 
-            printf("Device with specified serial number not present\n");
+        if (ret == FT_ERROR ) return FT_ERROR;
+        if (ret == INVALID_PARAM_1){
+            printf("Incorrect device number\n");
             return ERR_CALL;
         }
         return 0;
@@ -226,7 +231,7 @@ int DeviceInfoC(std::vector<string> args){
     if (args.size() > 1) printf("No arguments except -h\n");
     int prev_opened = opened_device_index;
     for (unsigned int i = 0; i< devices_connected; i++){
-        OpenDevice(i);
+        if (OpenDevice(i) == FT_ERROR ) return FT_ERROR;
         printf(" Device number %d\n", i+1);
         printf(" Serial: %s\n",connected_device[i].SN);
         if (connected_device[i].bays != -1 ){ 
@@ -258,7 +263,7 @@ int DeviceInfoC(std::vector<string> args){
         free(info);
     }
     
-    OpenDevice(prev_opened);
+    if (OpenDevice(prev_opened) == FT_ERROR) return FT_ERROR;
     return 0;
 }
 
@@ -1537,8 +1542,9 @@ int run_cmd(){
             printf("Unrecognized command %s\n", args.at(0).c_str() );
             continue;
         }
-        
-        calls.at(args.at(0))(args);
+        int ret;
+        ret = calls.at(args.at(0))(args);
+        if (ret == FT_ERROR) return FT_ERROR;
         device_calls::SendServerAlive(0x50);
         }
       
