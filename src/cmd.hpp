@@ -7,6 +7,7 @@
 #include <string.h>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 typedef int (*helper)(std::vector<string>);
 typedef std::map<std::string,helper> call_map;
@@ -593,7 +594,8 @@ int VelParamC(std::vector<string> args){
 int JogParamC(std::vector<string> args){
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
-        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-m") == 0 || args.at(i).compare("-a") == 0) {i++; continue; }
+        if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-t") == 0 || args.at(i).compare("-m") == 0
+                || args.at(i).compare("-a") == 0 || args.at(i).compare("-z") == 0 || args.at(i).compare("-v") == 0) {i++; continue; }
         if (args.at(i).compare("-h") != 0 ){
                 printf("Unknown parameter %s\n",args.at(i).c_str());
                 return INVALID_CALL;
@@ -613,7 +615,7 @@ int JogParamC(std::vector<string> args){
             printf("-v VALUE        maximal velocity\n");
             printf("-a VALUE        acceleration\n");
             printf("-z VALUE        step size\n");
-            printf("-s VALUE        stop mode: 1 for immediate stop, 2 for profiled\n");
+            printf("-t VALUE        stop mode: 1 for immediate stop, 2 for profiled\n");
         }
         
         SET_FLAG
@@ -622,7 +624,7 @@ int JogParamC(std::vector<string> args){
         FLAG("-v", maxvel, maxvel_spec, "Maximal velocity already specified\n")
         FLAG("-a", acc, acc_spec, "Acceleration already specified\n")
         FLAG("-z", step_size, step_size_spec, "Step size already specified\n")
-        FLAG("-s", stop_mode, stop_mode_spec, "Stop mode already specified\n")
+        FLAG("-t", stop_mode, stop_mode_spec, "Stop mode already specified\n")
     }
     
     if (operation == -1) {
@@ -1522,21 +1524,17 @@ call_map calls = {
 };
 
 
-int run_cmd(){
-    const char delimiter = ' ';  
+int run_cmd(){  
     while(true){
         std::string line = "";
         std::getline(std::cin, line);
         if (line == "" ) continue;
         
         std::vector<std::string> args;
-        
-        char *args_line = strdup(line.c_str());
-        char* token = strtok(args_line, &delimiter);
-        while(token != NULL){
-            args.push_back(std::string(token));
-            token = strtok(NULL, &delimiter);
-        }
+        string tok; 
+        stringstream ss(line); 
+
+        while (ss >> tok) args.push_back(tok);  
         
         if ( args.at(0).compare("exit") == 0 ) break;
         if ( calls.count(args.at(0))== 0 ) {

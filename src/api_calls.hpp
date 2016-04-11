@@ -466,7 +466,7 @@ int SetJogP(uint16_t mode, int32_t stepSize, int32_t vel, int32_t acc, uint16_t 
 };
 
 int GetJogP(GetJogParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
-    GET_MESS(ReqJogParams,28,GET_VELPARAMS,GetJogParams)
+    GET_MESS(ReqJogParams,28,GET_JOGPARAMS,GetJogParams)
     return 0;
 };
 
