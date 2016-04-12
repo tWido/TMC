@@ -17,12 +17,12 @@ typedef std::map<std::string,helper> call_map;
 
 #define HAS_FLAG(x) if ((connected_device[dev_index].motor[mot_index].status_status_bits & x) == x) 
 
-#define GET_NUM(x) try {                                         \
-                x = std::stoi(args.at(i+1), 0, 10);         \
-            }                                                   \
-            catch(const std::exception& e) {                    \
-                printf("Given argument is not a valid number\n");\
-                return INVALID_CALL;                            \
+#define GET_NUM(x) try {                                            \
+                x = std::stoi(args.at(i+1), 0, 10);                 \
+            }                                                       \
+            catch(const std::exception& e) {                        \
+                printf("Given argument is not a valid number\n");   \
+                return INVALID_CALL;                                \
             }
 
 
@@ -46,22 +46,22 @@ typedef std::map<std::string,helper> call_map;
             }                                                               \
             i++;
 
-#define GET_MESSAGE(mess_type, call)   \
-        mess_type* mess = (mess_type*) malloc(sizeof(mess_type));\
-        if (opened_device.bays == -1){  \
-            if (call(mess, 0x50, index) == INVALID_CHANNEL){  \
-                printf("Not existing channel number given\n");  \
-                free(mess);         \
-                return ERR_CALL;    \
-            }                       \
-        }                           \
-        else {                      \
-            index += 0x20;          \
-            if (call(mess, index) == INVALID_DEST){   \
-                printf("Wrong address given\n");                            \
-                free(mess);                                                 \
-                return ERR_CALL;                                            \
-            }                                                               \
+#define GET_MESSAGE(mess_type, call)                                \
+        mess_type* mess = (mess_type*) malloc(sizeof(mess_type));   \
+        if (opened_device.bays == -1){                              \
+            if (call(mess, 0x50, index) == INVALID_CHANNEL){        \
+                printf("Not existing channel number given\n");      \
+                free(mess);                                         \
+                return ERR_CALL;                                    \
+            }                                                       \
+        }                                                           \
+        else {                                                      \
+            index += 0x20;                                          \
+            if (call(mess, index) == INVALID_DEST){                 \
+                printf("Wrong address given\n");                    \
+                free(mess);                                         \
+                return ERR_CALL;                                    \
+            }                                                       \
         }                                                                   
 
 
@@ -71,30 +71,30 @@ typedef std::map<std::string,helper> call_map;
     }
 
 
-#define SET_FLAG if (args.at(i).compare("-s") == 0){    \
-            if (operation != -1) {  \
+#define SET_FLAG if (args.at(i).compare("-s") == 0){                    \
+            if (operation != -1) {                                      \
                 printf("Operation has to be specified exactly once\n"); \
-                return INVALID_CALL;    \
-            }   \
-            operation = 1;  \
-            if (args.size() <= i+1){    \
-                printf("Not enough paramaters\n");  \
-                return INVALID_CALL;    \
-            }   \
-            GET_NUM(index)  \
+                return INVALID_CALL;                                    \
+            }                                                           \
+            operation = 1;                                              \
+            if (args.size() <= i+1){                                    \
+                printf("Not enough paramaters\n");                      \
+                return INVALID_CALL;                                    \
+            }                                                           \
+            GET_NUM(index)                                              \
         }
 
-#define GET_FLAG if (args.at(i).compare("-g") == 0){    \
-            if (operation != -1) {  \
+#define GET_FLAG if (args.at(i).compare("-g") == 0){                    \
+            if (operation != -1) {                                      \
                 printf("Operation has to be specified exactly once");   \
-                return INVALID_CALL;    \
-            }   \
-            operation = 0;  \
-            if (args.size() <= i+1){    \
-                printf("Not enough parameters\n");  \
-                return INVALID_CALL;    \
-            }   \
-            GET_NUM(index)  \
+                return INVALID_CALL;                                    \
+            }                                                           \
+            operation = 0;                                              \
+            if (args.size() <= i+1){                                    \
+                printf("Not enough parameters\n");                      \
+                return INVALID_CALL;                                    \
+            }                                                           \
+            GET_NUM(index)                                              \
         }
 
 #define FLAG(lookup_str, int_val, bool_val, err_string) \

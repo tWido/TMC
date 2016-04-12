@@ -33,7 +33,7 @@
 
 #define READ_REST(x)  unsigned int bytes_red; ftStatus = FT_Read(opened_device.handle, &buff[2], x, &bytes_red); \
         if (ftStatus != FT_OK) {                                    \
-        printf("FT_Error occured, error code :%d\n", ftStatus );      \
+        printf("FT_Error occured, error code :%d\n", ftStatus );    \
         return FT_ERROR;                                            \
         }  
 
@@ -45,12 +45,12 @@
          if (ret != 0) return ret;
 
 #define GET_MESS(req_mess_class, buff_size, get_mess_code, get_mess_class  ) \
-        CHECK_ADDR_PARAMS(dest, channel)                \
+        CHECK_ADDR_PARAMS(dest, channel)                        \
         EMPTY_IN_QUEUE                                          \
         req_mess_class mes(dest, SOURCE, channel);              \
         SendMessage(mes);                                       \
         uint8_t *buff = (uint8_t *) malloc(buff_size);          \
-        ret = GetResponseMess(get_mess_code, buff_size, buff); \
+        ret = GetResponseMess(get_mess_code, buff_size, buff);  \
         get_mess_class mess(buff);                              \
         *message = mess;                                        \
         free(buff);                                             \
@@ -189,7 +189,7 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
         case MOVE_STOPPED:{
             READ_REST(18) // 14 bytes for status updates
             MoveStopped response(buff);
-           opened_device.motor[response.GetMotorID()].homing=false;
+            opened_device.motor[response.GetMotorID()].homing=false;
             printf("Motor with id %d stopped \n", response.GetMotorID() +1 );
             free(buff);
             return MOVE_STOPPED_STATUS;
