@@ -669,9 +669,11 @@ public:
     void SetRelativeDistance(int32_t dist){ *((int32_t *) &bytes[8]) = htole32(dist); }
 };
 
-class MoveCompleted:public MessageHeader{
+class MoveCompleted:public LongMessage{
 public:
-    MoveCompleted(uint8_t *mess):MessageHeader(mess){};
+    MoveCompleted(uint8_t *mess):LongMessage(mess, 20){};
+    
+    
 };
 
 
@@ -729,9 +731,9 @@ public:
     }
 };
 
-class MoveStopped: public MessageHeader{
+class MoveStopped: public LongMessage{
 public:
-    MoveStopped(uint8_t *mess):MessageHeader(mess){}
+    MoveStopped(uint8_t *mess):LongMessage(mess,20){}
 }; 
 
 class SetBowIndex:public LongMessage{
