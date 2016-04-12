@@ -210,10 +210,13 @@ void DeviceInfoHelper(int dev_index, int mot_index){
             printf("  Status bits info: \n");
             HAS_FLAG(0x00000001) printf("   Forward hardware limit switch active\n");
             HAS_FLAG(0x00000002) printf("   Reverse hardware limit switch active\n");
+            HAS_FLAG(0x00000004) printf("   Forward software limit switch active\n");
+            HAS_FLAG(0x00000008) printf("   Reverse software limit switch active\n");
             HAS_FLAG(0x00000010) printf("   Moving forward\n");
             HAS_FLAG(0x00000020) printf("   Moving reverse\n");
             HAS_FLAG(0x00000040) printf("   Jogging forward\n");
             HAS_FLAG(0x00000080) printf("   Jogging reverse\n");
+            HAS_FLAG(0x00000100) printf("   Motor Connected\n");
             HAS_FLAG(0x00000200) printf("   Homing\n");
             HAS_FLAG(0x00000400) printf("   Homed\n");
             HAS_FLAG(0x00001000) printf("   Tracking\n");
@@ -1492,10 +1495,13 @@ int WaitForStopC(std::vector<string> args){
         int i = 1;
         uint8_t index;
         GET_NUM(index);
-        while(opened_device.motor[index-1].moving || opened_device.motor[index-1].stopping || opened_device.motor[index-1].homing){
-            sleep(1);
-            int ret = EmptyIncomingQueue();
-            if (ret == FATAL_ERROR || ret == DEVICE_ERROR || ret == FT_ERROR ) return ERR_CALL;
+        printf("Start wait\n");
+        while(true){
+            GET_MESSAGE(GetStatusBits, device_calls::GetStatBits)
+            opened_device.motor[mess->GetMotorID()].status_status_bits = mess->GetStatBits();
+            if ((mess->GetStatBits() & 0x00000010) == 0x00000010 || (mess->GetStatBits() & 0x00000020) == 0x00000020 || (mess->GetStatBits() & 0x00000040) == 0x00000040 || 
+                    (mess->GetStatBits() & 0x00000080) == 0x00000080 || (mess->GetStatBits() & 0x00000200) == 0x00000200 ) sleep(1);
+            else break;
         }
         printf("Motor in stable position\n");
     }
