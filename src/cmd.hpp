@@ -412,7 +412,6 @@ int PosCounterC(std::vector<string> args){
                     return ERR_CALL;
                 }
             }
-            i+=2;
         }
         
         if (args.at(i).compare("-g") == 0){
@@ -439,7 +438,6 @@ int PosCounterC(std::vector<string> args){
                 }
             }
             printf("Position counter: %d\n", counter->GetPosition());
-            i++;
         }
     }
     return 0;
@@ -490,7 +488,6 @@ int EncCountC(std::vector<string> args){
                     return ERR_CALL;
                 }
             }
-            i+=2;
         }
         
         if (args.at(i).compare("-g") == 0){
@@ -517,7 +514,6 @@ int EncCountC(std::vector<string> args){
                 }
             }
             printf("Encoder counter: %d\n", counter->GetEncCounter());
-            i++;
         }
     }
     return 0;
@@ -546,6 +542,7 @@ int VelParamC(std::vector<string> args){
             printf("-g NUMBER       get parameters for given motor channel\n");
             printf("-m VALUE        set maximum velocity\n");
             printf("-a VALUE        acceleration\n");
+            return 0;
         }
         
         SET_FLAG   
@@ -616,6 +613,7 @@ int JogParamC(std::vector<string> args){
             printf("-a VALUE        acceleration\n");
             printf("-z VALUE        step size\n");
             printf("-t VALUE        stop mode: 1 for immediate stop, 2 for profiled\n");
+            return 0;
         }
         
         SET_FLAG
@@ -690,6 +688,7 @@ int PowerParamC(std::vector<string> args){
             printf("-g NUMBER       get power parameters\n");
             printf("-m VALUE        move factor in %%\n");
             printf("-r VALUE        rest factor in %%\n");
+            return 0;
         }
         
         SET_FLAG
@@ -752,6 +751,7 @@ int BacklashDistC(std::vector<string> args){
             printf("-s NUMBER       set distance parameters\n");
             printf("-g NUMBER       get distance parameters\n");
             printf("-d VALUE        value of backlash distance\n");
+            return 0;
         }
         
         SET_FLAG
@@ -808,6 +808,7 @@ int RelMoveParamC(std::vector<string> args){
             printf("-s NUMBER       set relative move parameters\n");
             printf("-g NUMBER       get relative move parameters\n");
             printf("-d VALUE        distance to move\n");
+            return 0;
         }
         
         SET_FLAG
@@ -864,6 +865,7 @@ int AbsMoveParamC(std::vector<string> args){
             printf("-s NUMBER       set absolute move parameters\n");
             printf("-g NUMBER       get absolute parameters\n");
             printf("-p VALUE        position to move to\n");
+            return 0;
         }
         
         SET_FLAG
@@ -920,6 +922,7 @@ int HomingVelC(std::vector<string> args){
             printf("-s NUMBER       set homing velocity\n");
             printf("-g NUMBER       get homing velocity\n");
             printf("-v VALUE        velocity\n");
+            return 0;
         }
         
         SET_FLAG
@@ -1018,6 +1021,7 @@ int StartRelMoveC(std::vector<string> args){
             printf("Start relative move. Distance can be either specified or previously set by relmovep command.\n");
             printf("-i NUMBER           index of motor to start move, default is 1\n");
             printf("-d VALUE            distance to move, if not specified parameter stored in device is used");
+            return 0;
         }
         
         FLAG("-i", index, index_spec, "Index set more than once\n")
@@ -1063,6 +1067,7 @@ int StartAbsMoveC(std::vector<string> args){
             printf("Start absolute move. Position can be either specified or previously set by absmovep command.\n");
             printf("-i NUMBER           index of motor to start move, default is 1\n");
             printf("-p VALUE            position to move to, if not specified parameter stored in device is used");
+            return 0;
         }
         
         FLAG("-i", index, index_spec, "Index set more than once\n")
@@ -1107,6 +1112,7 @@ int StartJogMoveC(std::vector<string> args){
             printf("Start jog move. Jog move parameters can be specified by jogmovep call. Setting direction is mandatory.\n");
             printf("-i NUMBER           index of motor to start move, default is 1\n");
             printf("-d VALUE            direction: 1 -> forward, 2 -> reverse, mandatory argument ");
+            return 0;
         }
         
         FLAG("-i", index, index_spec, "Index set more than once\n")
@@ -1153,6 +1159,7 @@ int StartVelMoveC(std::vector<string> args){
             printf("Start move in specified direction. Velocity parameters can be set with velp call. Setting direction is mandatory.\n");
             printf("-i NUMBER           index of motor to start move, default is 1\n");
             printf("-d VALUE            direction: 1 -> forward, 2 -> reverse, mandatory argument ");
+            return 0;
         }
         
         FLAG("-i", index, index_spec, "Index set more than once\n")
@@ -1248,6 +1255,7 @@ int AccParamC(std::vector<string> args){
             printf("-s NUMBER       set acceleration profile\n");
             printf("-g NUMBER       get acceleration profile\n");
             printf("-p NUMBER       acceleration profile: range from 0 to 18, 0 for trapezoidal profile, 1-18 are S-curve profiles\n");
+            return 0;
         }
         
         SET_FLAG
@@ -1306,6 +1314,7 @@ int LedParamC(std::vector<string> args){
             printf("-s NUMBER       set LED parameters\n");
             printf("-g NUMBER       get LED parameters\n");
             printf("-m NUMBER       mode: 1 -> LED flashes on call, 2 -> LED flashes when limit switch is reached, 8 -> lit while moving \n");
+            return 0;
         }
         
         SET_FLAG
@@ -1369,6 +1378,7 @@ int ButtonsParamC(std::vector<string> args){
             printf("-p VALUE        position to move to, when button 1 is pressed\n");
             printf("-P VALUE        position to move to, when button 2 is pressed \n");
             printf("-t VALUE        specifies time in ms that the button must be depressed\n");
+            return 0;
         }
         
         SET_FLAG
@@ -1472,6 +1482,7 @@ int WaitForStopC(std::vector<string> args){
     if (args.at(1).compare("-h") == 0){
         printf("Blocks any command until motor is in stable position\n");
         printf("-i        motor index, mandatory\n");
+        return 0;
     }
     else if (args.at(1).compare("-i")){
         if (args.size() == 2){ 
