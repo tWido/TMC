@@ -13,7 +13,6 @@
 #include "device.hpp"
 #include "api_calls.hpp"
 
-#define NO_RESTRICTIONS 2
 #define STOP 1
 #define SYSTEM_ERROR -3
 #define FIND_DEV(code) if (strncmp(name.c_str(), #code, 6) == 0){ printf("Found controller device, type: %s\n", name.c_str()) ; return code;}
@@ -124,15 +123,32 @@ int RemoveModules(std::string module_name){
     return 0;
 }
 
-int LoadRestrictions(controller_device &device){
-    //not implemented
+int LoadRestrictions(controller_device &device, std::string device_name){
+    printf("Do you want to load restrictions for device %s, SN: %s? Y/N\n", device_name.c_str(), device.SN);
+    std::string option;
+    cin >> option;
+    if (option.compare("y")== 0 || option.compare("Y")==0 ){
+        int motors;
+        if ( device.channels != -1 ) motors = device.bays;
+        else motors = device.channels;
+        for (int i = 0; i< motors; i++){
+            printf("Restriction for motor in bay or channel %d\n", i);
+            printf("Insert name of file in restrictions folder or N to load none\n");
+            cin >> option;
+            if (option.compare("N") == 0) goto NONE;
+            //parse from file
+        }
+    }
+    
+    NONE:
     if( device.channels != -1 ){
         for (int i = 0; i< device.channels; i++){
             device.motor[i].max_acc = INT_MAX;
             device.motor[i].max_pos = INT_MAX;
             device.motor[i].max_vel = INT_MAX;
         }
-        return NO_RESTRICTIONS;    
+        printf("No restrictions used\n");
+        return 0;    
     } 
     else {
         for(int i = 0; i< device.bays; i++){
@@ -141,7 +157,8 @@ int LoadRestrictions(controller_device &device){
             device.motor[i].max_pos = INT_MAX;
             device.motor[i].max_vel = INT_MAX;
         }
-        return NO_RESTRICTIONS;        
+        printf("No restrictions used\n");
+        return 0;        
     }
 }
 
@@ -239,8 +256,7 @@ int LoadDeviceInfo( controller_device &device){
         }
     }
     
-    if ( LoadRestrictions(device) == NO_RESTRICTIONS ) 
-        printf("WARNING: no restrictions used on acceleration and velocity\n");
+    LoadRestrictions(device, model_num);
 
     return 0;
 }
