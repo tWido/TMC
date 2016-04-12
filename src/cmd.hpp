@@ -111,8 +111,6 @@ typedef std::map<std::string,helper> call_map;
             bool_val = true;                            \
         }
 
-bool validation = false;
-
 int HelpC(std::vector<string> args){
     if (args.size() > 1) printf("No arguments needed\n");
     printf(" help        prints this help message, for command info use -h\n");
@@ -273,7 +271,7 @@ int DeviceInfoC(std::vector<string> args){
 
 int IdentC(std::vector<string> args){
     if (args.size() == 1 ) {
-        if (!validation) device_calls::Identify();
+        device_calls::Identify();
         return 0;
     }
     uint8_t dest;
@@ -311,7 +309,7 @@ int IdentC(std::vector<string> args){
         }
     }
     else printf("Unrecognized parameter %s, see -h for help\n", args.at(1).c_str());
-    if (!validation) if (device_calls::Identify(dest) == INVALID_DEST){ 
+    if (device_calls::Identify(dest) == INVALID_DEST){ 
         printf("Invalid destination given\n");
         return ERR_CALL;
     }
