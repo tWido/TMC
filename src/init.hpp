@@ -10,6 +10,8 @@
 #include <climits>
 #include <dirent.h>
 #include <vector>
+#include <fstream>
+#include <algorithm>
 #include "device.hpp"
 #include "api_calls.hpp"
 
@@ -123,6 +125,13 @@ int RemoveModules(std::string module_name){
     return 0;
 }
 
+void LoadNone(controller_device &device, int mot_id){
+    device.motor[mot_id].max_acc = INT_MAX;
+    device.motor[mot_id].max_pos = INT_MAX;
+    device.motor[mot_id].max_vel = INT_MAX;
+    return;
+}
+
 int LoadRestrictions(controller_device &device, std::string device_name){
     printf("Do you want to load restrictions for device %s, SN: %s? Y/N\n", device_name.c_str(), device.SN);
     std::string option;
@@ -135,31 +144,55 @@ int LoadRestrictions(controller_device &device, std::string device_name){
             printf("Restriction for motor in bay or channel %d\n", i);
             printf("Insert name of file in restrictions folder or N to load none\n");
             cin >> option;
-            if (option.compare("N") == 0) goto NONE;
-            //parse from file
+            if (option.compare("N") == 0){ LoadNone(device,i); continue;}
+            ifstream restr(option);
+            while (!restr.is_open()){
+                printf("File not found. Want to insert file name again? file name or N\n");
+                cin >> option;
+                if (option.compare("N") == 0){ LoadNone(device,i); break;}
+                else restr.open(option.c_str(), ifstream::in);
+            }
+            if (restr.is_open()){
+                string word;
+                while (restr >> word ){
+                    transform(word.begin(), word.end(),word.begin(), ::tolower);
+                    if (word.compare("velocity")) {
+                        restr >> word;
+                        try {                
+                            device.motor[i].max_vel = std::stoi(word, 0, 10);       
+                        }                                        
+                        catch(const std::exception& e) {         
+                            printf("Contains invalid number. Velocity not loaded\n");
+                        }
+                    }
+                    if (word.compare("position")) {
+                        restr >> word;
+                        try {                
+                            device.motor[i].max_pos = std::stoi(word, 0, 10); 
+                        }                                        
+                        catch(const std::exception& e) {         
+                            printf("Contains invalid number. Position not loaded\n");
+                            device.motor[i].max_pos = INT_MAX;
+                        }
+                    }
+                    if (word.compare("acceleration")) {
+                        restr >> word;
+                        try {                
+                            device.motor[i].max_acc = std::stoi(word, 0, 10); 
+                        }                                        
+                        catch(const std::exception& e) {         
+                            printf("Contains invalid number. Acceleration not loaded\n");
+                        }
+                    }
+                }
+            }
         }
     }
-    
-    NONE:
-    if( device.channels != -1 ){
-        for (int i = 0; i< device.channels; i++){
-            device.motor[i].max_acc = INT_MAX;
-            device.motor[i].max_pos = INT_MAX;
-            device.motor[i].max_vel = INT_MAX;
-        }
-        printf("No restrictions used\n");
-        return 0;    
-    } 
     else {
-        for(int i = 0; i< device.bays; i++){
-            if(device.bay_used[i] == false) continue;
-            device.motor[i].max_acc = INT_MAX;
-            device.motor[i].max_pos = INT_MAX;
-            device.motor[i].max_vel = INT_MAX;
-        }
-        printf("No restrictions used\n");
-        return 0;        
+        if (device.channels == -1) for (int i =0; i< device.bays; i++) LoadNone(device, i);
+        else for (int i =0; i< device.channels; i++) LoadNone(device, i);
     }
+    return 0;
 }
 
 int ToDevType(std::string name){
