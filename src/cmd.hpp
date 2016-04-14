@@ -1544,7 +1544,7 @@ int run_cmd(int mode){
     while(true){
         std::string line = "";
         std::getline(std::cin, line);
-        if (line == "" ) continue;
+        if (line == "" ) {command_num++ ;continue;}
         
         std::vector<std::string> args;
         string tok; 
@@ -1554,6 +1554,7 @@ int run_cmd(int mode){
         
         if ( args.at(0).compare("exit") == 0 ) break;
         if ( calls.count(args.at(0))== 0 ) {
+            if (mode == 3) {fprintf(stderr ,"File not valid on line %d\n", command_num); return 0;} 
             printf("Unrecognized command %s\n", args.at(0).c_str() );
             continue;
         }
