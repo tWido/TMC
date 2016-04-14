@@ -410,7 +410,7 @@ int SetPositionCounter(int32_t pos, uint8_t dest = DefaultDest(), uint16_t chann
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetPosCounter mes(dest, SOURCE, channel);
-    mes->SetPosition(pos);
+    mes.SetPosition(pos);
     SendMessage(mes);
     EMPTY_IN_QUEUE
     return ret; //return WARNING
@@ -425,7 +425,7 @@ int SetEncoderCounter(int32_t count, uint8_t dest = DefaultDest(), uint16_t chan
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetEncCount mes(dest, SOURCE, channel);
-    mes->SetEncoderCount(count);
+    mes.SetEncoderCount(count);
     SendMessage(mes);
     EMPTY_IN_QUEUE
     return ret; //return WARNING
