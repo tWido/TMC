@@ -1539,7 +1539,8 @@ call_map calls = {
 };
 
 
-int run_cmd(){  
+int run_cmd(int mode){
+    int command_num = 1;
     while(true){
         std::string line = "";
         std::getline(std::cin, line);
@@ -1558,10 +1559,19 @@ int run_cmd(){
         }
         int ret;
         ret = calls.at(args.at(0))(args);
-        if (ret == FT_ERROR) return FT_ERROR;
-        device_calls::SendServerAlive(0x50);
+        if (ret == FT_ERROR && mode != 3) return FT_ERROR;
+        if (ret == INVALID_CALL) {
+            if (mode == 3) {
+                fprintf(stderr ,"File not valid on line %d\n", command_num);
+                return 0;
+            }
+            else printf("Invalid syntax\n");
         }
-      
+        if (mode != 3) device_calls::SendServerAlive(0x50);
+        command_num++;
+        }
+    
+    if (mode == 3) perror("File validated\n");  
     return 0;
 }
 

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-int UI = 1; // 1 -> cmd, 2-> graphical
+int UI = 1; // 1 -> cmd, 2-> graphical, 3 - > validate file
 
 int ParseCmdArgs(int argc, char** argv){
     return 0;
@@ -45,16 +45,25 @@ switch (ret_code){
 
 }
 
+void RedirectOutput(){
+    //open non-existent device, 
+    return;
+}
+
 int main(int argc, char** argv) {
     ParseCmdArgs(argc, argv);
     int ret_code = 0;
-    ret_code = init();
+    if (UI !=3) ret_code = init();
     if ( ret_code != 0 ){ 
         FailExit(ret_code);
         return ret_code;
     }
     
-    if (UI == 1) ret_code = run_cmd();
+    if (UI == 1) ret_code = run_cmd(1);
+    if (UI == 3) {
+        RedirectOutput();
+        ret_code = run_cmd(3);
+    }
     if ( ret_code != 0 ) {
         FailExit(ret_code);
         return ret_code;
