@@ -1485,7 +1485,7 @@ int WaitForStopC(std::vector<string> args){
         printf("-i        motor index, mandatory\n");
         return 0;
     }
-    else if (args.at(1).compare("-i")){
+    else if (args.at(1).compare("-i") == 0){
         if (args.size() == 2){ 
             printf("Motor index not specified\n");
             return INVALID_CALL;
