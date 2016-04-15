@@ -201,28 +201,28 @@ void DeviceInfoHelper(int dev_index, int mot_index){
     if (connected_device[dev_index].motor[mot_index].homing) printf("  Moving to home position\n");
     if (connected_device[dev_index].motor[mot_index].moving) printf("  Moving\n");
     if (connected_device[dev_index].motor[mot_index].stopping) printf("  Stopping\n");
-        if (connected_device[dev_index].motor[mot_index].status_updates){
-            if (connected_device[dev_index].enc_counter == 1) printf("  Status message - encoder count : %d\n",connected_device[dev_index].motor[mot_index].status_enc_count);
-            else printf("  Status message - position : %d\n",connected_device[dev_index].motor[mot_index].status_position);
-            printf("  Status message - velocity : %d\n",connected_device[dev_index].motor[mot_index].status_velocity);
-            printf("  Status bits info: \n");
-            HAS_FLAG(0x00000001) printf("   Forward hardware limit switch active\n");
-            HAS_FLAG(0x00000002) printf("   Reverse hardware limit switch active\n");
-            HAS_FLAG(0x00000004) printf("   Forward software limit switch active\n");
-            HAS_FLAG(0x00000008) printf("   Reverse software limit switch active\n");
-            HAS_FLAG(0x00000010) printf("   Moving forward\n");
-            HAS_FLAG(0x00000020) printf("   Moving reverse\n");
-            HAS_FLAG(0x00000040) printf("   Jogging forward\n");
-            HAS_FLAG(0x00000080) printf("   Jogging reverse\n");
-            HAS_FLAG(0x00000100) printf("   Motor Connected\n");
-            HAS_FLAG(0x00000200) printf("   Homing\n");
-            HAS_FLAG(0x00000400) printf("   Homed\n");
-            HAS_FLAG(0x00001000) printf("   Tracking\n");
-            HAS_FLAG(0x00002000) printf("   Settled\n");
-            HAS_FLAG(0x00004000) printf("   Motion error\n");
-            HAS_FLAG(0x01000000) printf("   Motor limit reached\n");
-            HAS_FLAG(0x80000000) printf("   Channel enabled\n");
-        }
+    if (connected_device[dev_index].motor[mot_index].status_updates){
+        if (connected_device[dev_index].enc_counter == 1) printf("  Status message - encoder count : %d\n",connected_device[dev_index].motor[mot_index].status_enc_count);
+        else printf("  Status message - position : %d\n",connected_device[dev_index].motor[mot_index].status_position);
+        printf("  Status message - velocity : %d\n",connected_device[dev_index].motor[mot_index].status_velocity);
+        printf("  Status bits info: \n");
+        HAS_FLAG(0x00000001) printf("   Forward hardware limit switch active\n");
+        HAS_FLAG(0x00000002) printf("   Reverse hardware limit switch active\n");
+        HAS_FLAG(0x00000004) printf("   Forward software limit switch active\n");
+        HAS_FLAG(0x00000008) printf("   Reverse software limit switch active\n");
+        HAS_FLAG(0x00000010) printf("   Moving forward\n");
+        HAS_FLAG(0x00000020) printf("   Moving reverse\n");
+        HAS_FLAG(0x00000040) printf("   Jogging forward\n");
+        HAS_FLAG(0x00000080) printf("   Jogging reverse\n");
+        HAS_FLAG(0x00000100) printf("   Motor Connected\n");
+        HAS_FLAG(0x00000200) printf("   Homing\n");
+        HAS_FLAG(0x00000400) printf("   Homed\n");
+        HAS_FLAG(0x00001000) printf("   Tracking\n");
+        HAS_FLAG(0x00002000) printf("   Settled\n");
+        HAS_FLAG(0x00004000) printf("   Motion error\n");
+        HAS_FLAG(0x01000000) printf("   Motor limit reached\n");
+        HAS_FLAG(0x80000000) printf("   Channel enabled\n");
+    }
 }
 
 int DeviceInfoC(std::vector<string> args){
@@ -1432,9 +1432,9 @@ int ButtonsParamC(std::vector<string> args){
 }
 
 void PrintStatus(int at){
-    printf("Position: %d", opened_device.motor[at].status_position);
-    if (opened_device.motor[at].enc_count != -1) printf("Encoder count: %d", opened_device.motor[at].status_enc_count);
-    else printf("Velocity: %d", opened_device.motor[at].status_velocity);
+    printf("Position: %d\n", opened_device.motor[at].status_position);
+    if (opened_device.motor[at].enc_count != -1) printf("Encoder count: %d\n", opened_device.motor[at].status_enc_count);
+    else printf("Velocity: %d\n", opened_device.motor[at].status_velocity);
 }
 
 int StatusC(std::vector<string> args){
