@@ -239,11 +239,11 @@ int Channels(int type){
 };
 
 int ContainEncCounter(int type){
-    if (type == TDC001 || type == TBD001 || type == BBD101 || type == BBD102 || type == BBD103 
+    if ( type == TBD001 || type == BBD101 || type == BBD102 || type == BBD103 
             || type == BBD201 || type == BBD202 || type == BBD203 ) return 1;
     
     if (type == TST001 || type == BSC103 || type == BSC201 || type == BSC202 || type == BSC203 || type == BSC102 ||
-            type == BSC001 ||  type == BSC101 ||  type == BSC002 || type == MST601 || type == MST601  ) return 0;
+          type == TDC001 || type == BSC001 ||  type == BSC101 ||  type == BSC002 || type == MST601 || type == MST601  ) return 0;
     return -1;
 }
 
