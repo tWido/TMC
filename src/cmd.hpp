@@ -259,7 +259,6 @@ int DeviceInfoC(std::vector<string> args){
         }
         HwInfo *info = (HwInfo*) malloc(sizeof(HwInfo));
         if (device_calls::GetHwInfo(info) != 0) printf("Error occured while receiving info from device\n");
-        printf("  Model number: %s\n",info->ModelNumber().c_str());
         printf("  Hardware version: %d\n", info->HwVersion());
         printf("  Notes: %s\n", info->Notes().c_str());
         free(info);
@@ -1457,6 +1456,7 @@ int StatusC(std::vector<string> args){
             else {
                 if (opened_device.enc_counter == 1) device_calls::ReqStatus(0x50,index);
                 else device_calls::ReqDcStatus(0x50, index);
+                PrintStatus(index -1);
             }
         }
         else {
@@ -1468,6 +1468,7 @@ int StatusC(std::vector<string> args){
             else {
                 if (opened_device.enc_counter == 1) device_calls::ReqStatus(index);
                 else device_calls::ReqDcStatus(index);
+                 PrintStatus(index -1);
             }
         }
     }
