@@ -9,7 +9,6 @@ typedef struct {
     int tick;
     int enc_count = -1;
     uint8_t dest;
-    bool status_updates = false;
     int32_t status_position;
     int16_t status_velocity;
     int32_t status_enc_count;
@@ -26,6 +25,7 @@ typedef struct{
     int bays;      
     int channels;
     uint8_t dest;
+    bool status_updates;
     char *SN;
     bool bay_used[3];
     int enc_counter;     //controllers use either encoder count(1) or microsteps(0), unspecified (-1)
