@@ -3,7 +3,6 @@
 
 typedef struct {
     int motor_type;
-    bool restrictions_loaded = false;
     int max_pos;
     int max_vel;
     int max_acc;
@@ -31,7 +30,7 @@ typedef struct{
     bool bay_used[3];
     int enc_counter;     //controllers use either encoder count(1) or microsteps(0), unspecified (-1)
     motor_device motor[3];
-    bool end_of_move_messages = false;
+    bool end_of_move_messages = true;
 } controller_device;
 
 unsigned int devices_connected;
