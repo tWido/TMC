@@ -1112,7 +1112,7 @@ int StartJogMoveC(std::vector<string> args){
         if (args.at(i).compare("-h") == 0){
             printf("Start jog move. Jog move parameters can be specified by jogmovep call. Setting direction is mandatory.\n");
             printf("-i NUMBER           index of motor to start move, default is 1\n");
-            printf("-d VALUE            direction: 1 -> forward, 2 -> reverse, mandatory argument ");
+            printf("-d VALUE            direction: 1 -> forward, 2 -> reverse, mandatory argument\n");
             return 0;
         }
         
