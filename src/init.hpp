@@ -359,6 +359,7 @@ int init(){
 
 void exit(){
     free(connected_device);
+    device_calls::StopUpdateMess();
     for (unsigned int i = 0; i < devices_connected; i++){
         FT_Close(opened_device.handle);
     }

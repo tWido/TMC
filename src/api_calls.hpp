@@ -79,6 +79,7 @@ uint8_t DefaultStopMode(){
 
 int OpenDevice(unsigned int index){
     if (index >= devices_connected) return INVALID_PARAM_1;
+    device_calls::StopUpdateMess();
     FT_Close(opened_device.handle);
     opened_device = connected_device[index];
     FT_HANDLE handle;
@@ -87,6 +88,7 @@ int OpenDevice(unsigned int index){
     if (ft_status != FT_OK ) { printf("Error opening device: %d\n", ft_status); return FT_ERROR; }
     opened_device.handle = handle;
     opened_device_index = index;
+    device_calls::StartUpdateMess();
     return 0;
 };
 

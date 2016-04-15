@@ -1503,7 +1503,6 @@ call_map calls = {
 int run_cmd(int mode){
     printf("Awaiting commands. Type \"help\" to display available commands.\n");
     int command_num = 1;
-    device_calls::StartUpdateMess();
     while(true){
         std::string line = "";
         std::getline(std::cin, line);
