@@ -325,7 +325,7 @@ int StartUpdateMess(uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest()){
     StartUpdateMessages mes(dest, SOURCE);
     if (mes.SetUpdaterate(rate) == IGNORED_PARAM) printf("This parameter is ignored in connected device. Using default.\n");
     SendMessage(mes);
-    opened_device.end_of_move_messages = true;
+    opened_device.status_updates = true;
     EMPTY_IN_QUEUE
     return 0;
 }
@@ -335,7 +335,7 @@ int StopUpdateMess(uint8_t dest = DefaultDest()){
     EMPTY_IN_QUEUE
     StopUpdateMessages mes(dest, SOURCE);
     SendMessage(mes);
-    opened_device.end_of_move_messages = false;
+    opened_device.status_updates = false;
     EMPTY_IN_QUEUE
     return 0;
 }
@@ -751,7 +751,7 @@ int EnableEomMessages(uint8_t dest = DefaultDest()){
     EMPTY_IN_QUEUE
     EnableEndMoveMessages mes(dest,SOURCE);
     SendMessage(mes);
-    opened_device.end_of_move_messages = false;
+    opened_device.end_of_move_messages = true;
     EMPTY_IN_QUEUE 
     return 0;
 };
