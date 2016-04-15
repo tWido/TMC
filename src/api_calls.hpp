@@ -77,20 +77,6 @@ uint8_t DefaultStopMode(){
     return 0x02;
 }
 
-int OpenDevice(unsigned int index){
-    if (index >= devices_connected) return INVALID_PARAM_1;
-    device_calls::StopUpdateMess();
-    FT_Close(opened_device.handle);
-    opened_device = connected_device[index];
-    FT_HANDLE handle;
-    FT_STATUS ft_status;
-    ft_status = FT_OpenEx( opened_device.SN, FT_OPEN_BY_SERIAL_NUMBER, &handle);
-    if (ft_status != FT_OK ) { printf("Error opening device: %d\n", ft_status); return FT_ERROR; }
-    opened_device.handle = handle;
-    opened_device_index = index;
-    device_calls::StartUpdateMess();
-    return 0;
-};
 
 int CheckParams( uint8_t dest, int chanID){
     if (chanID > opened_device.channels && chanID != -1) return INVALID_CHANNEL;
@@ -775,5 +761,20 @@ int GetMotorTrigger(GetTrigger *message, uint8_t dest = DefaultDest(), uint8_t c
 
 
 } // namespace device_calls
+
+int OpenDevice(unsigned int index){
+    if (index >= devices_connected) return INVALID_PARAM_1;
+    device_calls::StopUpdateMess();
+    FT_Close(opened_device.handle);
+    opened_device = connected_device[index];
+    FT_HANDLE handle;
+    FT_STATUS ft_status;
+    ft_status = FT_OpenEx( opened_device.SN, FT_OPEN_BY_SERIAL_NUMBER, &handle);
+    if (ft_status != FT_OK ) { printf("Error opening device: %d\n", ft_status); return FT_ERROR; }
+    opened_device.handle = handle;
+    opened_device_index = index;
+    device_calls::StartUpdateMess();
+    return 0;
+};
 
 #endif 
