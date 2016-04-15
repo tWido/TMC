@@ -196,34 +196,6 @@ int OpenDeviceC(std::vector<string> args){
     return 0;
 }
 
-void DeviceInfoHelper(int dev_index, int mot_index){
-    if (connected_device[dev_index].motor[mot_index].enc_count != -1) printf("  Encoder count : %d\n",connected_device[dev_index].motor[mot_index].enc_count);
-    if (connected_device[dev_index].motor[mot_index].homing) printf("  Moving to home position\n");
-    if (connected_device[dev_index].motor[mot_index].moving) printf("  Moving\n");
-    if (connected_device[dev_index].motor[mot_index].stopping) printf("  Stopping\n");
-    if (connected_device[dev_index].motor[mot_index].status_updates){
-        if (connected_device[dev_index].enc_counter == 1) printf("  Status message - encoder count : %d\n",connected_device[dev_index].motor[mot_index].status_enc_count);
-        else printf("  Status message - position : %d\n",connected_device[dev_index].motor[mot_index].status_position);
-        printf("  Status message - velocity : %d\n",connected_device[dev_index].motor[mot_index].status_velocity);
-        printf("  Status bits info: \n");
-        HAS_FLAG(0x00000001) printf("   Forward hardware limit switch active\n");
-        HAS_FLAG(0x00000002) printf("   Reverse hardware limit switch active\n");
-        HAS_FLAG(0x00000004) printf("   Forward software limit switch active\n");
-        HAS_FLAG(0x00000008) printf("   Reverse software limit switch active\n");
-        HAS_FLAG(0x00000010) printf("   Moving forward\n");
-        HAS_FLAG(0x00000020) printf("   Moving reverse\n");
-        HAS_FLAG(0x00000040) printf("   Jogging forward\n");
-        HAS_FLAG(0x00000080) printf("   Jogging reverse\n");
-        HAS_FLAG(0x00000100) printf("   Motor Connected\n");
-        HAS_FLAG(0x00000200) printf("   Homing\n");
-        HAS_FLAG(0x00000400) printf("   Homed\n");
-        HAS_FLAG(0x00001000) printf("   Tracking\n");
-        HAS_FLAG(0x00002000) printf("   Settled\n");
-        HAS_FLAG(0x00004000) printf("   Motion error\n");
-        HAS_FLAG(0x01000000) printf("   Motor limit reached\n");
-        HAS_FLAG(0x80000000) printf("   Channel enabled\n");
-    }
-}
 
 int DeviceInfoC(std::vector<string> args){
     if (args.size() > 1 && args.at(1) == "-h"){ 
@@ -244,17 +216,14 @@ int DeviceInfoC(std::vector<string> args){
                 else{
                     printf("Used\n");
                     printf("  Destination address : %d\n",connected_device[i].motor[j].dest);
-                    DeviceInfoHelper(i,j);
                 }
             }
         }
         if (connected_device[i].channels != -1 ){ 
             printf(" Channels: %d\n", connected_device[i].channels);
             printf(" Channel 1\n");
-            DeviceInfoHelper(i,0);
             if (connected_device[i].channels == 2 ){
                 printf(" Channel 2\n");
-                DeviceInfoHelper(i,1);
             }
         }
         HwInfo *info = (HwInfo*) malloc(sizeof(HwInfo));
@@ -1432,8 +1401,9 @@ int ButtonsParamC(std::vector<string> args){
 
 void PrintStatus(int at){
     printf("Position: %d\n", opened_device.motor[at].status_position);
-    if (opened_device.motor[at].enc_count != -1) printf("Encoder count: %d\n", opened_device.motor[at].status_enc_count);
+    if (opened_device.motor[at].enc_count == 1) printf("Encoder count: %d\n", opened_device.motor[at].status_enc_count);
     else printf("Velocity: %d\n", opened_device.motor[at].status_velocity);
+    //get status bits -> moving, stopping etc
 }
 
 int StatusC(std::vector<string> args){
@@ -1452,24 +1422,14 @@ int StatusC(std::vector<string> args){
                 printf("Not existing motor index given\n");
                 return ERR_CALL;
             }
-            if (opened_device.motor[index-1].status_updates) PrintStatus(index-1);
-            else {
-                if (opened_device.enc_counter == 1) device_calls::ReqStatus(0x50,index);
-                else device_calls::ReqDcStatus(0x50, index);
-                PrintStatus(index -1);
-            }
+            PrintStatus(index-1);
         }
         else {
             if (opened_device.bays < index || opened_device.bay_used[index-1] == false){
                 printf("Not existing motor index given\n");
                 return ERR_CALL;
             }
-            if (opened_device.motor[index-1].status_updates) PrintStatus(index-1);
-            else {
-                if (opened_device.enc_counter == 1) device_calls::ReqStatus(index);
-                else device_calls::ReqDcStatus(index);
-                 PrintStatus(index -1);
-            }
+            PrintStatus(index-1);
         }
     }
     else {
@@ -1543,6 +1503,7 @@ call_map calls = {
 int run_cmd(int mode){
     printf("Awaiting commands. Type \"help\" to display available commands.\n");
     int command_num = 1;
+    device_calls::StartUpdateMess();
     while(true){
         std::string line = "";
         std::getline(std::cin, line);
