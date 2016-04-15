@@ -1540,6 +1540,7 @@ call_map calls = {
 
 
 int run_cmd(int mode){
+    printf("Awaiting commands. Type \"help\" to display available commands.\n");
     int command_num = 1;
     while(true){
         std::string line = "";
