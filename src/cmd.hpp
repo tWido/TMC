@@ -143,7 +143,7 @@ int HelpC(std::vector<string> args){
 
 int OpenDeviceC(std::vector<string> args){
     NULL_ARGS
-    if (args.size() > 3 ) {
+    if (args.size() > 3  || args.size() == 2) {
         printf("Unexpected number of arguments, see -h for help\n");
         return INVALID_CALL;
     } 
