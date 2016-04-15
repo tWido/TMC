@@ -771,7 +771,7 @@ public:
     }
     
     int SetMode(uint16_t mode){ 
-        if ( mode > 11 || ( mode > 3 || mode < 8) ) return INVALID_PARAM;
+        if ( mode != 1 && mode != 2 && mode != 3 && (mode < 8  || mode > 11)) return INVALID_PARAM;
         *((uint16_t *) &bytes[8]) = htole16(mode); 
          return 0;
     }
