@@ -1500,6 +1500,23 @@ int WaitForStopC(std::vector<string> args){
     return 0;
 }
 
+int reserve_fd;
+void RedirectOutput(){
+    reserve_fd = dup(STDOUT_FILENO);
+    FILE *void_file = fopen("/dev/null","w");
+    if (void_file == NULL) printf("Failed to open dev/null, undefined output\n");
+    dup2(fileno(void_file), STDERR_FILENO);
+    dup2(fileno(void_file), STDOUT_FILENO);
+    fclose(void_file);
+    return;
+}
+
+void EnableOutput(){
+    fflush(stdout);
+    dup2(reserve_fd, STDOUT_FILENO);
+    close(reserve_fd);
+}
+
 call_map calls = {
     std::make_pair("help", &HelpC),
     std::make_pair("flash", &IdentC),
@@ -1534,7 +1551,7 @@ int run_cmd(int mode){
     struct timeval time;
     int ret;
     int command_num = 1;
-    
+    if (mode == 3 ) RedirectOutput();
     if (mode != 3) printf("Awaiting commands. Type \"help\" to display available commands.\n");
     while(true){
         FD_ZERO(&desc_set);
@@ -1561,7 +1578,11 @@ int run_cmd(int mode){
         if ( args.at(0).compare("exit") == 0 ) break;
         
         if ( calls.count(args.at(0))== 0 ) {
-            if (mode == 3) {fprintf(stderr ,"File not valid on line %d\n", command_num); return 0;} 
+            if (mode == 3) { 
+                EnableOutput();
+                printf("File not valid on line %d\n", command_num);
+                return 0;
+            } 
             printf("Unrecognized command %s\n", args.at(0).c_str() );
             continue;
         }
@@ -1569,16 +1590,21 @@ int run_cmd(int mode){
         if (ret == FT_ERROR && mode != 3) return FT_ERROR;
         if (ret == INVALID_CALL) {
             if (mode == 3) {
-                fprintf(stderr ,"File not valid on line %d\n", command_num);
+                EnableOutput();
+                printf("File not valid on line %d\n", command_num);
                 return 0;
             }
             else printf("Invalid syntax\n");
         }
+        
         if (mode != 3) device_calls::SendServerAlive(0x50);
         command_num++;
         }
     
-    if (mode == 3) perror("File validated\n");  
+    if (mode == 3) {
+        EnableOutput();
+        printf("File validated\n");
+    }  
     return 0;
 }
 

@@ -45,13 +45,6 @@ switch (ret_code){
 
 }
 
-void RedirectOutput(){
-    FILE *void_file = fopen("/dev/null","w");
-    if (void_file == NULL) printf("Failed to open dev/null, undefined output\n");
-    dup2(fileno(void_file), STDERR_FILENO);
-    fclose(void_file);
-    return;
-}
 
 int main(int argc, char** argv) {
     ParseCmdArgs(argc, argv);
@@ -63,10 +56,8 @@ int main(int argc, char** argv) {
     }
     
     if (UI == 1) ret_code = run_cmd(1);
-    if (UI == 3) {
-        RedirectOutput();
-        ret_code = run_cmd(3);
-    }
+    if (UI == 3) ret_code = run_cmd(3);
+    
     if ( ret_code != 0 ) {
         FailExit(ret_code);
         return ret_code;
