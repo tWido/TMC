@@ -48,7 +48,7 @@ switch (ret_code){
 void RedirectOutput(){
     FILE *void_file = fopen("/dev/null","w");
     if (void_file == NULL) printf("Failed to open dev/null, undefined output\n");
-    dup2(fileno(void_file), STDOUT_FILENO);
+    dup2(fileno(void_file), STDERR_FILENO);
     fclose(void_file);
     return;
 }

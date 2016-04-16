@@ -51,7 +51,7 @@ int addVidPid(){
             vid_path.append("/idVendor");
             FILE *read_file = fopen(vid_path.c_str() ,"r");
             if (read_file == NULL) {
-                printf("Error while reading vendor id %s", strerror(errno));
+                fprintf(stderr, "Error while reading vendor id %s", strerror(errno));
                 closedir(usb_devs);
                 return SYSTEM_ERROR;
             }
@@ -64,7 +64,7 @@ int addVidPid(){
             pid_path.append("/idProduct");
             read_file = fopen(pid_path.c_str() ,"r");
             if (read_file == NULL) {
-                printf("Error while reading product id %s", strerror(errno));
+                fprintf(stderr, "Error while reading product id %s", strerror(errno));
                 closedir(usb_devs);
                 return SYSTEM_ERROR;
             }
@@ -74,7 +74,7 @@ int addVidPid(){
             
             ftStatus = FT_SetVIDPID(vid, pid);
             if (ftStatus != FT_OK ) {
-                printf("Setting found vendor ID and product ID failed, error: %d ", ftStatus );
+                fprintf(stderr, "Setting found vendor ID and product ID failed, error: %d ", ftStatus );
                 closedir(usb_devs);
                 return FT_ERROR;
             }
@@ -84,7 +84,7 @@ int addVidPid(){
             sn_path.append("/serial");
             read_file = fopen(sn_path.c_str() ,"r");
             if (read_file == NULL) {
-                printf("Error while reading product serial %s", strerror(errno));
+                fprintf(stderr, "Error while reading product serial %s", strerror(errno));
                 closedir(usb_devs);
                 return SYSTEM_ERROR;
             }
@@ -106,7 +106,7 @@ int RemoveModules(std::string module_name){
     lsmod_cmd.append(module_name);
     FILE* out = popen(lsmod_cmd.c_str(), "r");
     if (out == NULL){
-        printf("Failed to run system command. Modules not checked. \n");
+        fprintf(stderr, "Failed to run system command. Modules not checked. \n");
         return SYSTEM_ERROR;
     }
     
@@ -119,7 +119,7 @@ int RemoveModules(std::string module_name){
     }
     
     if( pclose(out) == -1 ){ 
-        printf("Failed to close input from system. \n");
+        fprintf(stderr, "Failed to close input from system. \n");
         return SYSTEM_ERROR;
     }
     return 0;
@@ -320,14 +320,14 @@ int init(){
     unsigned int num_ftdi_devices;
     ft_status = FT_CreateDeviceInfoList(&num_ftdi_devices);
     if (ft_status != FT_OK) {
-        printf("Detecting devices failed\n");
+        fprintf(stderr, "Detecting devices failed\n");
         return FT_ERROR;
     }
     
     FT_DEVICE_LIST_INFO_NODE *ftdi_devs = (FT_DEVICE_LIST_INFO_NODE*) malloc(sizeof(FT_DEVICE_LIST_INFO_NODE) *num_ftdi_devices  ) ;  
     ft_status = FT_GetDeviceInfoList( ftdi_devs, &num_ftdi_devices) ;  
     if (ft_status != FT_OK) {
-        printf("Detecting devices failed\n");
+        fprintf(stderr, "Detecting devices failed\n");
         free(ftdi_devs);
         return FT_ERROR;
     }

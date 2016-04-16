@@ -1535,7 +1535,7 @@ int run_cmd(int mode){
     int ret;
     int command_num = 1;
     
-    printf("Awaiting commands. Type \"help\" to display available commands.\n");
+    if (mode != 3) printf("Awaiting commands. Type \"help\" to display available commands.\n");
     while(true){
         FD_ZERO(&desc_set);
         FD_SET(STDIN_FILENO, &desc_set);

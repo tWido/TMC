@@ -33,7 +33,7 @@
 
 #define READ_REST(x)  unsigned int bytes_red; ftStatus = FT_Read(opened_device.handle, &buff[2], x, &bytes_red); \
         if (ftStatus != FT_OK) {                                    \
-        printf("FT_Error occured, error code :%d\n", ftStatus );    \
+        fprintf(stderr,"FT_Error occured, error code :%d\n", ftStatus );    \
         return FT_ERROR;                                            \
         }  
 
@@ -107,8 +107,8 @@ int SendMessage(Message &message){
         return 0;
     }
     else {
-        printf("Sending message failed, error code : %d \n", wrStatus );
-        printf("wrote : %d should write: %d \n", wrote, message.msize());
+        fprintf(stderr,"Sending message failed, error code : %d \n", wrStatus );
+        fprintf(stderr,"wrote : %d should write: %d \n", wrote, message.msize());
     }
     return FT_ERROR;
 }
@@ -118,7 +118,7 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
     unsigned int bytes;
     ftStatus = FT_GetQueueStatus(opened_device.handle, &bytes);
     if (ftStatus != FT_OK ) {
-        printf("FT_Error occured, error code :%d\n", ftStatus );
+        fprintf(stderr,"FT_Error occured, error code :%d\n", ftStatus );
         return FT_ERROR;
     }
     if (bytes == 0 ) return EMPTY;
@@ -126,7 +126,7 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
     unsigned int red;
     ftStatus = FT_Read(opened_device.handle, buff, 2, &red);          
     if (ftStatus != FT_OK) {
-        printf("FT_Error occured, error code :%d\n", ftStatus );
+        fprintf(stderr,"FT_Error occured, error code :%d\n", ftStatus );
         free(buff);
         return FT_ERROR;
     }
@@ -142,19 +142,19 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
         case HW_RESPONSE:{
             READ_REST(4)
             HwResponse response(buff);
-            printf("Device with serial %s encountered error\n", opened_device.SN);
+            fprintf(stderr,"Device with serial %s encountered error\n", opened_device.SN);
             free(buff);
             return DEVICE_ERROR;
         }
         case RICHRESPONSE:{
             READ_REST(72)
             HwResponseInfo response(buff);      
-            printf("Device with serial %s encountered error\n", opened_device.SN);
-            printf("Detailed description of error \n ");
+            fprintf(stderr, "Device with serial %s encountered error\n", opened_device.SN);
+            fprintf(stderr, "Detailed description of error \n ");
             uint16_t error_cause = response.GetMsgID();
             if (error_cause != 0) printf("\tMessage causing error: %d\n ", error_cause);
-            printf("\tThorlabs error code: %d \n", response.GetCode());
-            printf("\tDescription: %s\n", response.GetDescription());
+            fprintf(stderr, "\tThorlabs error code: %d \n", response.GetCode());
+            fprintf(stderr, "\tDescription: %s\n", response.GetDescription());
             free(buff);
             return DEVICE_ERROR;
         }
@@ -218,7 +218,7 @@ int EmptyIncomingQueue(){
             case FT_ERROR: return FT_ERROR;
             case DEVICE_ERROR: return DEVICE_ERROR;
             case OTHER_MESSAGE: {
-                printf("Unknown message received, protocol violated\n");
+                fprintf(stderr, "Unknown message received, protocol violated\n");
                 return FATAL_ERROR;
             }
         }
@@ -236,7 +236,7 @@ int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess ){
                 unsigned int red;
                 FT_STATUS read_status = FT_Read(opened_device.handle, &mess[2], size-2, &red);
                 if ( read_status != FT_OK ) {
-                    printf("FT_Error occured, error code :%d\n", read_status );
+                    fprintf(stderr, "FT_Error occured, error code :%d\n", read_status );
                     return FT_ERROR;
                 }
                 return 0;
@@ -770,7 +770,7 @@ int OpenDevice(unsigned int index){
     FT_HANDLE handle;
     FT_STATUS ft_status;
     ft_status = FT_OpenEx( opened_device.SN, FT_OPEN_BY_SERIAL_NUMBER, &handle);
-    if (ft_status != FT_OK ) { printf("Error opening device: %d\n", ft_status); return FT_ERROR; }
+    if (ft_status != FT_OK ) { fprintf(stderr, "Error opening device: %d\n", ft_status); return FT_ERROR; }
     opened_device.handle = handle;
     opened_device_index = index;
     device_calls::StartUpdateMess();
