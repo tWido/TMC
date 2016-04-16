@@ -1547,21 +1547,24 @@ call_map calls = {
 
 
 int run_cmd(int mode){
-    fd_set desc_set;
+    fd_set in_set;
     struct timeval time;
     int ret;
     int command_num = 1;
     if (mode == 3 ) RedirectOutput();
     if (mode != 3) printf("Awaiting commands. Type \"help\" to display available commands.\n");
+    unsigned int tick = 0;
     while(true){
-        FD_ZERO(&desc_set);
-        FD_SET(STDIN_FILENO, &desc_set);
+        FD_ZERO(&in_set);
+        FD_SET(STDIN_FILENO, &in_set);
         time.tv_sec = 1;
         time.tv_usec = 0;
-        ret = select(1, &desc_set, NULL, NULL, &time);
+        ret = select(1, &in_set, NULL, NULL, &time);
         if (ret == -1) return FATAL_ERROR;
         if (ret == 0 ){
+            tick++;
             EmptyIncomingQueue();
+            if (mode != 3 && (tick % 5 == 0))  device_calls::SendServerAlive(0x50);
             continue;
         }
         
@@ -1597,7 +1600,7 @@ int run_cmd(int mode){
             else printf("Invalid syntax\n");
         }
         
-        if (mode != 3) device_calls::SendServerAlive(0x50);
+        if (mode != 3 && (command_num % 5 == 0)) device_calls::SendServerAlive(0x50);
         command_num++;
         }
     
