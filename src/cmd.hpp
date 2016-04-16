@@ -9,6 +9,9 @@
 #include <string>
 #include <sstream>
 #include <signal.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 typedef int (*helper)(std::vector<string>);
 typedef std::map<std::string,helper> call_map;
@@ -1527,9 +1530,24 @@ call_map calls = {
 
 
 int run_cmd(int mode){
-    printf("Awaiting commands. Type \"help\" to display available commands.\n");
+    fd_set desc_set;
+    struct timeval time;
+    int ret;
     int command_num = 1;
+    
+    printf("Awaiting commands. Type \"help\" to display available commands.\n");
     while(true){
+        FD_ZERO(&desc_set);
+        FD_SET(STDIN_FILENO, &desc_set);
+        time.tv_sec = 1;
+        time.tv_usec = 0;
+        ret = select(1, &desc_set, NULL, NULL, &time);
+        if (ret == -1) return FATAL_ERROR;
+        if (ret == 0 ){
+            EmptyIncomingQueue();
+            continue;
+        }
+        
         std::string line = "";
         std::getline(std::cin, line);
         if (line == "" ) {command_num++ ;continue;}
@@ -1541,12 +1559,12 @@ int run_cmd(int mode){
         while (ss >> tok) args.push_back(tok);  
         
         if ( args.at(0).compare("exit") == 0 ) break;
+        
         if ( calls.count(args.at(0))== 0 ) {
             if (mode == 3) {fprintf(stderr ,"File not valid on line %d\n", command_num); return 0;} 
             printf("Unrecognized command %s\n", args.at(0).c_str() );
             continue;
         }
-        int ret;
         ret = calls.at(args.at(0))(args);
         if (ret == FT_ERROR && mode != 3) return FT_ERROR;
         if (ret == INVALID_CALL) {
