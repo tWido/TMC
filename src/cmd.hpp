@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <signal.h>
 
 typedef int (*helper)(std::vector<string>);
 typedef std::map<std::string,helper> call_map;
@@ -1454,6 +1455,12 @@ int StatusC(std::vector<string> args){
     return 0;
 }
 
+bool end_wait;
+
+void StopWait(int sig_num){
+    end_wait = true;
+}
+
 int WaitForStopC(std::vector<string> args){
     NULL_ARGS
     if (args.at(1).compare("-h") == 0){
@@ -1469,14 +1476,18 @@ int WaitForStopC(std::vector<string> args){
         int i = 1;
         uint8_t index;
         GET_NUM(index);
-        printf("Start wait\n");
+        end_wait = false;
+        signal(SIGTSTP, &StopWait);
+        printf("Started wait, press ctrl+z to end wait\n");
         while(true){
             GET_MESSAGE(GetStatusBits, device_calls::GetStatBits)
             opened_device.motor[mess->GetMotorID()].status_status_bits = mess->GetStatBits();
+            if (end_wait) break;
             if ((mess->GetStatBits() & 0x00000010) == 0x00000010 || (mess->GetStatBits() & 0x00000020) == 0x00000020 || (mess->GetStatBits() & 0x00000040) == 0x00000040 || 
                     (mess->GetStatBits() & 0x00000080) == 0x00000080 || (mess->GetStatBits() & 0x00000200) == 0x00000200 ) sleep(1);
             else break;
         }
+        signal(SIGTSTP, SIG_DFL);
         printf("Motor in stable position\n");
     }
     else {
