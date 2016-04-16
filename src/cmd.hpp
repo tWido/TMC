@@ -1580,7 +1580,7 @@ int run_cmd(int mode){
         if ( calls.count(args.at(0))== 0 ) {
             if (mode == 3) { 
                 EnableOutput();
-                printf("File not valid on line %d\n", command_num);
+                printf("File not valid on line %d, unrecognized command\n", command_num);
                 return 0;
             } 
             printf("Unrecognized command %s\n", args.at(0).c_str() );
@@ -1591,7 +1591,7 @@ int run_cmd(int mode){
         if (ret == INVALID_CALL) {
             if (mode == 3) {
                 EnableOutput();
-                printf("File not valid on line %d\n", command_num);
+                printf("File not valid on line %d, bad command syntax\n", command_num);
                 return 0;
             }
             else printf("Invalid syntax\n");
