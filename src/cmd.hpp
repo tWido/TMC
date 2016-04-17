@@ -10,11 +10,7 @@
 #include <sstream>
 #include <signal.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <unistd.h>
-#include <termios.h>
-#include <fcntl.h>
-#include <ncurses.h>
 
 typedef int (*helper)(std::vector<string>);
 typedef std::unordered_map<std::string,helper> call_map;
@@ -1564,10 +1560,10 @@ int run_cmd(int mode){
         time.tv_usec = 0;
         ret = select(1, &in_set, NULL, NULL, &time);
         if (ret == -1) return FATAL_ERROR;
-        if (ret == 0 ){            
+        if (ret == 0 ){
             tick++;
             EmptyIncomingQueue();
-            if (mode != 3 && (tick % 5 == 0))  device_calls::SendServerAlive(0x50);          
+            if (mode != 3 && (tick % 5 == 0))  device_calls::SendServerAlive(0x50);
             continue;
         }
         
