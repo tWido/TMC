@@ -14,7 +14,7 @@ LINK_DIR=/usr/local/lib
 
 all: $(SRCS)
 	mkdir -p $(BUILD_DIR)
-	$(CC) $(SRCS) $(LIBS) $(CFLAGS) -o $(BUILD_DIR)/$(MAIN) -Wl,-rpath=$(LINK_DIR)
+	$(CC) $(SRCS) $(LIBS) $(CFLAGS) -o $(BUILD_DIR)/$(MAIN) -Wl,-rpath=$(LINK_DIR) -fPIE -L/usr/X11R6/lib64 -lQt5Widgets -L/usr/lib/x86_64-linux-gnu -lQt5Gui -lQt5Core -lGL -lpthread -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I. -I. -I.
 	mkdir -p $(BUILD_DIR)/restrictions
 
 clean:

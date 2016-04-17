@@ -3,6 +3,7 @@
 #include "api_calls.hpp"
 #include "init.hpp"
 #include "cmd.hpp"
+#include "gui.hpp"
 #include "../ftdi_lib/ftd2xx.h"
 #include "../ftdi_lib/WinTypes.h"
 
@@ -67,15 +68,16 @@ int main(int argc, char** argv) {
     }
     
     int ret_code = 0;
-    if (UI !=3) ret_code = init();
+    //if (UI !=3) ret_code = init();
     if ( ret_code != 0 ){ 
         FailExit(ret_code);
         return ret_code;
     }
     
     if (UI == 1) ret_code = run_cmd(1);
+    if (UI == 2) ret_code = run_gui();
     if (UI == 3) ret_code = run_cmd(3);
-
+    
     if ( ret_code != 0 ) {
         FailExit(ret_code);
         return ret_code;
