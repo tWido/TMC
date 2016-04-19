@@ -26,8 +26,8 @@ typedef struct{
     int channels;
     uint8_t dest;
     bool status_updates;
-    char *SN;
-    char *dev_type_name;
+    char *SN =(char*) "00000000";
+    char *dev_type_name =(char*) "No device name";
     bool bay_used[3];
     int enc_counter;     //controllers use either encoder count(1) or microsteps(0), unspecified (-1)
     motor_device motor[3];
