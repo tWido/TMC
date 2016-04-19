@@ -17,7 +17,7 @@
 
 #define STOP 1
 #define SYSTEM_ERROR -3
-#define FIND_DEV(code) if (strncmp(name.c_str(), #code, 6) == 0){ printf("Found controller device, type: %s\n", name.c_str()) ; return code;}
+#define FIND_DEV(code) if (strncmp(name.c_str(), #code, 6) == 0){ printf("Found controller device, type: %s\n", name.c_str()) ;  return code;}
 
 #define USB_PATH path = dev_path; path.append(loc);
 
@@ -258,6 +258,7 @@ int LoadDeviceInfo( controller_device &device){
     if (ret != 0) return ret;
     device.hw_type = info->HWType();
     std::string model_num = info->ModelNumber();
+    device.dev_type_name = strdup(info->ModelNumber().c_str());
     device.device_type = ToDevType(model_num);
     if (device.device_type == -1 ){ 
         printf("WARNING: unrecognized controller device\n");
