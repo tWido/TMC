@@ -1,6 +1,7 @@
 #ifndef GUI_HPP
 #define	GUI_HPP
 
+#include <string> 
 #include <qapplication.h>
 #include <qpushbutton.h>
 #include <QApplication>
@@ -24,16 +25,19 @@
 #include <QGroupBox>
 #include <QtWidgets/QLineEdit>
 #include <QVBoxLayout>
+#include <QPalette>
 
 #include "device.hpp"
 
 class GUI: public QWidget{
     public:
+        int actual_channel;
         QMainWindow *main;
         QMenuBar *menuBar;
         QMenu *control_menu;
         QMenu *device_menu;
         QMenu *help_menu;
+        QMenu *exit;
         QLabel *dev_name;
         QLabel *dev_ser;
         QLabel *serial;
@@ -63,27 +67,36 @@ class GUI: public QWidget{
         QLabel *abspl;
         QPushButton *start;
         QPushButton *stop;
+        QGroupBox *status_box;
+        QGridLayout *lstat;
+        QLabel *moving;
+        QLabel *homing;
+        QLabel *stopping;
+        QLabel *position;
+        QLabel *velocity;
+        QLabel *enc_count;
         
         void Setup(){
             //main
             main = new QMainWindow(this);
             main->resize(800, 600);
             main ->setWindowTitle("Thorlabs motor controller");
+            //main->setSizePolicy(QSizePolicy::Fixed);
             
             //Menu
             menuBar = new QMenuBar(main);
             menuBar->setGeometry(0, 0, 800, 40);
             menuBar->move(0,0);
             main->setMenuBar(menuBar);
-            control_menu = new QMenu(menuBar);
-            control_menu->setTitle("Control");
-            device_menu = new QMenu(menuBar);
-            device_menu->setTitle("Device");
+            control_menu = new QMenu("Control",menuBar);
+            device_menu = new QMenu("Device",menuBar);
             help_menu = new QMenu(menuBar);
             help_menu->setTitle("Help");
+            exit = new QMenu("Exit",main);
             menuBar->addMenu(control_menu);
             menuBar->addMenu(device_menu);
             menuBar->addMenu(help_menu);
+            menuBar->addMenu(exit);
             
             //Device labels
             dev_name = new QLabel(main);
@@ -112,6 +125,7 @@ class GUI: public QWidget{
             chan_1->resize(100,50);
             chan_1->setText("Channel 1");
             chan_1->setChecked(true);
+            actual_channel = 0;
             chan_1->setFont(font);           
             chan_2 = new QRadioButton(main);
             chan_2->resize(100,50);
@@ -140,10 +154,10 @@ class GUI: public QWidget{
 
             //flash and home buttons
             flash_button = new QPushButton(main);
-            flash_button->setGeometry(40,380,100,50);
+            flash_button->setGeometry(40,350,100,50);
             flash_button->setText("Flash LED");
             home_button = new QPushButton(main);
-            home_button->setGeometry(180,380,100,50);
+            home_button->setGeometry(150,350,100,50);
             home_button->setText("Home");
             
             //moves directional
@@ -195,7 +209,7 @@ class GUI: public QWidget{
             reldl = new QLabel("Distance",main);
             reldl->resize(50,50);
             start = new QPushButton("Start",main);
-            start->resize(40,25);
+            start->resize(50,40);
             lmoves->setVerticalSpacing(4);
             lmoves->addWidget(absm,0,0);
             lmoves->addWidget(abspos,0,2);
@@ -207,7 +221,46 @@ class GUI: public QWidget{
             moves->setLayout(lmoves);
             moves->setGeometry(400,250,300,200);
             
+            //stop button
+            stop = new QPushButton("Stop",main);
+            stop->setGeometry(275,380,100,50);
+            
             //status bar
+            status_box = new QGroupBox("Status",main);
+            lstat = new QGridLayout();
+            font.setPointSize(11);
+            status_box->setFont(font);
+            moving = new QLabel("Moving");
+            homing = new QLabel("Homing");
+            stopping = new QLabel("Stopping");
+            std::string pos = "Position: ";
+            pos.append(std::to_string(opened_device.motor[actual_channel].status_position));
+            std::string encc = "Encoder counter: ";
+            std::string vel = "Velocity: ";
+            position = new QLabel(pos.c_str(),main);
+            if (opened_device.enc_counter == 1) {
+                encc.append(std::to_string(opened_device.motor[actual_channel].status_enc_count));
+                vel.append("Unknown");
+            }
+            else {
+                vel.append(std::to_string(opened_device.motor[actual_channel].status_velocity));
+                encc.append("Unknown");
+            }
+            enc_count = new QLabel(encc.c_str(),main);
+            velocity = new QLabel(vel.c_str(),main);
+            
+            homing->setEnabled(opened_device.motor[actual_channel].homing);
+            moving->setEnabled(opened_device.motor[actual_channel].moving);
+            stopping->setEnabled(opened_device.motor[actual_channel].stopping);
+            lstat->addWidget(moving,0,0);
+            lstat->addWidget(homing,0,1);
+            lstat->addWidget(stopping,0,2);
+            lstat->addWidget(position,1,0);
+            lstat->addWidget(velocity,1,1);
+            lstat->addWidget(enc_count,1,2);
+            status_box->setLayout(lstat);
+            status_box->setGeometry(10,450,780,140);
+            
             
             main->show();
         }
