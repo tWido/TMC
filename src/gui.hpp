@@ -29,7 +29,7 @@
 
 #include "device.hpp"
 
-class GUI: public QWidget{
+class GUI: public QMainWindow{
     
     public slots:
         void openDevOptions();
@@ -109,7 +109,7 @@ class GUI: public QWidget{
             exit = new QMenu("Exit",main);
             exit_action = new QAction("Exit",main);
             exit->addAction(exit_action);
-            
+            connect(exit_action, &QAction::triggered, this, &GUI::quit);
             menuBar->addMenu(control_menu);
             menuBar->addMenu(device_menu);
             menuBar->addMenu(help_menu);
