@@ -1411,7 +1411,7 @@ void PrintStatus(int at){
     HAS_FLAG(0x00000004) printf("Forward software switch active\n");
     HAS_FLAG(0x00000008) printf("Reverse software switch active\n");
     HAS_FLAG(0x00000010) printf("Moving forward\n");
-    HAS_FLAG(0x00000020) printf("Moving forward\n");
+    HAS_FLAG(0x00000020) printf("Moving reverse\n");
     HAS_FLAG(0x00000040) printf("Jogging forward\n");
     HAS_FLAG(0x00000080) printf("Jogging reverse\n");
     HAS_FLAG(0x00000100) printf("Motor connected\n");
