@@ -32,12 +32,18 @@
 class GUI: public QMainWindow{
     
     public slots:
-        void openDevOptions();
-        void openMoveOptions();
-        void openHelp();
-        void openDoc();
-        void switchDev(int index);
-        void quit(){}
+        void openDevOptions(){};
+        void openMoveOptions(){};
+        void openHelp(){};
+        void openDoc(){};
+        void switchDev(int index){};
+        void quit(){};
+        void flash(){};
+        void home(){};
+        void stopm(){};
+        void startm(){};
+        void startD1(){};
+        void startD2(){};
     
     public:
         int actual_channel;
@@ -48,7 +54,7 @@ class GUI: public QMainWindow{
         QMenu *help_menu;
         QMenu *exit;
         QAction *exit_action;
-        QAction *device_switch_actions;
+        QAction **device_switch_actions;
         QAction *move_opt_action;
         QAction *device_opt_action;
         QAction *help_action;
@@ -56,15 +62,17 @@ class GUI: public QMainWindow{
         QLabel *dev_name;
         QLabel *dev_ser;
         QLabel *serial;
-        QAction *device;
-        QAction *device2;
         QRadioButton *chan_1;
         QRadioButton *chan_2;
         QRadioButton *chan_3;
         QPushButton *flash_button;
+        QAction *flash_action;
         QPushButton *home_button;
+        QAction *home_action;
         QPushButton *forward;
+        QAction *forward_action;
         QPushButton *backward;
+        QAction *backward_action;
         QLabel *moves_l;
         QRadioButton *relm;
         QRadioButton *absm;
@@ -81,7 +89,9 @@ class GUI: public QMainWindow{
         QLabel *reldl;
         QLabel *abspl;
         QPushButton *start;
+        QAction *start_action;
         QPushButton *stop;
+        QAction *stop_action;
         QGroupBox *status_box;
         QGridLayout *lstat;
         QLabel *moving;
@@ -111,8 +121,28 @@ class GUI: public QMainWindow{
             exit->addAction(exit_action);
             connect(exit_action, &QAction::triggered, this, &GUI::quit);
             menuBar->addMenu(control_menu);
+            device_opt_action = new QAction("Device settings", main);
+            move_opt_action = new QAction("Move options", main);
+            control_menu->addAction(device_opt_action);
+            control_menu->addAction(move_opt_action);
+            connect(device_opt_action, &QAction::triggered, this, &GUI::openDevOptions);
+            connect(move_opt_action, &QAction::triggered, this, &GUI::openMoveOptions);
             menuBar->addMenu(device_menu);
+            device_switch_actions = new QAction*[devices_connected];
+            for (unsigned int i =0; i < devices_connected; i++){
+                std::string dev_label = std::to_string(i+1);
+                dev_label.append(": ");
+                dev_label.append(connected_device->SN);
+                device_switch_actions[i] = new QAction(dev_label.c_str(),main);
+                connect(move_opt_action, &QAction::triggered, this, [this](int i){ switchDev(i); });
+            }
             menuBar->addMenu(help_menu);
+            help_action = new QAction("Help",main);
+            doc_action = new QAction("Documentation",main);
+            help_menu->addAction(help_action);
+            help_menu->addAction(doc_action);
+            connect(help_action, &QAction::triggered, this, &GUI::openHelp);
+            connect(doc_action, &QAction::triggered, this, &GUI::openDoc);
             menuBar->addMenu(exit);
                       
             //Device labels
@@ -173,9 +203,15 @@ class GUI: public QMainWindow{
             flash_button = new QPushButton(main);
             flash_button->setGeometry(40,350,100,50);
             flash_button->setText("Flash LED");
+            flash_button->addAction(flash_action);
+            flash_action = new QAction(main);
+            connect(flash_action, &QAction::triggered, this, &GUI::flash);
             home_button = new QPushButton(main);
             home_button->setGeometry(150,350,100,50);
             home_button->setText("Home");
+            home_button->addAction(home_action);
+            home_action = new QAction(main);
+            connect(home_action, &QAction::triggered, this, &GUI::home);
             
             //moves directional
             moves_l = new QLabel(main);
@@ -187,10 +223,16 @@ class GUI: public QMainWindow{
             forward->setIcon(QIcon("./src/triangle_up.png"));
             forward->setIconSize(QSize(65,65));
             forward->setGeometry(400,100,70,70);
+            forward->addAction(forward_action);
+            forward_action = new QAction(main);
+            connect(forward_action, &QAction::triggered, this, &GUI::startD1);
             backward = new QPushButton(main);
             backward->setIcon(QIcon("./src/triangle_down.png"));
             backward->setIconSize(QSize(65,65));
             backward->setGeometry(400,180,70,70);
+            backward->addAction(backward_action);
+            backward_action = new QAction(main);
+            connect(backward_action, &QAction::triggered, this, &GUI::startD2);
             
             dir_moves = new QGroupBox("Directional",main);
             ldir_moves = new QVBoxLayout();
@@ -227,6 +269,9 @@ class GUI: public QMainWindow{
             reldl->resize(50,50);
             start = new QPushButton("Start",main);
             start->resize(50,40);
+            start->addAction(start_action);
+            start_action = new QAction(main);
+            connect(start_action, &QAction::triggered, this, &GUI::startm);
             lmoves->setVerticalSpacing(4);
             lmoves->addWidget(absm,0,0);
             lmoves->addWidget(abspos,0,2);
@@ -241,6 +286,9 @@ class GUI: public QMainWindow{
             //stop button
             stop = new QPushButton("Stop",main);
             stop->setGeometry(275,380,100,50);
+            stop->addAction(stop_action);
+            stop_action = new QAction(main);
+            connect(stop_action, &QAction::triggered, this, &GUI::stopm);
             
             //status bar
             status_box = new QGroupBox("Status",main);
