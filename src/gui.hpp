@@ -30,6 +30,15 @@
 #include "device.hpp"
 
 class GUI: public QWidget{
+    
+    public slots:
+        void openDevOptions();
+        void openMoveOptions();
+        void openHelp();
+        void openDoc();
+        void switchDev(int index);
+        void quit(){}
+    
     public:
         int actual_channel;
         QMainWindow *main;
@@ -38,6 +47,12 @@ class GUI: public QWidget{
         QMenu *device_menu;
         QMenu *help_menu;
         QMenu *exit;
+        QAction *exit_action;
+        QAction *device_switch_actions;
+        QAction *move_opt_action;
+        QAction *device_opt_action;
+        QAction *help_action;
+        QAction *doc_action;
         QLabel *dev_name;
         QLabel *dev_ser;
         QLabel *serial;
@@ -75,13 +90,12 @@ class GUI: public QWidget{
         QLabel *position;
         QLabel *velocity;
         QLabel *enc_count;
-        
+                    
         void Setup(){
             //main
             main = new QMainWindow(this);
             main->resize(800, 600);
             main ->setWindowTitle("Thorlabs motor controller");
-            //main->setSizePolicy(QSizePolicy::Fixed);
             
             //Menu
             menuBar = new QMenuBar(main);
@@ -93,11 +107,14 @@ class GUI: public QWidget{
             help_menu = new QMenu(menuBar);
             help_menu->setTitle("Help");
             exit = new QMenu("Exit",main);
+            exit_action = new QAction("Exit",main);
+            exit->addAction(exit_action);
+            
             menuBar->addMenu(control_menu);
             menuBar->addMenu(device_menu);
             menuBar->addMenu(help_menu);
             menuBar->addMenu(exit);
-            
+                      
             //Device labels
             dev_name = new QLabel(main);
             std::string dname = "Device: ";
