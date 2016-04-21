@@ -20,6 +20,7 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QRadioButton>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QCheckBox>
 #include <QPixmap>
 #include <QIcon>
 #include <QGroupBox>
@@ -27,11 +28,115 @@
 #include <QVBoxLayout>
 #include <QPalette>
 
+#include "api_calls.hpp"
 #include "device.hpp"
 
+#define GET_DEV_MESSAGE(mess_type, call)                            \
+        mess_type* mess = (mess_type*) malloc(sizeof(mess_type));   \
+        device_calls::call(mess);                                                 
+
 class DevOpt: public QWidget{
+    public slots:
+        void setLedP(){};
+        void ledDefaults(){};
+        void setButtP(){};
+        void getButtP(){};
+        
     public:    
+        QGridLayout *ledpl;
+        QGroupBox *ledp;
+        QCheckBox *lp1;
+        QCheckBox *lp2;
+        QCheckBox *lp3;
+        QPushButton *ledset;
+        QPushButton *leddef;
+        QAction *ledset_action;
+        QAction *leddef_action;
+        QGroupBox *buttp;
+        QGridLayout *buttpl;
+        QRadioButton *gotoopt;
+        QRadioButton *jogopt;
+        QLineEdit *pos1;
+        QLineEdit *pos2;
+        QLineEdit *timeout;
+        QLabel *pos1l;
+        QLabel *pos2l;
+        QLabel *timeoutl;
+        QPushButton *getbuttp;
+        QPushButton *setbuttp;
+        QAction *setbuttp_action;
+        QAction *getbuttp_action;
+        
         void Setup(){
+            this->setWindowTitle("Device setting");
+            this->resize(600,400);
+            QFont font = this->font();
+            font.setPointSize(10);
+            this->setFont(font);
+            
+            //led params box
+            ledpl = new QGridLayout(this);
+            ledp = new QGroupBox("LED parameters",this);
+            lp1 = new QCheckBox("Flash on request",this);
+            lp2 = new QCheckBox("Flash when limit is reached",this);
+            lp3 = new QCheckBox("Lit while moving",this);
+            ledset = new QPushButton("Set",this);
+            leddef = new QPushButton("Defaults",this);
+            GET_DEV_MESSAGE(GetLedMode,GetLedP)
+            int mode = mess->GetMode();
+            free(mess);
+            lp1->setChecked(mode & 1);
+            lp2->setChecked(mode & 2);
+            lp3->setChecked(mode & 8);
+            ledpl->addWidget(lp1,0,0);
+            ledpl->addWidget(lp2,0,1);
+            ledpl->addWidget(lp3,0,2);
+            ledpl->addWidget(ledset,1,0);
+            ledpl->addWidget(leddef,1,2);
+            ledset_action = new QAction(this);
+            leddef_action = new QAction(this);
+            connect(ledset_action, &QAction::triggered, this, &DevOpt::setLedP);
+            connect(leddef_action, &QAction::triggered, this, &DevOpt::ledDefaults);
+            ledset->addAction(ledset_action);
+            leddef->addAction(leddef_action);
+            ledp->setLayout(ledpl);
+            ledp->setGeometry(10,10,580,190);
+            
+            //button param box
+            buttpl = new QGridLayout(this);
+            buttp = new QGroupBox("Buttons parameters",this);
+            gotoopt = new QRadioButton("Goto positions",this);
+            jogopt = new QRadioButton("Jog",this);
+            pos1 = new QLineEdit(this);
+            pos2 = new QLineEdit(this);
+            timeout = new QLineEdit(this);
+            pos1->setInputMask("999999999");
+            pos2->setInputMask("999999999");
+            timeout->setInputMask("999999");
+            pos1l = new QLabel("Position 1",this);
+            pos2l = new QLabel("Position 2",this);
+            timeoutl = new QLabel("Timeout", this);
+            getbuttp = new QPushButton("Set",this);
+            setbuttp = new QPushButton("Get",this);
+            setbuttp_action = new QAction(this);
+            getbuttp_action = new QAction(this);
+            connect(setbuttp_action, &QAction::triggered, this, &DevOpt::setButtP);
+            connect(getbuttp_action, &QAction::triggered, this, &DevOpt::getButtP);
+            setbuttp->addAction(setbuttp_action);
+            getbuttp->addAction(getbuttp_action);
+            buttpl->addWidget(jogopt, 0, 0);
+            buttpl->addWidget(pos1l,1,1);
+            buttpl->addWidget(pos2l,1,3);
+            buttpl->addWidget(timeoutl,1,5);
+            buttpl->addWidget(gotoopt,1,0);
+            buttpl->addWidget(pos1,1,2);
+            buttpl->addWidget(pos2,1,4);
+            buttpl->addWidget(timeout,1,6);
+            buttpl->addWidget(setbuttp,3,2);
+            buttpl->addWidget(getbuttp,3,3);
+            buttp->setLayout(buttpl);
+            buttp->setGeometry(10,200,580,190);
+            
             this->show();
         } 
 
@@ -39,7 +144,7 @@ class DevOpt: public QWidget{
 
 class MovOpt: public QWidget{
     public:    
-        void Setup(){
+        void Setup(int index){
             this->show();
         }
 
@@ -48,10 +153,13 @@ class MovOpt: public QWidget{
 class GUI: public QMainWindow{
     
     public slots:
-        void openDevOptions(){};
+        void openDevOptions(){
+            devOpt = new DevOpt();
+            devOpt->Setup();
+        };
         void openMoveOptions(){
             moveOpt = new MovOpt();
-            moveOpt->Setup();
+            moveOpt->Setup(GetChan());
         };
         void openHelp(){};
         void openDoc(){};
@@ -121,6 +229,10 @@ class GUI: public QMainWindow{
         MovOpt *moveOpt;
         DevOpt *devOpt;
                     
+        int GetChan(){ 
+            return 0;
+        } 
+        
         void Setup(){
             //main
             this->resize(800, 600);
