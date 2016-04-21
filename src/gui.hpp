@@ -70,6 +70,8 @@ class DevOpt: public QWidget{
         void Setup(){
             this->setWindowTitle("Device setting");
             this->resize(600,400);
+            this->setMinimumSize(600,400);
+            this->setMaximumSize(600,400);
             QFont font = this->font();
             font.setPointSize(10);
             this->setFont(font);
@@ -143,8 +145,155 @@ class DevOpt: public QWidget{
 };
 
 class MovOpt: public QWidget{
-    public:    
+    public slots:
+        void setHVel(){};
+        void getHVel(){};
+        void setBDist(){};
+        void getBDist(){};
+        void setAccP(){};
+        void getAccP(){};
+        void setPowerP(){};
+        void getPowerP(){};
+
+    public:       
+        QGroupBox *hvel_box;
+        QHBoxLayout *hvel_layout;
+        QLabel *hvel_label;
+        QLineEdit *hvel_edit;
+        QPushButton *hvel_get;
+        QPushButton *hvel_set;
+        QAction *hvel_set_action;
+        QAction *hvel_get_action;
+        QGroupBox *bdist_box;
+        QHBoxLayout *bdist_layout;
+        QLabel *bdist_label;
+        QLineEdit *bdist_edit;
+        QPushButton *bdist_get;
+        QPushButton *bdist_set;
+        QAction *bdist_set_action;
+        QAction *bdist_get_action;
+        QGroupBox *accp_box;
+        QHBoxLayout *accp_layout;
+        QLabel *accp_label;
+        QLineEdit *accp_edit;
+        QPushButton *accp_get;
+        QPushButton *accp_set;
+        QAction *accp_set_action;
+        QAction *accp_get_action;
+        QGroupBox *powerp_box;
+        QHBoxLayout *powerp_layout;
+        QLabel *powerp1_label;
+        QLineEdit *powerp1_edit;
+        QLabel *powerp2_label;
+        QLineEdit *powerp2_edit;
+        QPushButton *powerp_get;
+        QPushButton *powerp_set;
+        QAction *powerp_set_action;
+        QAction *powerp_get_action;
+        QGroupBox *jopg;
+        QGridLayout *jogpl;
+
+
         void Setup(int index){
+            this->setWindowTitle("Move options");
+            this->resize(500,400);
+            this->setMaximumSize(500,400);
+            this->setMinimumSize(500,400);
+            QFont font = this->font();
+            font.setPointSize(10);
+            this->setFont(font);
+            
+            // Homing velocity
+            hvel_box = new QGroupBox("Homing velocity",this);
+            hvel_layout = new QHBoxLayout(this);
+            hvel_label = new QLabel("Velocity",this);
+            hvel_edit = new QLineEdit(this);
+            hvel_edit->setInputMask("999999");
+            hvel_get = new QPushButton("Get",this);
+            hvel_set = new QPushButton("Set",this);
+            hvel_get_action = new QAction(this);
+            hvel_set_action = new QAction(this);
+            connect(hvel_get_action, &QAction::triggered, this, &MovOpt::getHVel);
+            connect(hvel_set_action, &QAction::triggered, this, &MovOpt::setHVel);
+            hvel_get->addAction(hvel_get_action);
+            hvel_set->addAction(hvel_set_action);
+            hvel_layout->addWidget(hvel_label);
+            hvel_layout->addWidget(hvel_edit);
+            hvel_layout->addWidget(hvel_get);
+            hvel_layout->addWidget(hvel_set);
+            hvel_box->setLayout(hvel_layout);
+            hvel_box->setGeometry(10,10,480,85);
+            
+            //Backlash distance
+            bdist_box = new QGroupBox("Backlash Distance",this);
+            bdist_layout = new QHBoxLayout(this);
+            bdist_label = new QLabel("Distance",this);
+            bdist_edit = new QLineEdit(this);
+            bdist_edit->setInputMask("999999");
+            bdist_get = new QPushButton("Get",this);
+            bdist_set = new QPushButton("Set",this);
+            bdist_get_action = new QAction(this);
+            bdist_set_action = new QAction(this);
+            connect(bdist_get_action, &QAction::triggered, this, &MovOpt::getBDist);
+            connect(bdist_set_action, &QAction::triggered, this, &MovOpt::setBDist);
+            bdist_get->addAction(bdist_get_action);
+            bdist_set->addAction(bdist_set_action);
+            bdist_layout->addWidget(bdist_label);
+            bdist_layout->addWidget(bdist_edit);
+            bdist_layout->addWidget(bdist_get);
+            bdist_layout->addWidget(bdist_set);
+            bdist_box->setLayout(bdist_layout);
+            bdist_box->setGeometry(10,100,480,100);
+            
+            //Acceleration profile
+            accp_box = new QGroupBox("Acceleration profile",this);
+            accp_layout = new QHBoxLayout(this);
+            accp_label = new QLabel("Profile (0-18)",this);
+            accp_edit = new QLineEdit(this);
+            accp_edit->setInputMask("99");
+            accp_get = new QPushButton("Get",this);
+            accp_set = new QPushButton("Set",this);
+            accp_get_action = new QAction(this);
+            accp_set_action = new QAction(this);
+            connect(accp_get_action, &QAction::triggered, this, &MovOpt::getAccP);
+            connect(accp_set_action, &QAction::triggered, this, &MovOpt::setAccP);
+            accp_get->addAction(accp_get_action);
+            accp_set->addAction(accp_set_action);
+            accp_layout->addWidget(accp_label);
+            accp_layout->addWidget(accp_edit);
+            accp_layout->addWidget(accp_get);
+            accp_layout->addWidget(accp_set);
+            accp_box->setLayout(accp_layout);
+            accp_box->setGeometry(10,205,480,100);
+            
+            //Power parameters
+            powerp_box = new QGroupBox("Power parameters",this);
+            powerp_layout = new QHBoxLayout(this);
+            powerp1_label = new QLabel("Move power in %",this);
+            powerp1_edit = new QLineEdit(this);
+            powerp1_edit->setInputMask("999");
+            powerp2_label = new QLabel("Rest power in %",this);
+            powerp2_edit = new QLineEdit(this);
+            powerp2_edit->setInputMask("999");
+            powerp_get = new QPushButton("Get",this);
+            powerp_set = new QPushButton("Set",this);
+            powerp_get_action = new QAction(this);
+            powerp_set_action = new QAction(this);
+            connect(powerp_get_action, &QAction::triggered, this, &MovOpt::getPowerP);
+            connect(powerp_set_action, &QAction::triggered, this, &MovOpt::setPowerP);
+            powerp_get->addAction(powerp_get_action);
+            powerp_set->addAction(powerp_set_action);
+            powerp_layout->addWidget(powerp1_label);
+            powerp_layout->addWidget(powerp1_edit);
+            powerp_layout->addWidget(powerp2_label);
+            powerp_layout->addWidget(powerp2_edit);
+            powerp_layout->addWidget(powerp_get);
+            powerp_layout->addWidget(powerp_set);
+            powerp_box->setLayout(powerp_layout);
+            powerp_box->setGeometry(10,310,480,100);
+            
+            //Jog parameters
+            
             this->show();
         }
 
@@ -236,7 +385,9 @@ class GUI: public QMainWindow{
         void Setup(){
             //main
             this->resize(800, 600);
-            this ->setWindowTitle("Thorlabs motor controller");
+            this->setWindowTitle("Thorlabs motor controller");
+            this->setMinimumSize(800,600);
+            this->setMaximumSize(800,600);
 
             //Menu
             menuBar = new QMenuBar(this);
@@ -249,15 +400,15 @@ class GUI: public QMainWindow{
             help_menu->setTitle("Help");
             exit = new QMenu("Exit",this);
             exit_action = new QAction("Exit",this);
-            exit->addAction(exit_action);
             connect(exit_action, &QAction::triggered, this, &GUI::quit);
+            exit->addAction(exit_action);
             menuBar->addMenu(control_menu);
             device_opt_action = new QAction("Device settings", this);
             move_opt_action = new QAction("Move options", this);
-            control_menu->addAction(device_opt_action);
-            control_menu->addAction(move_opt_action);
             connect(device_opt_action, &QAction::triggered, this, &GUI::openDevOptions);
             connect(move_opt_action, &QAction::triggered, this, &GUI::openMoveOptions);
+            control_menu->addAction(device_opt_action);
+            control_menu->addAction(move_opt_action);
             menuBar->addMenu(device_menu);
             device_switch_actions = new QAction*[devices_connected];
             for (unsigned int i =0; i < devices_connected; i++){
@@ -270,10 +421,10 @@ class GUI: public QMainWindow{
             menuBar->addMenu(help_menu);
             help_action = new QAction("Help",this);
             doc_action = new QAction("Documentation",this);
-            help_menu->addAction(help_action);
-            help_menu->addAction(doc_action);
             connect(help_action, &QAction::triggered, this, &GUI::openHelp);
             connect(doc_action, &QAction::triggered, this, &GUI::openDoc);
+            help_menu->addAction(help_action);
+            help_menu->addAction(doc_action);
             menuBar->addMenu(exit);
                       
             //Device labels
