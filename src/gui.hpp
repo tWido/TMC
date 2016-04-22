@@ -102,7 +102,7 @@ class DevOpt: public QWidget{
             ledset->addAction(ledset_action);
             leddef->addAction(leddef_action);
             ledp->setLayout(ledpl);
-            ledp->setGeometry(10,10,580,190);
+            ledp->setGeometry(10,10,580,150);
             
             //button param box
             buttpl = new QGridLayout(this);
@@ -137,7 +137,7 @@ class DevOpt: public QWidget{
             buttpl->addWidget(setbuttp,3,2);
             buttpl->addWidget(getbuttp,3,3);
             buttp->setLayout(buttpl);
-            buttp->setGeometry(10,200,580,190);
+            buttp->setGeometry(10,160,580,190);
             
             this->show();
         } 
@@ -154,6 +154,8 @@ class MovOpt: public QWidget{
         void getAccP(){};
         void setPowerP(){};
         void getPowerP(){};
+        void setJogP(){};
+        void getJogP(){};
 
     public:       
         QGroupBox *hvel_box;
@@ -190,15 +192,33 @@ class MovOpt: public QWidget{
         QPushButton *powerp_set;
         QAction *powerp_set_action;
         QAction *powerp_get_action;
-        QGroupBox *jopg;
-        QGridLayout *jogpl;
+        QGroupBox *jogp_box;
+        QGridLayout *jogp_layout;
+        QGroupBox *jogp_mode;
+        QVBoxLayout *jogp_model;
+        QRadioButton *jogp_mode1;
+        QRadioButton *jogp_mode2;
+        QVBoxLayout *jogp_stopmodel;
+        QGroupBox *jogp_stopmode;
+        QRadioButton *jogp_stopmode1;
+        QRadioButton *jogp_stopmode2;
+        QLabel *jogp_vell;
+        QLineEdit *jogp_vele;
+        QLabel *jogp_accl;
+        QLineEdit *jogp_acce;
+        QLabel *jogp_stepl;
+        QLineEdit *jogp_stepe;
+        QPushButton *jogp_set;
+        QPushButton *jogp_get;
+        QAction *jogp_set_action;
+        QAction *jogp_get_action;
 
 
         void Setup(int index){
             this->setWindowTitle("Move options");
-            this->resize(500,400);
-            this->setMaximumSize(500,400);
-            this->setMinimumSize(500,400);
+            this->resize(500,700);
+            this->setMaximumSize(500,700);
+            this->setMinimumSize(500,700);
             QFont font = this->font();
             font.setPointSize(10);
             this->setFont(font);
@@ -222,7 +242,7 @@ class MovOpt: public QWidget{
             hvel_layout->addWidget(hvel_get);
             hvel_layout->addWidget(hvel_set);
             hvel_box->setLayout(hvel_layout);
-            hvel_box->setGeometry(10,10,480,85);
+            hvel_box->setGeometry(10,10,350,85);
             
             //Backlash distance
             bdist_box = new QGroupBox("Backlash Distance",this);
@@ -243,7 +263,7 @@ class MovOpt: public QWidget{
             bdist_layout->addWidget(bdist_get);
             bdist_layout->addWidget(bdist_set);
             bdist_box->setLayout(bdist_layout);
-            bdist_box->setGeometry(10,100,480,100);
+            bdist_box->setGeometry(10,100,350,100);
             
             //Acceleration profile
             accp_box = new QGroupBox("Acceleration profile",this);
@@ -264,7 +284,7 @@ class MovOpt: public QWidget{
             accp_layout->addWidget(accp_get);
             accp_layout->addWidget(accp_set);
             accp_box->setLayout(accp_layout);
-            accp_box->setGeometry(10,205,480,100);
+            accp_box->setGeometry(10,205,350,100);
             
             //Power parameters
             powerp_box = new QGroupBox("Power parameters",this);
@@ -293,6 +313,51 @@ class MovOpt: public QWidget{
             powerp_box->setGeometry(10,310,480,100);
             
             //Jog parameters
+            jogp_box = new QGroupBox(this);
+            jogp_layout = new QGridLayout(this);
+            jogp_model = new QVBoxLayout();
+            jogp_mode = new QGroupBox("Mode",this);
+            jogp_mode1 = new QRadioButton("Continuous",this);
+            jogp_mode2 = new QRadioButton("Single step",this);
+            jogp_model->addWidget(jogp_mode1);
+            jogp_model->addWidget(jogp_mode2);
+            jogp_mode->setLayout(jogp_model);
+            jogp_stopmode = new QGroupBox("Stop mode",this);
+            jogp_stopmodel = new QVBoxLayout();
+            jogp_stopmode1 = new QRadioButton("Immediate stop",this);
+            jogp_stopmode2 = new QRadioButton("Profiled stop",this);
+            jogp_stopmodel->addWidget(jogp_stopmode1);
+            jogp_stopmodel->addWidget(jogp_stopmode2);
+            jogp_stopmode->setLayout(jogp_stopmodel);
+            jogp_vell = new QLabel("Velocity",this);
+            jogp_vele = new QLineEdit(this);
+            jogp_vele->setInputMask("999999");
+            jogp_accl = new QLabel("Acceleration",this);
+            jogp_acce = new QLineEdit(this);
+            jogp_acce->setInputMask("999999");
+            jogp_stepl = new QLabel("Step size",this);
+            jogp_stepe = new QLineEdit(this);
+            jogp_stepe->setInputMask("999999");
+            jogp_get = new QPushButton("Get",this);
+            jogp_set = new QPushButton("Set",this);
+            jogp_set_action = new QAction(this);
+            jogp_get_action = new QAction(this);
+            connect(jogp_get_action, &QAction::triggered, this, &MovOpt::getJogP);
+            connect(jogp_set_action, &QAction::triggered, this, &MovOpt::setJogP);
+            jogp_get->addAction(jogp_get_action);
+            jogp_set->addAction(jogp_set_action);
+            jogp_layout->addWidget(jogp_mode,0,0,3,1);
+            jogp_layout->addWidget(jogp_stopmode, 0,1,3,1);
+            jogp_layout->addWidget(jogp_vell,0 ,2);
+            jogp_layout->addWidget(jogp_vele,0 ,3);
+            jogp_layout->addWidget(jogp_accl,1 ,2);
+            jogp_layout->addWidget(jogp_acce,1 ,3);
+            jogp_layout->addWidget(jogp_stepl,2 ,2);
+            jogp_layout->addWidget(jogp_stepe,2 ,3);
+            jogp_layout->addWidget(jogp_get,3,0);
+            jogp_layout->addWidget(jogp_set,3,1);
+            jogp_box->setLayout(jogp_layout);
+            jogp_box->setGeometry(10,410,480,250);
             
             this->show();
         }
@@ -504,14 +569,14 @@ class GUI: public QMainWindow{
             forward = new QPushButton(this);
             forward->setIcon(QIcon("./src/triangle_up.png"));
             forward->setIconSize(QSize(65,65));
-            forward->setGeometry(400,100,70,70);
+            forward->setGeometry(450,100,70,70);
             forward_action = new QAction(this);
             connect(forward_action, &QAction::triggered, this, &GUI::startD1);
             forward->addAction(forward_action);
             backward = new QPushButton(this);
             backward->setIcon(QIcon("./src/triangle_down.png"));
             backward->setIconSize(QSize(65,65));
-            backward->setGeometry(400,180,70,70);
+            backward->setGeometry(450,180,70,70);
             backward_action = new QAction(this);
             connect(backward_action, &QAction::triggered, this, &GUI::startD2);
             backward->addAction(backward_action);
@@ -528,7 +593,7 @@ class GUI: public QMainWindow{
             ldir_moves->addWidget(velm);
             ldir_moves->setSpacing(8);
             dir_moves->setLayout(ldir_moves);
-            dir_moves->setGeometry(500,80,150,175);
+            dir_moves->setGeometry(550,80,200,175);
             
             //moves non-directional
             moves = new QGroupBox(this);
@@ -563,11 +628,11 @@ class GUI: public QMainWindow{
             lmoves->addWidget(reldl,1,1);
             lmoves->addWidget(start);
             moves->setLayout(lmoves);
-            moves->setGeometry(400,250,300,200);
+            moves->setGeometry(450,250,300,200);
             
             //stop button
             stop = new QPushButton("Stop",this);
-            stop->setGeometry(275,380,100,50);
+            stop->setGeometry(310,380,100,50);
             stop_action = new QAction(this);
             connect(stop_action, &QAction::triggered, this, &GUI::stopm);
             stop->addAction(stop_action);      
