@@ -27,6 +27,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QVBoxLayout>
 #include <QPalette>
+#include <QPlainTextEdit>
 
 #include "api_calls.hpp"
 #include "device.hpp"
@@ -364,6 +365,23 @@ class MovOpt: public QWidget{
 
 };
 
+class HelpText : public QWidget{
+public:
+    QPlainTextEdit *text;
+    
+    void Setup(){
+        this->resize(600,300);
+        std::string help_text;
+        help_text.append("All input units are in encoder counts or microsteps, depends on controller and motor device. Refer to given device manual for conversion to real world units\n\n");
+        help_text.append("Acceleration profiles\nAcceleration profiles are numbered form 0 to 18. 0 means trapezoidal, 1-18 S-shaped acceleration/decceleration curve. For closer info see documentation at page 63.\n\n");
+        text = new QPlainTextEdit(help_text.c_str(),this);
+        text->setReadOnly(true);
+        text->setGeometry(5,5,590,390);
+        this->show();
+    }
+
+};
+
 class GUI: public QMainWindow{
     
     public slots:
@@ -375,8 +393,13 @@ class GUI: public QMainWindow{
             moveOpt = new MovOpt();
             moveOpt->Setup(GetChan());
         };
-        void openHelp(){};
-        void openDoc(){};
+        void openHelp(){
+            helpw = new HelpText();
+            helpw->Setup();
+        };
+        void openDoc(){
+            system("gnome-open ./docs/APT_Communications_Protocol_Rev_15.pdf");
+        };
         void switchDev(int index){};
         void quit(){};
         void flash(){};
@@ -442,6 +465,7 @@ class GUI: public QMainWindow{
         QLabel *enc_count;
         MovOpt *moveOpt;
         DevOpt *devOpt;
+        HelpText *helpw;
                     
         int GetChan(){ 
             return 0;
