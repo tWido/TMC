@@ -100,8 +100,6 @@ class DevOpt: public QWidget{
             leddef_action = new QAction(this);
             connect(ledset_action, &QAction::triggered, this, &DevOpt::setLedP);
             connect(leddef_action, &QAction::triggered, this, &DevOpt::ledDefaults);
-            ledset->addAction(ledset_action);
-            leddef->addAction(leddef_action);
             ledp->setLayout(ledpl);
             ledp->setGeometry(10,10,580,150);
             
@@ -125,8 +123,6 @@ class DevOpt: public QWidget{
             getbuttp_action = new QAction(this);
             connect(setbuttp_action, &QAction::triggered, this, &DevOpt::setButtP);
             connect(getbuttp_action, &QAction::triggered, this, &DevOpt::getButtP);
-            setbuttp->addAction(setbuttp_action);
-            getbuttp->addAction(getbuttp_action);
             buttpl->addWidget(jogopt, 0, 0);
             buttpl->addWidget(pos1l,1,1);
             buttpl->addWidget(pos2l,1,3);
@@ -236,8 +232,6 @@ class MovOpt: public QWidget{
             hvel_set_action = new QAction(this);
             connect(hvel_get_action, &QAction::triggered, this, &MovOpt::getHVel);
             connect(hvel_set_action, &QAction::triggered, this, &MovOpt::setHVel);
-            hvel_get->addAction(hvel_get_action);
-            hvel_set->addAction(hvel_set_action);
             hvel_layout->addWidget(hvel_label);
             hvel_layout->addWidget(hvel_edit);
             hvel_layout->addWidget(hvel_get);
@@ -257,8 +251,6 @@ class MovOpt: public QWidget{
             bdist_set_action = new QAction(this);
             connect(bdist_get_action, &QAction::triggered, this, &MovOpt::getBDist);
             connect(bdist_set_action, &QAction::triggered, this, &MovOpt::setBDist);
-            bdist_get->addAction(bdist_get_action);
-            bdist_set->addAction(bdist_set_action);
             bdist_layout->addWidget(bdist_label);
             bdist_layout->addWidget(bdist_edit);
             bdist_layout->addWidget(bdist_get);
@@ -278,8 +270,6 @@ class MovOpt: public QWidget{
             accp_set_action = new QAction(this);
             connect(accp_get_action, &QAction::triggered, this, &MovOpt::getAccP);
             connect(accp_set_action, &QAction::triggered, this, &MovOpt::setAccP);
-            accp_get->addAction(accp_get_action);
-            accp_set->addAction(accp_set_action);
             accp_layout->addWidget(accp_label);
             accp_layout->addWidget(accp_edit);
             accp_layout->addWidget(accp_get);
@@ -302,8 +292,6 @@ class MovOpt: public QWidget{
             powerp_set_action = new QAction(this);
             connect(powerp_get_action, &QAction::triggered, this, &MovOpt::getPowerP);
             connect(powerp_set_action, &QAction::triggered, this, &MovOpt::setPowerP);
-            powerp_get->addAction(powerp_get_action);
-            powerp_set->addAction(powerp_set_action);
             powerp_layout->addWidget(powerp1_label);
             powerp_layout->addWidget(powerp1_edit);
             powerp_layout->addWidget(powerp2_label);
@@ -345,8 +333,6 @@ class MovOpt: public QWidget{
             jogp_get_action = new QAction(this);
             connect(jogp_get_action, &QAction::triggered, this, &MovOpt::getJogP);
             connect(jogp_set_action, &QAction::triggered, this, &MovOpt::setJogP);
-            jogp_get->addAction(jogp_get_action);
-            jogp_set->addAction(jogp_set_action);
             jogp_layout->addWidget(jogp_mode,0,0,3,1);
             jogp_layout->addWidget(jogp_stopmode, 0,1,3,1);
             jogp_layout->addWidget(jogp_vell,0 ,2);
@@ -576,13 +562,11 @@ class GUI: public QMainWindow{
             flash_button->setText("Flash LED");
             flash_action = new QAction(this);
             connect(flash_action, &QAction::triggered, this, &GUI::flash);
-            flash_button->addAction(flash_action);
             home_button = new QPushButton(this);
             home_button->setGeometry(150,350,100,50);
             home_button->setText("Home");
             home_action = new QAction(this);
             connect(home_action, &QAction::triggered, this, &GUI::home);
-            home_button->addAction(home_action);
             
             //moves directional
             moves_l = new QLabel(this);
@@ -596,14 +580,12 @@ class GUI: public QMainWindow{
             forward->setGeometry(450,100,70,70);
             forward_action = new QAction(this);
             connect(forward_action, &QAction::triggered, this, &GUI::startD1);
-            forward->addAction(forward_action);
             backward = new QPushButton(this);
             backward->setIcon(QIcon("./src/triangle_down.png"));
             backward->setIconSize(QSize(65,65));
             backward->setGeometry(450,180,70,70);
             backward_action = new QAction(this);
             connect(backward_action, &QAction::triggered, this, &GUI::startD2);
-            backward->addAction(backward_action);
             
             dir_moves = new QGroupBox("Directional",this);
             ldir_moves = new QVBoxLayout();
@@ -642,7 +624,6 @@ class GUI: public QMainWindow{
             start->resize(50,40);
             start_action = new QAction(this);
             connect(start_action, &QAction::triggered, this, &GUI::startm);
-            start->addAction(start_action);
             lmoves->setVerticalSpacing(4);
             lmoves->addWidget(absm,0,0);
             lmoves->addWidget(abspos,0,2);
@@ -658,8 +639,7 @@ class GUI: public QMainWindow{
             stop = new QPushButton("Stop",this);
             stop->setGeometry(310,380,100,50);
             stop_action = new QAction(this);
-            connect(stop_action, &QAction::triggered, this, &GUI::stopm);
-            stop->addAction(stop_action);      
+            connect(stop_action, &QAction::triggered, this, &GUI::stopm);    
             
             //status bar
             status_box = new QGroupBox("Status",this);
@@ -697,11 +677,8 @@ class GUI: public QMainWindow{
             status_box->setLayout(lstat);
             status_box->setGeometry(10,450,780,140);
             
-            
             this->show();
         }
-        
-        
 };
 
 int run_gui(){
