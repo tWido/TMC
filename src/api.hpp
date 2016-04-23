@@ -84,7 +84,10 @@ public:
     
     uint8_t GetMotorID(){
         if (opened_device.bays == -1) return (GetFirstParam()-1);    // channel type, channels numbered from 1, in field from 0
-        else return ((GetSource() | 0x0f) -1 );               // bay type, numbering 0x21 ..0x23, 
+        else {                                                  // bay type, numbering 0x21 ..0x23, 
+            if (GetSource() == 0x01) return (GetDest() - 0x21); // outgoing message
+            else return (GetSource() - 0x21);                   // incoming message      
+        }              
     }
     
     uint16_t GetType(){ return le16toh(*((uint16_t *) &bytes[0])) ;}
@@ -117,7 +120,10 @@ public:
     
     uint16_t GetMotorID(){
         if (opened_device.bays == -1) return (GetChanID()-1);    // channel type, channels numbered from 1, in field from 0
-        else return ((GetSource() | 0x0f) -1 );           // bay type, numbering 0x21 ..0x23, 
+        else {                                                  // bay type, numbering 0x21 ..0x23, 
+            if (GetSource() == 0x01) return (GetDest() - 0x21); // outgoing message
+            else return (GetSource() - 0x21);                   // incoming message      
+        }   
     }
     
     int SetChanID(int16_t chanID){ 
