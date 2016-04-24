@@ -2,6 +2,7 @@
 #define	GUI_HPP
 
 #include <string> 
+#include <sstream>
 #include <qapplication.h>
 #include <qpushbutton.h>
 #include <QApplication>
@@ -37,11 +38,6 @@
         device_calls::call(mess);                                                 
 
 class DevOpt: public QWidget{
-    public slots:
-        void setLedP(){};
-        void ledDefaults(){};
-        void setButtP(){};
-        void getButtP(){};
         
     public:    
         QGridLayout *ledpl;
@@ -51,8 +47,6 @@ class DevOpt: public QWidget{
         QCheckBox *lp3;
         QPushButton *ledset;
         QPushButton *leddef;
-        QAction *ledset_action;
-        QAction *leddef_action;
         QGroupBox *buttp;
         QGridLayout *buttpl;
         QRadioButton *gotoopt;
@@ -65,8 +59,6 @@ class DevOpt: public QWidget{
         QLabel *timeoutl;
         QPushButton *getbuttp;
         QPushButton *setbuttp;
-        QAction *setbuttp_action;
-        QAction *getbuttp_action;
         
         void Setup(){
             this->setWindowTitle("Device setting");
@@ -96,10 +88,23 @@ class DevOpt: public QWidget{
             ledpl->addWidget(lp3,0,2);
             ledpl->addWidget(ledset,1,0);
             ledpl->addWidget(leddef,1,2);
-            ledset_action = new QAction(this);
-            leddef_action = new QAction(this);
-            connect(ledset_action, &QAction::triggered, this, &DevOpt::setLedP);
-            connect(leddef_action, &QAction::triggered, this, &DevOpt::ledDefaults);
+            connect(ledset, &QPushButton::clicked, 
+                [this]{
+                    uint8_t mode = 0;
+                    if (this->lp1->isChecked()) mode +=1;
+                    if (this->lp1->isChecked()) mode +=2;
+                    if (this->lp1->isChecked()) mode +=8;
+                    device_calls::SetLedP(mode);
+                } 
+            );
+            
+            connect(leddef, &QPushButton::clicked, 
+                [this]{
+                    this->lp1->setChecked(true);
+                    this->lp2->setChecked(true);
+                    this->lp3->setChecked(true);
+                } 
+            );
             ledp->setLayout(ledpl);
             ledp->setGeometry(10,10,580,150);
             
@@ -119,10 +124,29 @@ class DevOpt: public QWidget{
             timeoutl = new QLabel("Timeout", this);
             getbuttp = new QPushButton("Set",this);
             setbuttp = new QPushButton("Get",this);
-            setbuttp_action = new QAction(this);
-            getbuttp_action = new QAction(this);
-            connect(setbuttp_action, &QAction::triggered, this, &DevOpt::setButtP);
-            connect(getbuttp_action, &QAction::triggered, this, &DevOpt::getButtP);
+            connect(setbuttp, &QPushButton::clicked, 
+                [this]{
+                    
+
+                } 
+            );
+            connect(getbuttp, &QPushButton::clicked, 
+                [this]{
+                    GET_DEV_MESSAGE(GetButtonParams,GetButtonsInfo)
+                    if (mess->GetMode() == 1) this->jogopt->setChecked(true);
+                    if (mess->GetMode() == 2){ 
+                        this->gotoopt->setChecked(true);
+                        std::stringstream sts ;
+                        sts << mess->GetPosition1(); 
+                        this->pos1->setText(sts.str().c_str());
+                        sts << mess->GetPosition2(); 
+                        this->pos2->setText(sts.str().c_str());
+                        sts << mess->GetTimeout(); 
+                        this->timeout->setText(sts.str().c_str());
+                    }
+                    free(mess);
+                } 
+            );
             buttpl->addWidget(jogopt, 0, 0);
             buttpl->addWidget(pos1l,1,1);
             buttpl->addWidget(pos2l,1,3);
@@ -142,43 +166,26 @@ class DevOpt: public QWidget{
 };
 
 class MovOpt: public QWidget{
-    public slots:
-        void setHVel(){};
-        void getHVel(){};
-        void setBDist(){};
-        void getBDist(){};
-        void setAccP(){};
-        void getAccP(){};
-        void setPowerP(){};
-        void getPowerP(){};
-        void setJogP(){};
-        void getJogP(){};
-
-    public:       
+    public:
+        int chan_id;
         QGroupBox *hvel_box;
         QHBoxLayout *hvel_layout;
         QLabel *hvel_label;
         QLineEdit *hvel_edit;
         QPushButton *hvel_get;
         QPushButton *hvel_set;
-        QAction *hvel_set_action;
-        QAction *hvel_get_action;
         QGroupBox *bdist_box;
         QHBoxLayout *bdist_layout;
         QLabel *bdist_label;
         QLineEdit *bdist_edit;
         QPushButton *bdist_get;
         QPushButton *bdist_set;
-        QAction *bdist_set_action;
-        QAction *bdist_get_action;
         QGroupBox *accp_box;
         QHBoxLayout *accp_layout;
         QLabel *accp_label;
         QLineEdit *accp_edit;
         QPushButton *accp_get;
         QPushButton *accp_set;
-        QAction *accp_set_action;
-        QAction *accp_get_action;
         QGroupBox *powerp_box;
         QHBoxLayout *powerp_layout;
         QLabel *powerp1_label;
@@ -187,8 +194,6 @@ class MovOpt: public QWidget{
         QLineEdit *powerp2_edit;
         QPushButton *powerp_get;
         QPushButton *powerp_set;
-        QAction *powerp_set_action;
-        QAction *powerp_get_action;
         QGroupBox *jogp_box;
         QGridLayout *jogp_layout;
         QGroupBox *jogp_mode;
@@ -207,11 +212,10 @@ class MovOpt: public QWidget{
         QLineEdit *jogp_stepe;
         QPushButton *jogp_set;
         QPushButton *jogp_get;
-        QAction *jogp_set_action;
-        QAction *jogp_get_action;
 
 
         void Setup(int index){
+            chan_id = index;
             this->setWindowTitle("Move options");
             this->resize(500,700);
             this->setMaximumSize(500,700);
@@ -228,10 +232,8 @@ class MovOpt: public QWidget{
             hvel_edit->setInputMask("999999");
             hvel_get = new QPushButton("Get",this);
             hvel_set = new QPushButton("Set",this);
-            hvel_get_action = new QAction(this);
-            hvel_set_action = new QAction(this);
-            connect(hvel_get_action, &QAction::triggered, this, &MovOpt::getHVel);
-            connect(hvel_set_action, &QAction::triggered, this, &MovOpt::setHVel);
+            connect(hvel_get, &QPushButton::clicked, [this]{} );
+            connect(hvel_set, &QPushButton::clicked, [this]{} );
             hvel_layout->addWidget(hvel_label);
             hvel_layout->addWidget(hvel_edit);
             hvel_layout->addWidget(hvel_get);
@@ -247,10 +249,8 @@ class MovOpt: public QWidget{
             bdist_edit->setInputMask("999999");
             bdist_get = new QPushButton("Get",this);
             bdist_set = new QPushButton("Set",this);
-            bdist_get_action = new QAction(this);
-            bdist_set_action = new QAction(this);
-            connect(bdist_get_action, &QAction::triggered, this, &MovOpt::getBDist);
-            connect(bdist_set_action, &QAction::triggered, this, &MovOpt::setBDist);
+            connect(bdist_get, &QPushButton::clicked, [this]{} );
+            connect(bdist_set, &QPushButton::clicked, [this]{} );
             bdist_layout->addWidget(bdist_label);
             bdist_layout->addWidget(bdist_edit);
             bdist_layout->addWidget(bdist_get);
@@ -266,10 +266,8 @@ class MovOpt: public QWidget{
             accp_edit->setInputMask("99");
             accp_get = new QPushButton("Get",this);
             accp_set = new QPushButton("Set",this);
-            accp_get_action = new QAction(this);
-            accp_set_action = new QAction(this);
-            connect(accp_get_action, &QAction::triggered, this, &MovOpt::getAccP);
-            connect(accp_set_action, &QAction::triggered, this, &MovOpt::setAccP);
+            connect(accp_get, &QPushButton::clicked, [this]{} );
+            connect(accp_set, &QPushButton::clicked, [this]{} );
             accp_layout->addWidget(accp_label);
             accp_layout->addWidget(accp_edit);
             accp_layout->addWidget(accp_get);
@@ -288,10 +286,8 @@ class MovOpt: public QWidget{
             powerp2_edit->setInputMask("999");
             powerp_get = new QPushButton("Get",this);
             powerp_set = new QPushButton("Set",this);
-            powerp_get_action = new QAction(this);
-            powerp_set_action = new QAction(this);
-            connect(powerp_get_action, &QAction::triggered, this, &MovOpt::getPowerP);
-            connect(powerp_set_action, &QAction::triggered, this, &MovOpt::setPowerP);
+            connect(powerp_get, &QPushButton::clicked, [this]{} );
+            connect(powerp_set, &QPushButton::clicked, [this]{} );
             powerp_layout->addWidget(powerp1_label);
             powerp_layout->addWidget(powerp1_edit);
             powerp_layout->addWidget(powerp2_label);
@@ -329,10 +325,8 @@ class MovOpt: public QWidget{
             jogp_stepe->setInputMask("999999");
             jogp_get = new QPushButton("Get",this);
             jogp_set = new QPushButton("Set",this);
-            jogp_set_action = new QAction(this);
-            jogp_get_action = new QAction(this);
-            connect(jogp_get_action, &QAction::triggered, this, &MovOpt::getJogP);
-            connect(jogp_set_action, &QAction::triggered, this, &MovOpt::setJogP);
+            connect(jogp_get, &QPushButton::clicked, [this]{} );
+            connect(jogp_set, &QPushButton::clicked, [this]{} );
             jogp_layout->addWidget(jogp_mode,0,0,3,1);
             jogp_layout->addWidget(jogp_stopmode, 0,1,3,1);
             jogp_layout->addWidget(jogp_vell,0 ,2);
@@ -388,7 +382,7 @@ class GUI: public QMainWindow{
         };
         void switchDev(int index){};
         void quit(){};
-        void flash(){};
+        void flash(){printf("Can i cry now?"); start->resize(250,250);};
         void home(){};
         void stopm(){};
         void startm(){};
@@ -415,13 +409,9 @@ class GUI: public QMainWindow{
         QRadioButton *chan_2;
         QRadioButton *chan_3;
         QPushButton *flash_button;
-        QAction *flash_action;
         QPushButton *home_button;
-        QAction *home_action;
         QPushButton *forward;
-        QAction *forward_action;
         QPushButton *backward;
-        QAction *backward_action;
         QLabel *moves_l;
         QRadioButton *relm;
         QRadioButton *absm;
@@ -438,9 +428,7 @@ class GUI: public QMainWindow{
         QLabel *reldl;
         QLabel *abspl;
         QPushButton *start;
-        QAction *start_action;
         QPushButton *stop;
-        QAction *stop_action;
         QGroupBox *status_box;
         QGridLayout *lstat;
         QLabel *moving;
@@ -555,18 +543,16 @@ class GUI: public QMainWindow{
             chan_box->setSpacing(10);
             channels->setLayout(chan_box);
             channels->setGeometry(40,120,200,200);
-
+   
             //flash and home buttons
             flash_button = new QPushButton(this);
             flash_button->setGeometry(40,350,100,50);
             flash_button->setText("Flash LED");
-            flash_action = new QAction(this);
-            connect(flash_action, &QAction::triggered, this, &GUI::flash);
+            connect(flash_button, &QPushButton::clicked, [this]{ });
             home_button = new QPushButton(this);
             home_button->setGeometry(150,350,100,50);
             home_button->setText("Home");
-            home_action = new QAction(this);
-            connect(home_action, &QAction::triggered, this, &GUI::home);
+            connect(home_button, &QPushButton::clicked, [this]{} );
             
             //moves directional
             moves_l = new QLabel(this);
@@ -578,14 +564,12 @@ class GUI: public QMainWindow{
             forward->setIcon(QIcon("./src/triangle_up.png"));
             forward->setIconSize(QSize(65,65));
             forward->setGeometry(450,100,70,70);
-            forward_action = new QAction(this);
-            connect(forward_action, &QAction::triggered, this, &GUI::startD1);
+            connect(forward, &QPushButton::clicked, [this]{} );
             backward = new QPushButton(this);
             backward->setIcon(QIcon("./src/triangle_down.png"));
             backward->setIconSize(QSize(65,65));
             backward->setGeometry(450,180,70,70);
-            backward_action = new QAction(this);
-            connect(backward_action, &QAction::triggered, this, &GUI::startD2);
+            connect(backward, &QPushButton::clicked, [this]{} );
             
             dir_moves = new QGroupBox("Directional",this);
             ldir_moves = new QVBoxLayout();
@@ -622,8 +606,7 @@ class GUI: public QMainWindow{
             reldl->resize(50,50);
             start = new QPushButton("Start",this);
             start->resize(50,40);
-            start_action = new QAction(this);
-            connect(start_action, &QAction::triggered, this, &GUI::startm);
+            connect(start, &QPushButton::clicked, [this]{} );
             lmoves->setVerticalSpacing(4);
             lmoves->addWidget(absm,0,0);
             lmoves->addWidget(abspos,0,2);
@@ -638,8 +621,7 @@ class GUI: public QMainWindow{
             //stop button
             stop = new QPushButton("Stop",this);
             stop->setGeometry(310,380,100,50);
-            stop_action = new QAction(this);
-            connect(stop_action, &QAction::triggered, this, &GUI::stopm);    
+            connect(stop, &QPushButton::clicked, [this]{} );    
             
             //status bar
             status_box = new QGroupBox("Status",this);
