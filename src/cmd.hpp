@@ -736,7 +736,7 @@ int BacklashDistC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetGeneralMoveParams, device_calls::GetBacklashDist)
-        printf("Backlash distance: %d\n",mess->GetBakclashDist());
+        printf("Backlash distance: %d\n",mess->GetBacklashDist());
     }
     if (operation == 1){
         int ret;

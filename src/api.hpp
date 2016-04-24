@@ -520,7 +520,7 @@ class GetGeneralMoveParams:public LongMessage{
 public:
     GetGeneralMoveParams(uint8_t *mess):LongMessage(mess,12){};
     
-    int32_t GetBakclashDist(){return le32toh(*((int32_t*) &bytes[8])); }
+    int32_t GetBacklashDist(){return le32toh(*((int32_t*) &bytes[8])); }
 };
 
 class SetRelativeMoveParams:public LongMessage{
