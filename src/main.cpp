@@ -4,6 +4,7 @@
 #include "init.hpp"
 #include "cmd.hpp"
 #include "gui.hpp"
+#include "device.hpp"
 #include "../ftdi_lib/ftd2xx.h"
 #include "../ftdi_lib/WinTypes.h"
 
@@ -41,9 +42,24 @@ switch (ret_code){
     }
 
 }
+unsigned int devices_connected ;
+controller_device *connected_device;
+controller_device opened_device ;
+unsigned int opened_device_index ;
+
+ int run_gui(){
+    char **argv = NULL;
+    int argc = 0;
+    QApplication a( argc, argv );
+    GUI *gui = new GUI();
+    gui->Setup();
+    
+    a.exec();
+    return 0;
+}
 
 
-int main(int argc, char** argv) {   
+int main(int argc, char** argv) {
     for (int i = 1; i < argc; i++){
         if (strcmp(argv[i],"-h") == 0 || strcmp(argv[i],"--help") == 0) {
             printf("Options\n");

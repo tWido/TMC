@@ -57,28 +57,28 @@
         if ( ret != 0) return ret;                              \
         EMPTY_IN_QUEUE                                          
 
-uint8_t DefaultDest(){
+inline uint8_t DefaultDest(){
     return 0x50;
 }
 
-uint8_t DefaultChanel8(){
+inline uint8_t DefaultChanel8(){
     return 0x01;
 }
 
-uint16_t DefaultChanel16(){
+inline uint16_t DefaultChanel16(){
     return 0x01;
 }
 
-uint8_t DeafultRate(){
+inline uint8_t DeafultRate(){
     return 1;
 }
 
-uint8_t DefaultStopMode(){
+inline uint8_t DefaultStopMode(){
     return 0x02;
 }
 
 
-int CheckParams( uint8_t dest, int chanID){
+inline int CheckParams( uint8_t dest, int chanID){
     if (chanID > opened_device.channels && chanID != -1) return INVALID_CHANNEL;
     if (dest == 0x11 || dest == 0x50) return 0;
     switch (dest){
@@ -99,7 +99,7 @@ int CheckParams( uint8_t dest, int chanID){
     return 0;
 };
 
-int SendMessage(Message &message){
+inline int SendMessage(Message &message){
     FT_STATUS wrStatus;
     unsigned int wrote;
     wrStatus = FT_Write(opened_device.handle, message.data(), message.msize(), &wrote );
@@ -113,7 +113,7 @@ int SendMessage(Message &message){
     return FT_ERROR;
 }
 
-int CheckIncomingQueue(uint16_t *ret_msgID){
+inline int CheckIncomingQueue(uint16_t *ret_msgID){
     FT_STATUS ftStatus;
     unsigned int bytes;
     ftStatus = FT_GetQueueStatus(opened_device.handle, &bytes);
@@ -208,7 +208,7 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
     };
 }
 
-int EmptyIncomingQueue(){
+inline int EmptyIncomingQueue(){
     while(true){
         int ret = CheckIncomingQueue(NULL);
         if (ret == EMPTY) return 0;
@@ -225,7 +225,7 @@ int EmptyIncomingQueue(){
     }
 }
 
-int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess ){
+inline int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess ){
     int ret;
     uint16_t msgID;
     while(true){
@@ -256,7 +256,7 @@ int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess ){
 namespace device_calls{
 // ------------------------- Generic device calls ------------------------------
 
-int Identify(uint8_t dest = DefaultDest()){
+inline int Identify(uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     IdentifyMs mes(dest, 0x01);
@@ -265,7 +265,7 @@ int Identify(uint8_t dest = DefaultDest()){
     return 0;
 }
 
-int EnableChannel(uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8()){   
+inline int EnableChannel(uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8()){   
     CHECK_ADDR_PARAMS(dest, chanel)
     EMPTY_IN_QUEUE
     SetChannelState mes(chanel, 1, dest, SOURCE);
@@ -274,7 +274,7 @@ int EnableChannel(uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8(
     return 0;
 }
 
-int DisableChannel(uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8()){  
+inline int DisableChannel(uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8()){  
     CHECK_ADDR_PARAMS(dest, chanel)
     EMPTY_IN_QUEUE
     SetChannelState mes(chanel, 2, dest, SOURCE);
@@ -283,7 +283,7 @@ int DisableChannel(uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8
     return 0;
 }
 
-int ChannelState(GetChannelState *info, uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8()){ 
+inline int ChannelState(GetChannelState *info, uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8()){ 
     CHECK_ADDR_PARAMS(dest, chanel)
     EMPTY_IN_QUEUE
     ReqChannelState mes(chanel, dest, SOURCE);
@@ -298,7 +298,7 @@ int ChannelState(GetChannelState *info, uint8_t dest = DefaultDest(), uint8_t ch
     return 0;
 }
 
-int DisconnectHW(uint8_t dest = DefaultDest()){
+inline int DisconnectHW(uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     HwDisconnect mes(dest, SOURCE);
@@ -307,7 +307,7 @@ int DisconnectHW(uint8_t dest = DefaultDest()){
     return 0;
 }
 
-int StartUpdateMess(uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest()){
+inline int StartUpdateMess(uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     StartUpdateMessages mes(dest, SOURCE);
@@ -318,7 +318,7 @@ int StartUpdateMess(uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest()){
     return 0;
 }
 
-int StopUpdateMess(uint8_t dest = DefaultDest()){
+inline int StopUpdateMess(uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     StopUpdateMessages mes(dest, SOURCE);
@@ -328,7 +328,7 @@ int StopUpdateMess(uint8_t dest = DefaultDest()){
     return 0;
 }
 
-int GetHwInfo(HwInfo *message, uint8_t dest = DefaultDest()){
+inline int GetHwInfo(HwInfo *message, uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     ReqHwInfo mes(dest, SOURCE);
@@ -343,7 +343,7 @@ int GetHwInfo(HwInfo *message, uint8_t dest = DefaultDest()){
     return 0;
 }
 
-int GetBayUsed(GetRackBayUsed *message, uint8_t bayID, uint8_t dest = DefaultDest()){
+inline int GetBayUsed(GetRackBayUsed *message, uint8_t bayID, uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     ReqRackBayUsed mes(dest, SOURCE);
@@ -359,7 +359,7 @@ int GetBayUsed(GetRackBayUsed *message, uint8_t bayID, uint8_t dest = DefaultDes
     return 0;
 }
 
-int GetHubUsed(GetHubBayUsed *message, uint8_t dest = DefaultDest()){
+inline int GetHubUsed(GetHubBayUsed *message, uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1);
     EMPTY_IN_QUEUE
     ReqHubBayUsed mes(dest, SOURCE);
@@ -376,7 +376,7 @@ int GetHubUsed(GetHubBayUsed *message, uint8_t dest = DefaultDest()){
 
 //-------------------------- Motor control calls ------------------------------
 
-int FlashProgYes(uint8_t dest = DefaultDest() ){
+inline int FlashProgYes(uint8_t dest = DefaultDest() ){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     YesFlashProg mes(dest, SOURCE);
@@ -385,7 +385,7 @@ int FlashProgYes(uint8_t dest = DefaultDest() ){
     return 0;
 };
 
-int FlashProgNo(uint8_t dest = DefaultDest()){
+inline int FlashProgNo(uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     NoFlashProg mes(dest, SOURCE);
@@ -394,7 +394,7 @@ int FlashProgNo(uint8_t dest = DefaultDest()){
     return 0;
 };
 
-int SetPositionCounter(int32_t pos, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetPositionCounter(int32_t pos, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetPosCounter mes(dest, SOURCE, channel);
@@ -404,12 +404,12 @@ int SetPositionCounter(int32_t pos, uint8_t dest = DefaultDest(), uint16_t chann
     return ret; //return WARNING
 };
 
-int GetPositionCounter(GetPosCounter *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetPositionCounter(GetPosCounter *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqPosCounter,12,GET_POSCOUNTER,GetPosCounter)      
     return 0;
 };
 
-int SetEncoderCounter(int32_t count, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetEncoderCounter(int32_t count, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetEncCount mes(dest, SOURCE, channel);
@@ -419,12 +419,12 @@ int SetEncoderCounter(int32_t count, uint8_t dest = DefaultDest(), uint16_t chan
     return ret; //return WARNING
 };
 
-int GetEncoderCounter(GetEncCount *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetEncoderCounter(GetEncCount *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqEncCount,12,GET_ENCCOUNTER,GetEncCount)      
     return 0;
 };
 
-int SetVelocityP(int32_t acc, int32_t maxVel, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetVelocityP(int32_t acc, int32_t maxVel, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetVelocityParams mes(dest, SOURCE, channel);
@@ -435,12 +435,12 @@ int SetVelocityP(int32_t acc, int32_t maxVel, uint8_t dest = DefaultDest(), uint
     return 0;        
 }
 
-int GetVelocityP(GetVelocityParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetVelocityP(GetVelocityParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqVelocityParams,20,GET_VELPARAMS,GetVelocityParams)       
     return 0;
 };
 
-int SetJogP(uint16_t mode, int32_t stepSize, int32_t vel, int32_t acc, uint16_t stopMode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetJogP(uint16_t mode, int32_t stepSize, int32_t vel, int32_t acc, uint16_t stopMode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetJogParams mes(dest, SOURCE, channel);
@@ -454,12 +454,12 @@ int SetJogP(uint16_t mode, int32_t stepSize, int32_t vel, int32_t acc, uint16_t 
     return 0; 
 };
 
-int GetJogP(GetJogParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetJogP(GetJogParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqJogParams,28,GET_JOGPARAMS,GetJogParams)
     return 0;
 };
 
-int SetPowerUsed(uint16_t rest_power, uint16_t move_power, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetPowerUsed(uint16_t rest_power, uint16_t move_power, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetPowerParams mes(dest, SOURCE, channel);
@@ -470,12 +470,12 @@ int SetPowerUsed(uint16_t rest_power, uint16_t move_power, int8_t dest = Default
     return 0;
 };
 
-int GetPowerUsed(GetPowerParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetPowerUsed(GetPowerParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqPowerParams,12,GET_POWERPARAMS,GetPowerParams)
     return 0;
 };
 
-int SetBacklashDist(uint32_t dist, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetBacklashDist(uint32_t dist, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetGeneralMoveParams mes(dest, SOURCE, channel);
@@ -485,12 +485,12 @@ int SetBacklashDist(uint32_t dist, int8_t dest = DefaultDest(), uint16_t channel
     return 0;
 };
 
-int GetBacklashDist(GetGeneralMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetBacklashDist(GetGeneralMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqGeneralMoveParams,12,GET_GENMOVEPARAMS,GetGeneralMoveParams)                        
     return 0;
 };
 
-int SetRelativeMoveP(uint32_t dist, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetRelativeMoveP(uint32_t dist, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetRelativeMoveParams mes(dest, SOURCE, channel);
@@ -500,12 +500,12 @@ int SetRelativeMoveP(uint32_t dist, int8_t dest = DefaultDest(), uint16_t channe
     return 0;        
 };
 
-int GetRelativeMoveP(GetRelativeMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetRelativeMoveP(GetRelativeMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqRelativeMoveParams,12,GET_MOVERELPARAMS,GetRelativeMoveParams) 
     return 0;
 };
 
-int SetAbsoluteMoveP(uint32_t pos, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetAbsoluteMoveP(uint32_t pos, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetAbsoluteMoveParams mes(dest, SOURCE, channel);
@@ -515,12 +515,12 @@ int SetAbsoluteMoveP(uint32_t pos, int8_t dest = DefaultDest(), uint16_t channel
     return 0;
 };
 
-int GetAbsoluteMoveP(GetAbsoluteMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetAbsoluteMoveP(GetAbsoluteMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqAbsoluteMoveParams,12,GET_MOVEABSPARAMS,GetAbsoluteMoveParams) 
     return 0;
 };
 
-int SetHomingVel(uint32_t vel, int8_t dest = DefaultDest(),  uint16_t channel = DefaultChanel16()){
+inline int SetHomingVel(uint32_t vel, int8_t dest = DefaultDest(),  uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetHomeParams mes(dest, SOURCE, channel);
@@ -530,12 +530,12 @@ int SetHomingVel(uint32_t vel, int8_t dest = DefaultDest(),  uint16_t channel = 
     return 0;
 };
 
-int GetHomingVel(GetHomeParams *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetHomingVel(GetHomeParams *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqHomeParams,20,GET_HOMEPARAMS,GetHomeParams) 
     return 0;
 };
 
-int SetLimitSwitchConfig(uint16_t CwHwLim, uint16_t CCwHwLim, uint16_t CwSwLim, uint16_t CCwSwLim, uint16_t mode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetLimitSwitchConfig(uint16_t CwHwLim, uint16_t CCwHwLim, uint16_t CwSwLim, uint16_t CCwSwLim, uint16_t mode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetLimitSwitchParams mes(dest, SOURCE, channel);
@@ -551,12 +551,12 @@ int SetLimitSwitchConfig(uint16_t CwHwLim, uint16_t CCwHwLim, uint16_t CwSwLim, 
     return 0;
 };
 
-int GetLimitSwitchConfig(GetLimitSwitchParams *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetLimitSwitchConfig(GetLimitSwitchParams *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqLimitSwitchParams,22,GET_LIMSWITCHPARAMS,GetLimitSwitchParams) 
     return 0;
 };
 
-int MoveToHome(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int MoveToHome(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     MoveHome mes(dest, SOURCE,channel);        
@@ -566,7 +566,7 @@ int MoveToHome(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8())
     return 0;
 };
 
-int StartSetRelativeMove(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int StartSetRelativeMove(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     MoveRelative1 mes(dest,SOURCE,channel);        
@@ -576,7 +576,7 @@ int StartSetRelativeMove(uint8_t dest = DefaultDest(), uint8_t channel = Default
     return 0;
 };
 
-int StartRelativeMove(int32_t dist, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int StartRelativeMove(int32_t dist, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     MoveRelative2 mes(dest,SOURCE,channel);
@@ -587,7 +587,7 @@ int StartRelativeMove(int32_t dist, uint8_t dest = DefaultDest(), uint16_t chann
     return 0;
 };
 
-int StartSetAbsoluteMove(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int StartSetAbsoluteMove(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     MoveAbsolute1 mes(dest,SOURCE,channel);        
@@ -597,7 +597,7 @@ int StartSetAbsoluteMove(uint8_t dest = DefaultDest(), uint8_t channel = Default
     return 0;
 };
 
-int StartAbsoluteMove(int32_t pos, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int StartAbsoluteMove(int32_t pos, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE       
     MoveAbsolute2 mes(dest,SOURCE,channel);  
@@ -608,7 +608,7 @@ int StartAbsoluteMove(int32_t pos, uint8_t dest = DefaultDest(), uint16_t channe
     return 0;
 };
 
-int StartJogMove(uint8_t direction, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int StartJogMove(uint8_t direction, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE       
     JogMove mes(dest,SOURCE,channel);  
@@ -619,7 +619,7 @@ int StartJogMove(uint8_t direction, uint8_t dest = DefaultDest(), uint8_t channe
     return 0;
 };
 
-int StartSetVelocityMove( uint8_t direction, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int StartSetVelocityMove( uint8_t direction, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE        
     MovewVelocity mes(dest,SOURCE,channel);  
@@ -630,7 +630,7 @@ int StartSetVelocityMove( uint8_t direction, uint8_t dest = DefaultDest(), uint8
     return 0;
 };
 
-int StopMovement(uint8_t stopMode = DefaultStopMode(), uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int StopMovement(uint8_t stopMode = DefaultStopMode(), uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     StopMove mes(dest,SOURCE,channel);  
@@ -641,7 +641,7 @@ int StopMovement(uint8_t stopMode = DefaultStopMode(), uint8_t dest = DefaultDes
     return 0;
 };
 
-int SetAccelerationProfile(uint16_t index, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetAccelerationProfile(uint16_t index, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetBowIndex mes(dest, SOURCE, channel);
@@ -651,12 +651,12 @@ int SetAccelerationProfile(uint16_t index, int8_t dest = DefaultDest(), uint16_t
     return 0;
 };
 
-int GetAccelerationProfile(GetBowIndex *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetAccelerationProfile(GetBowIndex *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqBowIndex,10,GET_BOWINDEX,GetBowIndex) 
     return 0;
 };
 
-int SetLedP(uint16_t mode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetLedP(uint16_t mode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetLedMode mes(dest, SOURCE, channel);
@@ -667,12 +667,12 @@ int SetLedP(uint16_t mode, int8_t dest = DefaultDest(), uint16_t channel = Defau
 };
 
 
-int GetLedP(GetLedMode *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetLedP(GetLedMode *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqLedMode,10,GET_AVMODES,GetLedMode) 
     return 0;
 };
 
-int SetButtons(uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+inline int SetButtons(uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetButtonParams mes(dest, SOURCE, channel);
@@ -685,13 +685,13 @@ int SetButtons(uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout, int8
     return 0;
 };
 
-int GetButtonsInfo(GetButtonParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetButtonsInfo(GetButtonParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqButtonParams,22,GET_BUTTONPARAMS,GetButtonParams) 
     return 0;
 };
 
 // only requests for data, automatically stored in device info
-int ReqStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int ReqStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)                
     EMPTY_IN_QUEUE                                          
     ReqStatusUpdate mes(dest, SOURCE, channel);              
@@ -701,7 +701,7 @@ int ReqStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
 };
 
 // only requests for data, automatically s
-int ReqDcStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int ReqDcStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)                
     EMPTY_IN_QUEUE                                          
     ReqMotChanStatusUpdate mes(dest, SOURCE, channel);              
@@ -710,7 +710,7 @@ int ReqDcStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()
     return 0;
 };
 
-int SendServerAlive(uint8_t dest = DefaultDest()){
+inline int SendServerAlive(uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     ServerAlive mes(dest,SOURCE);
@@ -719,12 +719,12 @@ int SendServerAlive(uint8_t dest = DefaultDest()){
     return 0;
 };
 
-int GetStatBits(GetStatusBits *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetStatBits(GetStatusBits *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqStatusBits,12,GET_STATUSBITS,GetStatusBits) 
     return 0;
 };
 
-int DisableEomMessages(uint8_t dest = DefaultDest()){
+inline int DisableEomMessages(uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     DisableEndMoveMessages mes(dest,SOURCE);
@@ -734,7 +734,7 @@ int DisableEomMessages(uint8_t dest = DefaultDest()){
     return 0;
 };
 
-int EnableEomMessages(uint8_t dest = DefaultDest()){
+inline int EnableEomMessages(uint8_t dest = DefaultDest()){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     EnableEndMoveMessages mes(dest,SOURCE);
@@ -744,7 +744,7 @@ int EnableEomMessages(uint8_t dest = DefaultDest()){
     return 0;
 };
 
-int CreateTrigger(uint8_t mode, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int CreateTrigger(uint8_t mode, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetTrigger mes(dest,SOURCE, channel);
@@ -754,7 +754,7 @@ int CreateTrigger(uint8_t mode, uint8_t dest = DefaultDest(), uint8_t channel = 
     return 0;
 };
 
-int GetMotorTrigger(GetTrigger *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+inline int GetMotorTrigger(GetTrigger *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
     GET_MESS(ReqTrigger,HEADER_SIZE,GET_TRIGGER,GetTrigger) 
     return 0;
 };
@@ -762,7 +762,7 @@ int GetMotorTrigger(GetTrigger *message, uint8_t dest = DefaultDest(), uint8_t c
 
 } // namespace device_calls
 
-int OpenDevice(unsigned int index){
+inline int OpenDevice(unsigned int index){
     if (index >= devices_connected) return INVALID_PARAM_1;
     device_calls::StopUpdateMess();
     FT_Close(opened_device.handle);
