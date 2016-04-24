@@ -35,7 +35,7 @@
 
 #define GET_DEV_MESSAGE(mess_type, call)                            \
         mess_type* mess = (mess_type*) malloc(sizeof(mess_type));   \
-        device_calls::call(mess);                                                 
+        device_calls::call(mess);          
 
 class DevOpt: public QWidget{
         
@@ -249,8 +249,23 @@ class MovOpt: public QWidget{
             bdist_edit->setInputMask("999999");
             bdist_get = new QPushButton("Get",this);
             bdist_set = new QPushButton("Set",this);
-            connect(bdist_get, &QPushButton::clicked, [this]{} );
-            connect(bdist_set, &QPushButton::clicked, [this]{} );
+            connect(bdist_get, &QPushButton::clicked, 
+                [this]{
+                    std::stringstream sts;
+                    GET_DEV_MESSAGE(GetGeneralMoveParams, GetBacklashDist)
+                    sts << mess->GetBacklashDist();
+                    bdist_edit->setText(sts.str().c_str());
+                    free(mess);
+                } 
+            );
+            connect(bdist_set, &QPushButton::clicked, 
+                [this]{
+                    int32_t dist =std::stoi(this->bdist_edit->text().toStdString(),0,10);
+                    if (opened_device.bays == -1 )
+                        device_calls::SetBacklashDist(dist, 0x50, chan_id);
+                    else device_calls::SetBacklashDist(dist, chan_id+0x20);
+                } 
+            );
             bdist_layout->addWidget(bdist_label);
             bdist_layout->addWidget(bdist_edit);
             bdist_layout->addWidget(bdist_get);
@@ -266,8 +281,23 @@ class MovOpt: public QWidget{
             accp_edit->setInputMask("99");
             accp_get = new QPushButton("Get",this);
             accp_set = new QPushButton("Set",this);
-            connect(accp_get, &QPushButton::clicked, [this]{} );
-            connect(accp_set, &QPushButton::clicked, [this]{} );
+            connect(accp_get, &QPushButton::clicked, 
+                [this]{
+                    std::stringstream sts;
+                    GET_DEV_MESSAGE(GetBowIndex, GetAccelerationProfile)
+                    sts << mess->BowIndex();
+                    bdist_edit->setText(sts.str().c_str());
+                    free(mess);
+                } 
+            );
+            connect(accp_set, &QPushButton::clicked, 
+                [this]{
+                    uint16_t profile =std::stoi(this->accp_edit->text().toStdString(),0,10);
+                    if (opened_device.bays == -1 )
+                        device_calls::SetAccelerationProfile(profile, 0x50, chan_id);
+                    else device_calls::SetAccelerationProfile(profile, chan_id+0x20);
+                } 
+            );
             accp_layout->addWidget(accp_label);
             accp_layout->addWidget(accp_edit);
             accp_layout->addWidget(accp_get);
@@ -286,8 +316,26 @@ class MovOpt: public QWidget{
             powerp2_edit->setInputMask("999");
             powerp_get = new QPushButton("Get",this);
             powerp_set = new QPushButton("Set",this);
-            connect(powerp_get, &QPushButton::clicked, [this]{} );
-            connect(powerp_set, &QPushButton::clicked, [this]{} );
+            connect(powerp_get, &QPushButton::clicked, 
+                [this]{
+                    std::stringstream sts;
+                    GET_DEV_MESSAGE(GetPowerParams, GetPowerUsed)
+                    sts << mess->GetRestFactor();
+                    powerp1_edit->setText(sts.str().c_str());
+                    sts << mess->GetMoveFactor();
+                    powerp2_edit->setText(sts.str().c_str());
+                    free(mess);
+                } 
+            );
+            connect(powerp_set, &QPushButton::clicked, 
+                [this]{
+                    uint16_t restf = std::stoi(this->powerp1_edit->text().toStdString(),0,10);
+                    uint16_t movef = std::stoi(this->powerp2_edit->text().toStdString(),0,10);
+                    if (opened_device.bays == -1 )
+                        device_calls::SetPowerUsed(restf, movef, 0x50, chan_id);
+                    else device_calls::SetPowerUsed(restf, movef, chan_id+0x20);
+                } 
+            );
             powerp_layout->addWidget(powerp1_label);
             powerp_layout->addWidget(powerp1_edit);
             powerp_layout->addWidget(powerp2_label);
@@ -325,8 +373,40 @@ class MovOpt: public QWidget{
             jogp_stepe->setInputMask("999999");
             jogp_get = new QPushButton("Get",this);
             jogp_set = new QPushButton("Set",this);
-            connect(jogp_get, &QPushButton::clicked, [this]{} );
-            connect(jogp_set, &QPushButton::clicked, [this]{} );
+            connect(jogp_get, &QPushButton::clicked, 
+                [this]{
+                    std::stringstream sts;
+                    GET_DEV_MESSAGE(GetJogParams, GetJogP)
+                    if ( mess->GetJogMode() == 1 ) jogp_mode1->setChecked(true);
+                    else {
+                        jogp_mode2->setChecked(true);
+                        sts << mess->GetStepSize();
+                        jogp_stepe->setText(sts.str().c_str());
+                        sts<< mess->GetMaxVel();
+                        jogp_vele->setText(sts.str().c_str());
+                        sts<< mess->GetAcceleration();
+                        jogp_acce->setText(sts.str().c_str());
+                    }
+                    if (mess->GetStopMode() == 1) jogp_stopmode1->setChecked(true);
+                    else jogp_stopmode2->setChecked(true);
+                    free(mess);
+                } 
+            );
+            connect(jogp_set, &QPushButton::clicked, 
+                [this]{
+                    uint16_t mode, stopmode;
+                    if (jogp_mode1->isChecked())  mode = 1; 
+                    else mode = 2;
+                    int32_t stepSize = std::stoi(this->jogp_stepe->text().toStdString(),0,10);;  
+                    int32_t vel = std::stoi(this->jogp_vele->text().toStdString(),0,10);;
+                    int32_t acc = std::stoi(this->jogp_acce->text().toStdString(),0,10);; 
+                    if (jogp_stopmode1->isChecked())  stopmode = 1; 
+                    else stopmode = 2;
+                    if (opened_device.bays == -1 )
+                        device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, 0x50, chan_id);
+                    else device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, chan_id+0x20);
+                } 
+            );
             jogp_layout->addWidget(jogp_mode,0,0,3,1);
             jogp_layout->addWidget(jogp_stopmode, 0,1,3,1);
             jogp_layout->addWidget(jogp_vell,0 ,2);
@@ -380,23 +460,13 @@ class GUI: public QMainWindow{
         void openDoc(){
             system("gnome-open ./docs/APT_Communications_Protocol_Rev_15.pdf");
         };
-        void switchDev(int index){};
-        void quit(){};
-        void flash(){printf("Can i cry now?"); start->resize(250,250);};
-        void home(){};
-        void stopm(){};
-        void startm(){};
-        void startD1(){};
-        void startD2(){};
-    
+  
     public:
         int actual_channel;
         QMenuBar *menuBar;
         QMenu *control_menu;
         QMenu *device_menu;
         QMenu *help_menu;
-        QMenu *exit;
-        QAction *exit_action;
         QAction **device_switch_actions;
         QAction *move_opt_action;
         QAction *device_opt_action;
@@ -461,10 +531,6 @@ class GUI: public QMainWindow{
             device_menu = new QMenu("Device",menuBar);
             help_menu = new QMenu(menuBar);
             help_menu->setTitle("Help");
-            exit = new QMenu("Exit",this);
-            exit_action = new QAction("Exit",this);
-            connect(exit_action, &QAction::triggered, this, &GUI::quit);
-            exit->addAction(exit_action);
             menuBar->addMenu(control_menu);
             device_opt_action = new QAction("Device settings", this);
             move_opt_action = new QAction("Move options", this);
@@ -479,7 +545,7 @@ class GUI: public QMainWindow{
                 dev_label.append(": ");
                 dev_label.append(connected_device->SN);
                 device_switch_actions[i] = new QAction(dev_label.c_str(),this);
-                connect(move_opt_action, &QAction::triggered, this, [this](int i){ switchDev(i); });
+                connect(move_opt_action, &QAction::triggered, this, [this, i]{ OpenDevice(i); });
             }
             menuBar->addMenu(help_menu);
             help_action = new QAction("Help",this);
@@ -488,7 +554,6 @@ class GUI: public QMainWindow{
             connect(doc_action, &QAction::triggered, this, &GUI::openDoc);
             help_menu->addAction(help_action);
             help_menu->addAction(doc_action);
-            menuBar->addMenu(exit);
                       
             //Device labels
             dev_name = new QLabel(this);
@@ -548,11 +613,34 @@ class GUI: public QMainWindow{
             flash_button = new QPushButton(this);
             flash_button->setGeometry(40,350,100,50);
             flash_button->setText("Flash LED");
-            connect(flash_button, &QPushButton::clicked, [this]{ });
+            connect(flash_button, &QPushButton::clicked,
+                [this]{
+                    if (opened_device.bays == -1 )
+                        device_calls::Identify();
+                    else {
+                        if (chan_1->isChecked())device_calls::Identify(0x21);
+                        if (chan_2->isChecked())device_calls::Identify(0x22);
+                        if (chan_3->isChecked())device_calls::Identify(0x23);
+                    }
+                }
+            );
             home_button = new QPushButton(this);
             home_button->setGeometry(150,350,100,50);
             home_button->setText("Home");
-            connect(home_button, &QPushButton::clicked, [this]{} );
+            connect(home_button, &QPushButton::clicked,
+                [this]{
+                    if (opened_device.bays == -1 ){
+                        if (chan_1->isChecked())device_calls::MoveToHome(0x50,1);
+                        if (chan_2->isChecked())device_calls::MoveToHome(0x50,2);
+                        if (chan_3->isChecked())device_calls::MoveToHome(0x50,3);
+                    }
+                    else {
+                        if (chan_1->isChecked())device_calls::MoveToHome(0x21);
+                        if (chan_2->isChecked())device_calls::MoveToHome(0x22);
+                        if (chan_3->isChecked())device_calls::MoveToHome(0x23);
+                    }
+                }
+            );
             
             //moves directional
             moves_l = new QLabel(this);
@@ -564,12 +652,66 @@ class GUI: public QMainWindow{
             forward->setIcon(QIcon("./src/triangle_up.png"));
             forward->setIconSize(QSize(65,65));
             forward->setGeometry(450,100,70,70);
-            connect(forward, &QPushButton::clicked, [this]{} );
+            connect(forward, &QPushButton::clicked,
+                [this]{
+                    if (jogm->isChecked()){
+                        if (opened_device.bays == -1 ){
+                            if (chan_1->isChecked())device_calls::StartJogMove(1,0x50,1);
+                            if (chan_2->isChecked())device_calls::StartJogMove(1,0x50,2);
+                            if (chan_3->isChecked())device_calls::StartJogMove(1,0x50,3);
+                        }
+                        else {
+                            if (chan_1->isChecked())device_calls::StartJogMove(1,0x21);
+                            if (chan_2->isChecked())device_calls::StartJogMove(1,0x22);
+                            if (chan_3->isChecked())device_calls::StartJogMove(1,0x23);
+                        }
+                    }
+                    if (velm->isChecked()){
+                        if (opened_device.bays == -1 ){
+                            if (chan_1->isChecked())device_calls::StartSetVelocityMove(1,0x50,1);
+                            if (chan_2->isChecked())device_calls::StartSetVelocityMove(1,0x50,2);
+                            if (chan_3->isChecked())device_calls::StartSetVelocityMove(1,0x50,3);
+                        }
+                        else {
+                            if (chan_1->isChecked())device_calls::StartSetVelocityMove(1,0x21);
+                            if (chan_2->isChecked())device_calls::StartSetVelocityMove(1,0x22);
+                            if (chan_3->isChecked())device_calls::StartSetVelocityMove(1,0x23);
+                        }
+                    }
+                }
+            );
             backward = new QPushButton(this);
             backward->setIcon(QIcon("./src/triangle_down.png"));
             backward->setIconSize(QSize(65,65));
             backward->setGeometry(450,180,70,70);
-            connect(backward, &QPushButton::clicked, [this]{} );
+            connect(backward, &QPushButton::clicked,
+                [this]{
+                    if (jogm->isChecked()){
+                        if (opened_device.bays == -1 ){
+                            if (chan_1->isChecked())device_calls::StartJogMove(2,0x50,1);
+                            if (chan_2->isChecked())device_calls::StartJogMove(2,0x50,2);
+                            if (chan_3->isChecked())device_calls::StartJogMove(2,0x50,3);
+                        }
+                        else {
+                            if (chan_1->isChecked())device_calls::StartJogMove(2,0x21);
+                            if (chan_2->isChecked())device_calls::StartJogMove(2,0x22);
+                            if (chan_3->isChecked())device_calls::StartJogMove(2,0x23);
+                        }
+                    }
+                    if (velm->isChecked()){
+                        if (opened_device.bays == -1 ){
+                            if (chan_1->isChecked())device_calls::StartSetVelocityMove(2,0x50,1);
+                            if (chan_2->isChecked())device_calls::StartSetVelocityMove(2,0x50,2);
+                            if (chan_3->isChecked())device_calls::StartSetVelocityMove(2,0x50,3);
+                        }
+                        else {
+                            if (chan_1->isChecked())device_calls::StartSetVelocityMove(2,0x21);
+                            if (chan_2->isChecked())device_calls::StartSetVelocityMove(2,0x22);
+                            if (chan_3->isChecked())device_calls::StartSetVelocityMove(2,0x23);
+                        }
+                    }
+                }
+            );
             
             dir_moves = new QGroupBox("Directional",this);
             ldir_moves = new QVBoxLayout();
@@ -606,7 +748,37 @@ class GUI: public QMainWindow{
             reldl->resize(50,50);
             start = new QPushButton("Start",this);
             start->resize(50,40);
-            connect(start, &QPushButton::clicked, [this]{} );
+            connect(start, &QPushButton::clicked,
+                [this]{
+                    if (absm->isChecked()){
+                        int32_t pos = std::stoi(this->reldist->text().toStdString(),0,10);
+                        if (opened_device.bays == -1 ){
+                            if (chan_1->isChecked())device_calls::StartAbsoluteMove(pos,0x50,1);
+                            if (chan_2->isChecked())device_calls::StartAbsoluteMove(pos,0x50,2);
+                            if (chan_3->isChecked())device_calls::StartAbsoluteMove(pos,0x50,3);
+                        }
+                        else {
+                            if (chan_1->isChecked())device_calls::StartAbsoluteMove(pos,0x21);
+                            if (chan_2->isChecked())device_calls::StartAbsoluteMove(pos,0x22);
+                            if (chan_3->isChecked())device_calls::StartAbsoluteMove(pos,0x23);
+                        }
+                        
+                    }
+                    if (relm->isChecked()){
+                        int32_t dist = std::stoi(this->abspos->text().toStdString(),0,10);
+                        if (opened_device.bays == -1 ){
+                            if (chan_1->isChecked())device_calls::StartSetVelocityMove(dist,0x50,1);
+                            if (chan_2->isChecked())device_calls::StartSetVelocityMove(dist,0x50,2);
+                            if (chan_3->isChecked())device_calls::StartSetVelocityMove(dist,0x50,3);
+                        }
+                        else {
+                            if (chan_1->isChecked())device_calls::StartSetVelocityMove(dist,0x21);
+                            if (chan_2->isChecked())device_calls::StartSetVelocityMove(dist,0x22);
+                            if (chan_3->isChecked())device_calls::StartSetVelocityMove(dist,0x23);
+                        }
+                    }
+                } 
+            );
             lmoves->setVerticalSpacing(4);
             lmoves->addWidget(absm,0,0);
             lmoves->addWidget(abspos,0,2);
@@ -621,7 +793,19 @@ class GUI: public QMainWindow{
             //stop button
             stop = new QPushButton("Stop",this);
             stop->setGeometry(310,380,100,50);
-            connect(stop, &QPushButton::clicked, [this]{} );    
+            connect(stop, &QPushButton::clicked,
+                [this]{
+                    if (opened_device.bays == -1 )
+                        if (chan_1->isChecked())device_calls::StopMovement(0x50,1);
+                        if (chan_2->isChecked())device_calls::StopMovement(0x50,2);
+                        if (chan_3->isChecked())device_calls::StopMovement(0x50,3);
+                    else {
+                        if (chan_1->isChecked())device_calls::StopMovement(0x21);
+                        if (chan_2->isChecked())device_calls::StopMovement(0x22);
+                        if (chan_3->isChecked())device_calls::StopMovement(0x23);
+                    }
+                }
+            );   
             
             //status bar
             status_box = new QGroupBox("Status",this);
