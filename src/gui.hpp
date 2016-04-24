@@ -767,14 +767,14 @@ class GUI: public QMainWindow{
                     if (relm->isChecked()){
                         int32_t dist = std::stoi(this->abspos->text().toStdString(),0,10);
                         if (opened_device.bays == -1 ){
-                            if (chan_1->isChecked())device_calls::StartSetVelocityMove(dist,0x50,1);
-                            if (chan_2->isChecked())device_calls::StartSetVelocityMove(dist,0x50,2);
-                            if (chan_3->isChecked())device_calls::StartSetVelocityMove(dist,0x50,3);
+                            if (chan_1->isChecked())device_calls::StartRelativeMove(dist,0x50,1);
+                            if (chan_2->isChecked())device_calls::StartRelativeMove(dist,0x50,2);
+                            if (chan_3->isChecked())device_calls::StartRelativeMove(dist,0x50,3);
                         }
                         else {
-                            if (chan_1->isChecked())device_calls::StartSetVelocityMove(dist,0x21);
-                            if (chan_2->isChecked())device_calls::StartSetVelocityMove(dist,0x22);
-                            if (chan_3->isChecked())device_calls::StartSetVelocityMove(dist,0x23);
+                            if (chan_1->isChecked())device_calls::StartRelativeMove(dist,0x21);
+                            if (chan_2->isChecked())device_calls::StartRelativeMove(dist,0x22);
+                            if (chan_3->isChecked())device_calls::StartRelativeMove(dist,0x23);
                         }
                     }
                 } 
