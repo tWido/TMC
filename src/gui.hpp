@@ -36,7 +36,7 @@
         device_calls::call(mess);          
 
 class DevOpt: public QWidget{
-        
+     Q_OBJECT    
     public:    
         QGridLayout *ledpl;
         QGroupBox *ledp;
@@ -63,6 +63,7 @@ class DevOpt: public QWidget{
 };
 
 class MovOpt: public QWidget{
+     Q_OBJECT
     public:
         int chan_id;
         QGroupBox *hvel_box;
@@ -133,7 +134,7 @@ public:
 };
 
 class GUI: public QMainWindow{
-    
+     Q_OBJECT
     
     public slots:
         void openDevOptions();
