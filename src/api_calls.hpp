@@ -541,11 +541,11 @@ int SetLimitSwitchConfig(uint16_t CwHwLim, uint16_t CCwHwLim, uint16_t CwSwLim, 
     SetLimitSwitchParams mes(dest, SOURCE, channel);
     if (mes.SetClockwiseHardLimit(CwHwLim) == INVALID_PARAM) return INVALID_PARAM_1;
     if (mes.SetCounterlockwiseHardLimit(CCwHwLim) == INVALID_PARAM) return INVALID_PARAM_2;
-    if (mes.SetClockwiseSoftLimit(CwSwLim) == IGNORED_PARAM) return IGNORED_PARAM;
-    if (mes.SetCounterlockwiseSoftLimit(CCwSwLim)== IGNORED_PARAM) return IGNORED_PARAM;
+    if (mes.SetClockwiseSoftLimit(CwSwLim) == IGNORED_PARAM) printf("Software limit ignored in this device");
+    if (mes.SetCounterlockwiseSoftLimit(CCwSwLim)== IGNORED_PARAM) printf("Software limit ignored in this device");
     ret = mes.SetLimitMode(mode);
     if (ret == INVALID_PARAM) return INVALID_PARAM_5;
-    if (ret == IGNORED_PARAM) return IGNORED_PARAM;
+    if (ret == IGNORED_PARAM) printf("Limit mode ignored in this device");
     SendMessage(mes);
     EMPTY_IN_QUEUE 
     return 0;
@@ -679,7 +679,7 @@ int SetButtons(uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout, int8
     if (mes.SetMode(mode) == INVALID_PARAM) return INVALID_PARAM_1;
     if (mes.SetPosition1(pos1) == INVALID_PARAM) return INVALID_PARAM_2;
     if (mes.SetPosition2(pos2) == INVALID_PARAM) return INVALID_PARAM_3;
-    if (mes.SetTimeout(timeout) == IGNORED_PARAM ) return IGNORED_PARAM;
+    if (mes.SetTimeout(timeout) == IGNORED_PARAM ) printf("Timeout ignored in this device");
     SendMessage(mes);
     EMPTY_IN_QUEUE 
     return 0;
@@ -748,7 +748,7 @@ int CreateTrigger(uint8_t mode, uint8_t dest = DefaultDest(), uint8_t channel = 
     CHECK_ADDR_PARAMS(dest, channel)
     EMPTY_IN_QUEUE
     SetTrigger mes(dest,SOURCE, channel);
-    if (mes.SetMode(mode) == IGNORED_PARAM) return IGNORED_PARAM;
+    if (mes.SetMode(mode) == IGNORED_PARAM) printf("trigger ignored in this device");;
     SendMessage(mes);
     EMPTY_IN_QUEUE 
     return 0;
