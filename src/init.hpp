@@ -12,7 +12,6 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
-#include "device.hpp"
 #include "api_calls.hpp"
 
 #define STOP 1

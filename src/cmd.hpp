@@ -1,7 +1,6 @@
 #ifndef CMD_HPP
 #define	CMD_HPP
 #include "api_calls.hpp"
-#include "device.hpp"
 #include <unordered_map>
 #include <vector>
 #include <string.h>
