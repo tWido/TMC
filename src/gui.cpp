@@ -599,7 +599,17 @@ void GUI::Setup(){
     lstat->addWidget(enc_count,1,2);
     status_box->setLayout(lstat);
     status_box->setGeometry(10,450,780,140);
-
+    
+    //timer for status updates
+    update_timer = new QTimer(this);
+    connect(update_timer, &QTimer::timeout, this, 
+        [this]{
+            EmptyIncomingQueue();
+            this->repaint();
+        }
+    );
+    update_timer->start(1000);
+    
     this->show();
 }
 

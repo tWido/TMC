@@ -29,6 +29,7 @@
 #include <QVBoxLayout>
 #include <QPalette>
 #include <QPlainTextEdit>
+#include <QTimer>
 
 
 #define GET_DEV_MESSAGE(mess_type, call)                            \
@@ -193,6 +194,7 @@ class GUI: public QMainWindow{
         MovOpt *moveOpt;
         DevOpt *devOpt;
         HelpText *helpw;
+        QTimer *update_timer;
         
         void Setup();
 
