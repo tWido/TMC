@@ -709,8 +709,10 @@ int device_calls::GetMotorTrigger(GetTrigger *message, uint8_t dest, uint8_t cha
 
 int OpenDevice(unsigned int index){
     if (index >= devices_connected) return INVALID_PARAM_1;
-    device_calls::StopUpdateMess();
-    FT_Close(opened_device.handle);
+    if (opened_device_index != -1 ){
+        device_calls::StopUpdateMess();
+        FT_Close(opened_device.handle);
+    }
     opened_device = connected_device[index];
     FT_HANDLE handle;
     FT_STATUS ft_status;
