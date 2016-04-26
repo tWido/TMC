@@ -88,8 +88,13 @@ void DevOpt::Setup(){
     setbuttp = new QPushButton("Get",this);
     connect(setbuttp, &QPushButton::clicked, 
         [this]{
-
-
+            uint16_t mode = 0;
+            if (gotoopt->isChecked()) mode = 2;
+            else mode = 1;
+            int32_t position1 = std::stoi(this->pos1->text().toStdString(),0,10);
+            int32_t position2 = std::stoi(this->pos2->text().toStdString(),0,10);
+            uint16_t timeout_val = std::stoi(this->timeout->text().toStdString(),0,10);
+            device_calls::SetButtons(mode, position1, position2, timeout_val);
         } 
     );
     connect(getbuttp, &QPushButton::clicked, 
@@ -604,7 +609,9 @@ void GUI::openDevOptions(){
 };
 void GUI::openMoveOptions(){
     moveOpt = new MovOpt();
-    moveOpt->Setup(0);
+    if (chan_1->isChecked()) moveOpt->Setup(1);
+    if (chan_2->isChecked()) moveOpt->Setup(2);
+    if (chan_3->isChecked()) moveOpt->Setup(3);
 };
 void GUI::openHelp(){
     helpw = new HelpText();
