@@ -313,7 +313,7 @@ int init(){
         printf("No Thorlabs device found\n");
         return STOP;
     }
-    connected_device = (controller_device*) malloc(  sizeof(controller_device) * devices_connected );
+    connected_device = new controller_device[devices_connected];
     for (unsigned int i = 0; i< SN.size(); i++) connected_device[i].SN = strdup(SN.at(i).c_str());
     
     FT_STATUS ft_status;
@@ -323,20 +323,20 @@ int init(){
         fprintf(stderr, "Detecting devices failed\n");
         return FT_ERROR;
     }
-    
-    FT_DEVICE_LIST_INFO_NODE *ftdi_devs = (FT_DEVICE_LIST_INFO_NODE*) malloc(sizeof(FT_DEVICE_LIST_INFO_NODE) *num_ftdi_devices  ) ;  
+     
+    FT_DEVICE_LIST_INFO_NODE *ftdi_devs = new FT_DEVICE_LIST_INFO_NODE[num_ftdi_devices];
     ft_status = FT_GetDeviceInfoList( ftdi_devs, &num_ftdi_devices) ;  
     if (ft_status != FT_OK) {
         fprintf(stderr, "Detecting devices failed\n");
-        free(ftdi_devs);
+        delete(ftdi_devs);
         return FT_ERROR;
     }
     
     //Find additional info to Thorlabs devices
     for (int j = 0; j<  devices_connected; j++){
         for (unsigned int i = 0; i< num_ftdi_devices; i++){
-            if (OpenDevice(j) == FT_ERROR ) { free(ftdi_devs); return FT_ERROR; };
-            if (ft_status != FT_OK ) { free(ftdi_devs); return FT_ERROR; }
+            if (OpenDevice(j) == FT_ERROR ) { delete(ftdi_devs); return FT_ERROR; };
+            if (ft_status != FT_OK ) { delete(ftdi_devs); return FT_ERROR; }
 
             if (FT_SetBaudRate(opened_device.handle, 115200) != FT_OK) return FT_ERROR;
             if (FT_SetDataCharacteristics(opened_device.handle, FT_BITS_8, FT_STOP_BITS_1, FT_PARITY_NONE) != FT_OK ) return FT_ERROR;
@@ -348,17 +348,17 @@ int init(){
             usleep(50);
                               
             ret = LoadDeviceInfo(connected_device[j]);
-            if (ret != 0 ){ free(ftdi_devs); return ret; }               
+            if (ret != 0 ){ delete(ftdi_devs); return ret; }               
             }
         }
     
-    free(ftdi_devs);  
+    delete(ftdi_devs);  
     if (OpenDevice(0) == FT_ERROR) return FT_ERROR;
     return 0;
 }
 
 void exit(){
-    free(connected_device);
+    delete(connected_device);
     device_calls::StopUpdateMess();
     for (int i = 0; i < devices_connected; i++){
         FT_Close(opened_device.handle);
