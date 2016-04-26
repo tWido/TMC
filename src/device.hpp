@@ -34,10 +34,10 @@ typedef struct{
     bool end_of_move_messages = true;
 } controller_device;
 
-extern unsigned int devices_connected;
+extern int devices_connected;
 extern controller_device *connected_device;
 extern controller_device opened_device;
-extern unsigned int opened_device_index;
+extern int opened_device_index;
 
 // enum for device types
 enum {

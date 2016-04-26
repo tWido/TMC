@@ -1,10 +1,10 @@
 #include "api.hpp"
 
 //device globals definitions
-unsigned int devices_connected = 0;
+int devices_connected = 0;
 controller_device *connected_device = NULL;
 controller_device opened_device;
-unsigned int opened_device_index  = -1;
+int opened_device_index  = -1;
 
 #define READ_REST(x)  unsigned int bytes_red; ftStatus = FT_Read(opened_device.handle, &buff[2], x, &bytes_red); \
         if (ftStatus != FT_OK) {                                    \
@@ -707,7 +707,7 @@ int device_calls::GetMotorTrigger(GetTrigger *message, uint8_t dest, uint8_t cha
     return 0;
 };
 
-int OpenDevice(unsigned int index){
+int OpenDevice(int index){
     if (index >= devices_connected) return INVALID_PARAM_1;
     if (opened_device_index != -1 ){
         device_calls::StopUpdateMess();

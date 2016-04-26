@@ -364,7 +364,7 @@ void GUI::Setup(){
     control_menu->addAction(move_opt_action);
     menuBar->addMenu(device_menu);
     device_switch_actions = new QAction*[devices_connected];
-    for (unsigned int i =0; i < devices_connected; i++){
+    for (int i =0; i < devices_connected; i++){
         std::string dev_label = std::to_string(i+1);
         dev_label.append(": ");
         dev_label.append(connected_device->SN);

@@ -183,7 +183,7 @@ int OpenDeviceC(std::vector<string> args){
             return INVALID_CALL;
         }
         int ret;
-        for ( unsigned int i = 0; i< devices_connected; i++ ){
+        for (int i = 0; i< devices_connected; i++ ){
             std::string to_comp (connected_device[i].SN);
             if ( to_comp.compare(args.at(2)) == 0 ) ret = OpenDevice(i); 
         }
@@ -206,7 +206,7 @@ int DeviceInfoC(std::vector<string> args){
     }
     if (args.size() > 1) printf("No arguments except -h\n");
     int prev_opened = opened_device_index;
-    for (unsigned int i = 0; i< devices_connected; i++){
+    for (int i = 0; i< devices_connected; i++){
         if (OpenDevice(i) == FT_ERROR ) return FT_ERROR;
         printf(" Device number %d\n", i+1);
         printf(" Serial: %s\n",connected_device[i].SN);

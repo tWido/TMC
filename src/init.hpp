@@ -333,7 +333,7 @@ int init(){
     }
     
     //Find additional info to Thorlabs devices
-    for (unsigned int j = 0; j<  devices_connected; j++){
+    for (int j = 0; j<  devices_connected; j++){
         for (unsigned int i = 0; i< num_ftdi_devices; i++){
             if (OpenDevice(j) == FT_ERROR ) { free(ftdi_devs); return FT_ERROR; };
             if (ft_status != FT_OK ) { free(ftdi_devs); return FT_ERROR; }
@@ -360,7 +360,7 @@ int init(){
 void exit(){
     free(connected_device);
     device_calls::StopUpdateMess();
-    for (unsigned int i = 0; i < devices_connected; i++){
+    for (int i = 0; i < devices_connected; i++){
         FT_Close(opened_device.handle);
     }
     printf("Exiting\n");

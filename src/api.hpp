@@ -182,6 +182,6 @@ extern int GetMotorTrigger(GetTrigger *message, uint8_t dest = DefaultDest(), ui
 
 } // namespace device_calls
 
-extern int OpenDevice(unsigned int index);
+extern int OpenDevice(int index);
 
 #endif 
