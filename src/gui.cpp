@@ -9,9 +9,18 @@
     GUI *gui = new GUI();
     gui->Setup();
     
-    a.exec();
-    return 0;
+    return a.exec();
 }
+ 
+#define CHAN_SELECTED(command, params)  if (opened_device.bays == -1 )              \
+                if (chan_1->isChecked())device_calls::command(params, 0x50,1);      \
+                if (chan_2->isChecked())device_calls::StopMovement(params, 0x50,2); \
+                if (chan_3->isChecked())device_calls::StopMovement(params, 0x50,3); \
+            else {                                                                  \
+                if (chan_1->isChecked())device_calls::StopMovement(params, 0x21);   \
+                if (chan_2->isChecked())device_calls::StopMovement(params, 0x22);   \
+                if (chan_3->isChecked())device_calls::StopMovement(params, 0x23);   \
+            }
 
 void DevOpt::Setup(){
     this->setWindowTitle("Device setting");
@@ -443,7 +452,7 @@ void GUI::Setup(){
                 if (chan_1->isChecked())device_calls::MoveToHome(0x50,1);
                 if (chan_2->isChecked())device_calls::MoveToHome(0x50,2);
                 if (chan_3->isChecked())device_calls::MoveToHome(0x50,3);
-            }
+        }
             else {
                 if (chan_1->isChecked())device_calls::MoveToHome(0x21);
                 if (chan_2->isChecked())device_calls::MoveToHome(0x22);
@@ -464,30 +473,10 @@ void GUI::Setup(){
     forward->setGeometry(450,100,70,70);
     connect(forward, &QPushButton::clicked,
         [this]{
-            if (jogm->isChecked()){
-                if (opened_device.bays == -1 ){
-                    if (chan_1->isChecked())device_calls::StartJogMove(1,0x50,1);
-                    if (chan_2->isChecked())device_calls::StartJogMove(1,0x50,2);
-                    if (chan_3->isChecked())device_calls::StartJogMove(1,0x50,3);
-                }
-                else {
-                    if (chan_1->isChecked())device_calls::StartJogMove(1,0x21);
-                    if (chan_2->isChecked())device_calls::StartJogMove(1,0x22);
-                    if (chan_3->isChecked())device_calls::StartJogMove(1,0x23);
-                }
-            }
-            if (velm->isChecked()){
-                if (opened_device.bays == -1 ){
-                    if (chan_1->isChecked())device_calls::StartSetVelocityMove(1,0x50,1);
-                    if (chan_2->isChecked())device_calls::StartSetVelocityMove(1,0x50,2);
-                    if (chan_3->isChecked())device_calls::StartSetVelocityMove(1,0x50,3);
-                }
-                else {
-                    if (chan_1->isChecked())device_calls::StartSetVelocityMove(1,0x21);
-                    if (chan_2->isChecked())device_calls::StartSetVelocityMove(1,0x22);
-                    if (chan_3->isChecked())device_calls::StartSetVelocityMove(1,0x23);
-                }
-            }
+            if (jogm->isChecked()) 
+                CHAN_SELECTED(StartJogMove,1)
+            if (velm->isChecked()) 
+                CHAN_SELECTED(StartSetVelocityMove,1)
         }
     );
     backward = new QPushButton(this);
@@ -496,30 +485,10 @@ void GUI::Setup(){
     backward->setGeometry(450,180,70,70);
     connect(backward, &QPushButton::clicked,
         [this]{
-            if (jogm->isChecked()){
-                if (opened_device.bays == -1 ){
-                    if (chan_1->isChecked())device_calls::StartJogMove(2,0x50,1);
-                    if (chan_2->isChecked())device_calls::StartJogMove(2,0x50,2);
-                    if (chan_3->isChecked())device_calls::StartJogMove(2,0x50,3);
-                }
-                else {
-                    if (chan_1->isChecked())device_calls::StartJogMove(2,0x21);
-                    if (chan_2->isChecked())device_calls::StartJogMove(2,0x22);
-                    if (chan_3->isChecked())device_calls::StartJogMove(2,0x23);
-                }
-            }
-            if (velm->isChecked()){
-                if (opened_device.bays == -1 ){
-                    if (chan_1->isChecked())device_calls::StartSetVelocityMove(2,0x50,1);
-                    if (chan_2->isChecked())device_calls::StartSetVelocityMove(2,0x50,2);
-                    if (chan_3->isChecked())device_calls::StartSetVelocityMove(2,0x50,3);
-                }
-                else {
-                    if (chan_1->isChecked())device_calls::StartSetVelocityMove(2,0x21);
-                    if (chan_2->isChecked())device_calls::StartSetVelocityMove(2,0x22);
-                    if (chan_3->isChecked())device_calls::StartSetVelocityMove(2,0x23);
-                }
-            }
+            if (jogm->isChecked()) 
+                CHAN_SELECTED(StartJogMove,2)
+            if (velm->isChecked())
+                CHAN_SELECTED(StartSetVelocityMove,2)
         }
     );
 
@@ -562,30 +531,11 @@ void GUI::Setup(){
         [this]{
             if (absm->isChecked()){
                 int32_t pos = std::stoi(this->reldist->text().toStdString(),0,10);
-                if (opened_device.bays == -1 ){
-                    if (chan_1->isChecked())device_calls::StartAbsoluteMove(pos,0x50,1);
-                    if (chan_2->isChecked())device_calls::StartAbsoluteMove(pos,0x50,2);
-                    if (chan_3->isChecked())device_calls::StartAbsoluteMove(pos,0x50,3);
-                }
-                else {
-                    if (chan_1->isChecked())device_calls::StartAbsoluteMove(pos,0x21);
-                    if (chan_2->isChecked())device_calls::StartAbsoluteMove(pos,0x22);
-                    if (chan_3->isChecked())device_calls::StartAbsoluteMove(pos,0x23);
-                }
-
+                CHAN_SELECTED(StartAbsoluteMove,pos)
             }
             if (relm->isChecked()){
                 int32_t dist = std::stoi(this->abspos->text().toStdString(),0,10);
-                if (opened_device.bays == -1 ){
-                    if (chan_1->isChecked())device_calls::StartRelativeMove(dist,0x50,1);
-                    if (chan_2->isChecked())device_calls::StartRelativeMove(dist,0x50,2);
-                    if (chan_3->isChecked())device_calls::StartRelativeMove(dist,0x50,3);
-                }
-                else {
-                    if (chan_1->isChecked())device_calls::StartRelativeMove(dist,0x21);
-                    if (chan_2->isChecked())device_calls::StartRelativeMove(dist,0x22);
-                    if (chan_3->isChecked())device_calls::StartRelativeMove(dist,0x23);
-                }
+                CHAN_SELECTED(StartRelativeMove,dist)
             }
         } 
     );
@@ -605,15 +555,7 @@ void GUI::Setup(){
     stop->setGeometry(310,380,100,50);
     connect(stop, &QPushButton::clicked,
         [this]{
-            if (opened_device.bays == -1 )
-                if (chan_1->isChecked())device_calls::StopMovement(0x50,1);
-                if (chan_2->isChecked())device_calls::StopMovement(0x50,2);
-                if (chan_3->isChecked())device_calls::StopMovement(0x50,3);
-            else {
-                if (chan_1->isChecked())device_calls::StopMovement(0x21);
-                if (chan_2->isChecked())device_calls::StopMovement(0x22);
-                if (chan_3->isChecked())device_calls::StopMovement(0x23);
-            }
+            CHAN_SELECTED(StopMovement,2)
         }
     );   
 
