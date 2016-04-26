@@ -45,9 +45,11 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = src/gui.cpp \
+SOURCES       = src/api.cc \
+		src/gui.cpp \
 		src/main.cpp moc_gui.cpp
-OBJECTS       = gui.o \
+OBJECTS       = api.o \
+		gui.o \
 		main.o \
 		moc_gui.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -274,7 +276,7 @@ qmake_all: FORCE
 
 dist: 
 	@test -d .tmp/bc-thorlabs1.0.0 || mkdir -p .tmp/bc-thorlabs1.0.0
-	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/bc-thorlabs1.0.0/ && $(COPY_FILE) --parents ftdi_lib/ftd2xx.h ftdi_lib/WinTypes.h src/api.hpp src/cmd.hpp src/device.hpp src/gui.hpp src/init.hpp src/message_codes.hpp src/messages.hpp .tmp/bc-thorlabs1.0.0/ && $(COPY_FILE) --parents src/gui.cpp src/main.cpp .tmp/bc-thorlabs1.0.0/ && (cd `dirname .tmp/bc-thorlabs1.0.0` && $(TAR) bc-thorlabs1.0.0.tar bc-thorlabs1.0.0 && $(COMPRESS) bc-thorlabs1.0.0.tar) && $(MOVE) `dirname .tmp/bc-thorlabs1.0.0`/bc-thorlabs1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/bc-thorlabs1.0.0
+	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/bc-thorlabs1.0.0/ && $(COPY_FILE) --parents ftdi_lib/ftd2xx.h ftdi_lib/WinTypes.h src/api.hpp src/cmd.hpp src/device.hpp src/gui.hpp src/init.hpp src/message_codes.hpp src/messages.hpp .tmp/bc-thorlabs1.0.0/ && $(COPY_FILE) --parents src/api.cc src/gui.cpp src/main.cpp .tmp/bc-thorlabs1.0.0/ && (cd `dirname .tmp/bc-thorlabs1.0.0` && $(TAR) bc-thorlabs1.0.0.tar bc-thorlabs1.0.0 && $(COMPRESS) bc-thorlabs1.0.0.tar) && $(MOVE) `dirname .tmp/bc-thorlabs1.0.0`/bc-thorlabs1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/bc-thorlabs1.0.0
 
 
 clean:compiler_clean 
@@ -500,6 +502,14 @@ compiler_lex_clean:
 compiler_clean: compiler_moc_header_clean 
 
 ####### Compile
+
+api.o: src/api.cc src/api.hpp \
+		src/messages.hpp \
+		ftdi_lib/ftd2xx.h \
+		ftdi_lib/WinTypes.h \
+		src/device.hpp \
+		src/message_codes.hpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o api.o src/api.cc
 
 gui.o: src/gui.cpp src/gui.hpp \
 		/usr/include/qt5/QtWidgets/qapplication.h \
