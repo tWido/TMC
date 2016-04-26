@@ -2,6 +2,17 @@
 #include "api.hpp"
 #include "device.hpp"
 
+ int run_gui(){
+    char **argv = NULL;
+    int argc = 0;
+    QApplication a( argc, argv );
+    GUI *gui = new GUI();
+    gui->Setup();
+    
+    a.exec();
+    return 0;
+}
+
 void DevOpt::Setup(){
     this->setWindowTitle("Device setting");
     this->resize(600,400);

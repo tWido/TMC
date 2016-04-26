@@ -35,6 +35,8 @@
         mess_type* mess = (mess_type*) malloc(sizeof(mess_type));   \
         device_calls::call(mess);          
 
+extern int run_gui();
+
 class DevOpt: public QWidget{
      Q_OBJECT    
     public:    

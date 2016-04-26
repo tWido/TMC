@@ -38,21 +38,6 @@ switch (ret_code){
     }
 
 }
-unsigned int devices_connected ;
-controller_device *connected_device;
-controller_device opened_device ;
-unsigned int opened_device_index ;
-
- int run_gui(){
-    char **argv = NULL;
-    int argc = 0;
-    QApplication a( argc, argv );
-    GUI *gui = new GUI();
-    gui->Setup();
-    
-    a.exec();
-    return 0;
-}
 
 
 int main(int argc, char** argv) {
