@@ -57,23 +57,23 @@
         if ( ret != 0) return ret;                              \
         EMPTY_IN_QUEUE                                          
 
-inline uint8_t DefaultDest(){
+static uint8_t DefaultDest(){
     return 0x50;
 }
 
-inline uint8_t DefaultChanel8(){
+static uint8_t DefaultChanel8(){
     return 0x01;
 }
 
-inline uint16_t DefaultChanel16(){
+static uint16_t DefaultChanel16(){
     return 0x01;
 }
 
-inline uint8_t DeafultRate(){
+static uint8_t DeafultRate(){
     return 1;
 }
 
-inline uint8_t DefaultStopMode(){
+static uint8_t DefaultStopMode(){
     return 0x02;
 }
 
@@ -225,7 +225,7 @@ inline int EmptyIncomingQueue(){
     }
 }
 
-inline int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess ){
+static int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess ){
     int ret;
     uint16_t msgID;
     while(true){

@@ -4,7 +4,7 @@ CFLAGS = -Wall -g -std=c++11
 
 LIBS = -lpthread -lftd2xx -lpthread
 
-SRCS = ./src/main.cpp ./src/gui.cpp ./src/moc_gui.cpp
+SRCS = ./src/gui.cpp ./src/moc_gui.cpp  ./src/main.cpp  
 
 MAIN = thorlabs_controller
 

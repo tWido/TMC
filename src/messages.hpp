@@ -5,7 +5,7 @@
  * Api for thorlabs messages.
  */
 #include <endian.h>
-#include <string.h>
+#include <string>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +22,7 @@
 class Message{
 public:
     Message(uint8_t* buffer, unsigned int buffer_size){
-        bytes = (uint8_t *) std::malloc(buffer_size);
+        bytes = (uint8_t *) malloc(buffer_size);
         bytes = (uint8_t *) memcpy(bytes, buffer, buffer_size);
         length = buffer_size;
     }
@@ -33,7 +33,7 @@ public:
     }
     
     ~Message(){
-        std::free(bytes);
+        free(bytes);
     }
  
     uint8_t* data(){ return bytes; }
