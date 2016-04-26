@@ -1,925 +1,780 @@
 #ifndef API
 #define API
 
-/*
- * Api for thorlabs messages.
- */
 #include <endian.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include "../ftdi_lib/ftd2xx.h"
-#include "device.hpp"
-#include "message_codes.hpp"
-#define HEADER_SIZE 6
+#include "messages.hpp"
 
-#define INVALID_PARAM -5
-#define IGNORED_PARAM -4
-#define WARNING -3
+#define MAX_RESPONSE_SIZE 128
+#define SOURCE 0x01
 
+#define FT_ERROR -6
+#define DEVICE_ERROR -7
+#define FATAL_ERROR -8
 
-class Message{
-public:
-    Message(uint8_t* buffer, unsigned int buffer_size){
-        bytes = (uint8_t *) std::malloc(buffer_size);
-        bytes = (uint8_t *) memcpy(bytes, buffer, buffer_size);
-        length = buffer_size;
-    }
-    
-    Message(unsigned int in_size){
-        bytes = (uint8_t *) malloc(in_size);
-        length = in_size;
-    }
-    
-    ~Message(){
-        std::free(bytes);
-    }
- 
-    uint8_t* data(){ return bytes; }
-    
-    unsigned int msize(){ return length; }
-    
-protected: 
-    unsigned int length;
-    uint8_t *bytes;
-};
+#define MOVED_HOME_STATUS 3
+#define MOVE_COMPLETED_STATUS 2
+#define MOVE_STOPPED_STATUS 4
 
+#define OTHER_MESSAGE 5
+#define EMPTY 1
 
-class MessageHeader:public Message{
-public:
-    MessageHeader(uint8_t *header_bytes): Message(header_bytes, HEADER_SIZE){}
-    
-    MessageHeader(uint16_t type, uint8_t param1, uint8_t param2 ,uint8_t dest, uint8_t source):Message(HEADER_SIZE){
-        *((uint16_t *) &bytes[0]) = htole16(type);
-        bytes[2] = param1;
-        bytes[3] = param2;
-        bytes[4] = dest;
-        bytes[5] = source;
-    }
-    
-    void GetParams(uint8_t *p1, uint8_t *p2){
-        *p1 =(uint8_t) bytes[2];
-        *p2 =(uint8_t) bytes[3];
-    }
-    
-    void SetParams(uint8_t p1, uint8_t p2){
-        bytes[2] = p1;
-        bytes[3] = p2;
-    }
-    
-    void SetFirstParam(uint8_t param){ bytes[2] = param; }
-    uint8_t GetFirstParam(){return bytes[2] ;}
-    
-    void SetSecondParam(uint8_t param){ bytes[3] = param; }
-    uint8_t GetSecondParam(){return bytes[3] ;}
-    
-    uint8_t GetSource(){ return bytes[5]; }
-    void SetSource(uint8_t source){ bytes[5] = source; } 
+#define INVALID_DEST -10
+#define INVALID_SOURCE -11
+#define INVALID_CHANNEL -12
 
-    uint8_t GetDest(){ return bytes[4]; }
-    void SetDest(uint8_t dest){
-       bytes[4] = dest;
-    }
-    
-    uint8_t GetMotorID(){
-        if (opened_device.bays == -1) return (GetFirstParam()-1);    // channel type, channels numbered from 1, in field from 0
-        else {                                                  // bay type, numbering 0x21 ..0x23, 
-            if (GetSource() == 0x01) return (GetDest() - 0x21); // outgoing message
-            else return (GetSource() - 0x21);                   // incoming message      
-        }              
-    }
-    
-    uint16_t GetType(){ return le16toh(*((uint16_t *) &bytes[0])) ;}
-    
-};
+#define INVALID_PARAM_1 -15
+#define INVALID_PARAM_2 -16
+#define INVALID_PARAM_3 -17
+#define INVALID_PARAM_4 -18
+#define INVALID_PARAM_5 -19
 
-class LongMessage:public Message{
-public:
-    LongMessage(uint8_t *input_bytes, unsigned int buffer_size):Message(input_bytes, buffer_size){};
-    
-    LongMessage(uint16_t type, uint16_t data_size, uint8_t dest, uint8_t source):Message(HEADER_SIZE + data_size){
-        *((uint16_t *) &bytes[0]) = htole16(type);
-        *((uint16_t *) &bytes[2]) = htole16(data_size);
-        bytes[4] = dest | 0x80;
-        bytes[5] = source;
-    }
-    
-    void SetDest(uint8_t dest){ bytes[4] = (dest | 0x80); }
-    uint8_t GetDest(){ return bytes[4]; }
+#define READ_REST(x)  unsigned int bytes_red; ftStatus = FT_Read(opened_device.handle, &buff[2], x, &bytes_red); \
+        if (ftStatus != FT_OK) {                                    \
+        fprintf(stderr,"FT_Error occured, error code :%d\n", ftStatus );    \
+        return FT_ERROR;                                            \
+        }  
 
-    uint8_t GetSource(){ return bytes[5]; }
-    void SetSource(uint8_t source){ bytes[5] = source; } 
-    
-    uint16_t GetPacketLength(){ return le16toh(*((uint16_t *) &bytes[2]));}
-    void SetPacketLength(uint16_t size){ *((uint16_t *) &bytes[2]) = htole16(size);}
-    
-    uint16_t GetType(){ return le16toh(*((uint16_t *) &bytes[0])) ;}
+#define EMPTY_IN_QUEUE ret = EmptyIncomingQueue();    \
+        if (ret != 0 ) return ret;
 
-    uint16_t GetChanID(){ return le16toh(*((uint16_t*) &bytes[6])); }
-    
-    uint16_t GetMotorID(){
-        if (opened_device.bays == -1) return (GetChanID()-1);    // channel type, channels numbered from 1, in field from 0
-        else {                                                  // bay type, numbering 0x21 ..0x23, 
-            if (GetSource() == 0x01) return (GetDest() - 0x21); // outgoing message
-            else return (GetSource() - 0x21);                   // incoming message      
-        }   
-    }
-    
-    int SetChanID(int16_t chanID){ 
-        if (chanID > opened_device.channels ) return INVALID_PARAM  ;
-        *((uint16_t *) &bytes[6]) = htole16(chanID); 
-        return 0; 
-    }
-};
+#define CHECK_ADDR_PARAMS(dest, chanID) int ret;        \
+        ret = CheckParams(dest,chanID);                  \
+         if (ret != 0) return ret;
+
+#define GET_MESS(req_mess_class, buff_size, get_mess_code, get_mess_class  ) \
+        CHECK_ADDR_PARAMS(dest, channel)                        \
+        EMPTY_IN_QUEUE                                          \
+        req_mess_class mes(dest, SOURCE, channel);              \
+        SendMessage(mes);                                       \
+        uint8_t *buff = (uint8_t *) malloc(buff_size);          \
+        ret = GetResponseMess(get_mess_code, buff_size, buff);  \
+        get_mess_class mess(buff);                              \
+        *message = mess;                                        \
+        free(buff);                                             \
+        if ( ret != 0) return ret;                              \
+        EMPTY_IN_QUEUE                                          
+
+inline uint8_t DefaultDest(){
+    return 0x50;
+}
+
+inline uint8_t DefaultChanel8(){
+    return 0x01;
+}
+
+inline uint16_t DefaultChanel16(){
+    return 0x01;
+}
+
+inline uint8_t DeafultRate(){
+    return 1;
+}
+
+inline uint8_t DefaultStopMode(){
+    return 0x02;
+}
 
 
-// Generic messages -------------------------------------------------------------
-
-/** Flash front panel LED. */
-class IdentifyMs:public MessageHeader{
-public:
-    IdentifyMs(uint8_t dest, uint8_t source):MessageHeader(IDENTIFY, 0, 0, dest, source){}
-};
-
-
-/** Enable or disable drive channel. */
-class SetChannelState:public MessageHeader{
-public:
-    SetChannelState(uint8_t chanID, uint8_t ableState, uint8_t dest, uint8_t source):MessageHeader(SET_CHANENABLESTATE, chanID, ableState, dest, source){};
-    
-    /**
-     * @brief Set channel id to change state. 
-     * @param state - 0x01 for enable, 0x02 for disable 
-     */
-    int SetAbleState(uint8_t state){
-        if (state != 1 && state != 2) return INVALID_PARAM;
-        SetSecondParam(state);
-        return 0;
-    }
-};
-
-/** Asks for information about specified channel. */
-class ReqChannelState:public MessageHeader{
-public:
-    ReqChannelState(uint8_t chanID, uint8_t dest, uint8_t source):MessageHeader(REQ_CHANENABLESTATE, chanID, 0, dest, source){};
-};
-
-/** Info sent from device. */
-class GetChannelState:public MessageHeader{
-public:
-    GetChannelState(uint8_t *mess):MessageHeader(mess){}
-    
-    /**
-     * @brief Saves info in given variables.
-     * @param chanID
-     * @param state - 0x01 = enabled, 0x02 = disabled
-     */
-    void Getinfo(uint8_t *chanID, uint8_t *state){ GetParams(chanID, state); }
-};
-
-class HwDisconnect:public MessageHeader{
-public:
-    HwDisconnect(uint8_t dest, uint8_t source):MessageHeader( HW_DISCONNECT, 0, 0, dest, source){}
-    
-    HwDisconnect(uint8_t *mess):MessageHeader(mess){}
-};
-
-/** Sent from device to notify of unexpected event. */
-class HwResponse: public MessageHeader{
-public:
-    HwResponse(uint8_t *mess):MessageHeader(mess){}
-};
-
-/** Sent from device to specify error. */
-class HwResponseInfo:public LongMessage{
-public:
-    HwResponseInfo(uint8_t *mess):LongMessage(mess, 74){}
-    
-    /**
-     * @return ID of message that caused error 
-     */
-    uint16_t GetMsgID(){ return le16toh(*((uint16_t *) &bytes[6])); }
-    
-    /**
-     * @return Thorlabs specific error code 
-     */
-    uint16_t GetCode(){ return le16toh(*((uint16_t *) &bytes[8])); }
-    
-    /**
-     * @return  Closer description of error. ASCII string terminated with '\0'.
-     */
-    char* GetDescription(){
-        return (char*) &bytes[10];
-    }
-};
-
-class StartUpdateMessages:public MessageHeader{
-public:
-    StartUpdateMessages(uint8_t dest, uint8_t source):MessageHeader(HW_START_UPDATEMSGS, 0, 0, dest, source){};
-    
-    int SetUpdaterate(uint8_t rate){ 
-        if ( opened_device.device_type == BBD101 || opened_device.device_type == BBD102 || opened_device.device_type == BBD103 ) return IGNORED_PARAM;
-        SetFirstParam(rate); 
-        return 0;
-    }
-};
-
-class StopUpdateMessages:public MessageHeader{
-public:
-    StopUpdateMessages(uint8_t dest, uint8_t source):MessageHeader(HW_STOP_UPDATEMSGS, 0, 0, dest, source){}
-};
-
-class ReqHwInfo: public MessageHeader{
-public:
-    ReqHwInfo(uint8_t dest, uint8_t source):MessageHeader(HW_REQ_INFO, 0, 0, dest, source){}
-};
-
-class HwInfo:public LongMessage{
-public:
-    HwInfo(uint8_t *mess):LongMessage(mess, 90){}
-    
-    int32_t SerialNumber(){ return le32toh(*((int32_t*) &bytes[6])) ; }
-    
-    std::string ModelNumber(){ 
-        std::string ret;
-        ret.assign((char*) &bytes[10], 8);
-        return ret;
-    }
-    
-    /**
-     * @return 44 = brushless DC controller, 45 multi channel motherboard 
-     */
-    uint16_t HWType(){ return le16toh(*((uint16_t*) &bytes[18])) ;}
-    
-    std::string Notes(){
-        std::string ret;
-        ret.assign((char*) &bytes[24], 48);
-        return ret;
-    }
-    
-    uint16_t HwVersion(){ return le16toh(*((uint16_t*) &bytes[84])); }
-    
-    uint16_t ModState(){ return le16toh(*((uint16_t*) &bytes[86])); }
-    
-    uint16_t NumChannels(){ return le16toh(*((uint16_t*) &bytes[88])); };
-};
-    
-class ReqRackBayUsed:public MessageHeader{
-public:
-    ReqRackBayUsed( uint8_t dest, uint8_t source):MessageHeader(RACK_REQ_BAYUSED, 0, 0 , dest, source){}
-
-    void SetBayIdent(uint8_t bayID){ SetFirstParam(bayID); }
-};
-
-class GetRackBayUsed:public MessageHeader{
-public:
-    GetRackBayUsed(uint8_t *mess):MessageHeader(mess){}
-
-    uint8_t GetBayID(){ return GetFirstParam(); }
-
-    /**
-     * @return Baystates: 0x01 - bay occupied, 0x02 - bay empty 
-     */
-    uint8_t GetBayState(){ return GetSecondParam(); }
-};
-
-class ReqHubBayUsed:public MessageHeader{
-public:
-    ReqHubBayUsed(uint8_t dest, uint8_t source):MessageHeader(HUB_REQ_BAYUSED, 0, 0, dest, source){}
-};
-
-class GetHubBayUsed:public MessageHeader{
-public:
-    GetHubBayUsed(uint8_t *mess):MessageHeader(mess){}
-    
-    int8_t GetBayID(){ return GetFirstParam(); }
-};
-
-
-//Motor control messages ---------------------------------------------------
-
-class YesFlashProg:public MessageHeader{
-public:
-    YesFlashProg(uint8_t dest, uint8_t source):MessageHeader(HW_YES_FLASH_PROGRAMMING, 0, 0, dest, source){};
-};
-
-/* Part of initialization. Notifies device of addresses. */
-class NoFlashProg: public MessageHeader{
-public:
-    NoFlashProg(uint8_t dest, uint8_t source):MessageHeader(HW_NO_FLASH_PROGRAMMING, 0, 0, dest, source){};
-};
-
-
-class SetPosCounter:public LongMessage{
-public:
-    SetPosCounter(uint8_t dest, uint8_t source, uint16_t chanID):LongMessage(SET_POSCOUNTER, 6, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanID);
-    }
-    
-    int SetPosition(int32_t pos){
-        *((int32_t *) &bytes[8]) = htole32(pos);  
-        return WARNING;
-    }
-};
-
-class ReqPosCounter:public MessageHeader{
-public:
-    ReqPosCounter(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_POSCOUNTER, chanId, 0, dest, source){}
-};
-
-class GetPosCounter:public LongMessage{
-public:
-    GetPosCounter(uint8_t *mess):LongMessage(mess,12){};
-
-    int32_t GetPosition(){ return le32toh(*((int32_t*) &bytes[8])); }
-};
-
-class SetEncCount:public LongMessage{
-public:
-    SetEncCount(uint8_t dest, uint8_t source, uint16_t chanID):LongMessage(SET_ENCCOUNTER, 6, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanID);
-    }
-    
-    int SetEncoderCount(int32_t count){
-        if (opened_device.enc_counter == 0 ) return IGNORED_PARAM;
-        *((int32_t *) &bytes[8]) = htole32(count); 
-        return WARNING;
-    }
-};
-
-class ReqEncCount:public MessageHeader{
-public:
-    ReqEncCount(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_ENCCOUNTER, chanId, 0, dest, source){}
-};
-
-class GetEncCount:public LongMessage{
-public:
-    GetEncCount(uint8_t *mess):LongMessage(mess, 12){}
-
-    int32_t GetEncCounter(){ return le32toh(*((int16_t*) &bytes[8])); }
-};
-
-class SetVelocityParams:public LongMessage{
-public:
-    SetVelocityParams(uint8_t dest, uint8_t source, uint16_t chanId )
-            :LongMessage(SET_VELPARAMS, 14, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);
-        *((int32_t *) &bytes[8]) = htole32(0);
+inline int CheckParams( uint8_t dest, int chanID){
+    if (chanID > opened_device.channels && chanID != -1) return INVALID_CHANNEL;
+    if (dest == 0x11 || dest == 0x50) return 0;
+    switch (dest){
+        case 0x21: {
+            if (opened_device.bays >= 1 && opened_device.bay_used[0]) return 0;
+            else return INVALID_DEST;
+        }
+        case 0x22:{
+            if (opened_device.bays >= 2 && opened_device.bay_used[1]) return 0;
+            else return INVALID_DEST;
+        }
+        case 0x23: {
+            if (opened_device.bays == 3 && opened_device.bay_used[2]) return 0;
+            else return INVALID_DEST;
+        }
+        default : return INVALID_DEST;
     };
-    
-    int SetAcceleration(int32_t acc){
-        if( abs(acc) > opened_device.motor[GetMotorID()].max_acc ) return INVALID_PARAM;
-        *((int32_t *) &bytes[12]) = htole32(acc);
+    return 0;
+};
+
+inline int SendMessage(Message &message){
+    FT_STATUS wrStatus;
+    unsigned int wrote;
+    wrStatus = FT_Write(opened_device.handle, message.data(), message.msize(), &wrote );
+    if (wrStatus == FT_OK && wrote == message.msize()){
         return 0;
     }
-    int SetMaxVel(int32_t max){ 
-        if( abs(max) > opened_device.motor[GetMotorID()].max_vel ) return INVALID_PARAM;
-        *((int32_t *) &bytes[16]) = htole32(max);
-        return 0;
+    else {
+        fprintf(stderr,"Sending message failed, error code : %d \n", wrStatus );
+        fprintf(stderr,"wrote : %d should write: %d \n", wrote, message.msize());
     }
-};
+    return FT_ERROR;
+}
 
-class ReqVelocityParams:public MessageHeader{
-public:
-    ReqVelocityParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_VELPARAMS, chanId, 0, dest, source){}
-};
+inline int CheckIncomingQueue(uint16_t *ret_msgID){
+    FT_STATUS ftStatus;
+    unsigned int bytes;
+    ftStatus = FT_GetQueueStatus(opened_device.handle, &bytes);
+    if (ftStatus != FT_OK ) {
+        fprintf(stderr,"FT_Error occured, error code :%d\n", ftStatus );
+        return FT_ERROR;
+    }
+    if (bytes == 0 ) return EMPTY;
+    uint8_t *buff = (uint8_t *) malloc(MAX_RESPONSE_SIZE);
+    unsigned int red;
+    ftStatus = FT_Read(opened_device.handle, buff, 2, &red);          
+    if (ftStatus != FT_OK) {
+        fprintf(stderr,"FT_Error occured, error code :%d\n", ftStatus );
+        free(buff);
+        return FT_ERROR;
+    }
+    uint16_t msgID = le16toh(*((uint16_t*) &buff[0])); 
+    switch ( msgID ){
+        case HW_DISCONNECT: {
+            READ_REST(4)
+            HwDisconnect response(buff);
+            printf("Device with serial %s disconnecting\n", opened_device.SN);
+            free(buff);
+            return FATAL_ERROR;
+        }
+        case HW_RESPONSE:{
+            READ_REST(4)
+            HwResponse response(buff);
+            fprintf(stderr,"Device with serial %s encountered error\n", opened_device.SN);
+            free(buff);
+            return DEVICE_ERROR;
+        }
+        case RICHRESPONSE:{
+            READ_REST(72)
+            HwResponseInfo response(buff);      
+            fprintf(stderr, "Device with serial %s encountered error\n", opened_device.SN);
+            fprintf(stderr, "Detailed description of error \n ");
+            uint16_t error_cause = response.GetMsgID();
+            if (error_cause != 0) printf("\tMessage causing error: %d\n ", error_cause);
+            fprintf(stderr, "\tThorlabs error code: %d \n", response.GetCode());
+            fprintf(stderr, "\tDescription: %s\n", response.GetDescription());
+            free(buff);
+            return DEVICE_ERROR;
+        }
+        case MOVE_HOMED:{
+            READ_REST(4)
+            MovedHome response(buff);
+            opened_device.motor[response.GetMotorID()].homing=false;
+            printf("Motor with id %d moved to home position\n", response.GetMotorID() + 1);
+            free(buff);
+            return MOVED_HOME_STATUS;
+        }
+        case MOVE_COMPLETED:{
+            READ_REST(18) // 14 bytes for status updates
+            MoveCompleted response(buff);
+            opened_device.motor[response.GetMotorID()].homing=false;
+            printf("Motor with id %d completed move\n", response.GetMotorID() + 1);
+            free(buff);
+            return MOVE_COMPLETED_STATUS;
+        }
+        case MOVE_STOPPED:{
+            READ_REST(18) // 14 bytes for status updates
+            MoveStopped response(buff);
+            opened_device.motor[response.GetMotorID()].homing=false;
+            printf("Motor with id %d stopped \n", response.GetMotorID() +1 );
+            free(buff);
+            return MOVE_STOPPED_STATUS;
+        }
+        case GET_STATUSUPDATE:{
+            READ_REST(18)
+            GetStatusUpdate response(buff);
+            opened_device.motor[response.GetMotorID()].status_enc_count = response.GetEncCount();
+            opened_device.motor[response.GetMotorID()].status_position = response.GetPosition();
+            opened_device.motor[response.GetMotorID()].status_status_bits = response.GetStatusBits();   
+            free(buff);
+            return 0;
+        }
+        case GET_DCSTATUSUPDATE:{
+            READ_REST(18)
+            GetMotChanStatusUpdate response(buff);
+            opened_device.motor[response.GetMotorID()].status_velocity = response.GetVelocity();
+            opened_device.motor[response.GetMotorID()].status_position = response.GetPosition();
+            opened_device.motor[response.GetMotorID()].status_status_bits = response.GetStatusBits();
+            free(buff);
+            return 0;
+        }
+        default: {
+            *ret_msgID = msgID;
+            free(buff);
+            return OTHER_MESSAGE;
+        } 
+    };
+}
 
-class GetVelocityParams: public LongMessage{
-public:
-    GetVelocityParams(uint8_t *mess):LongMessage(mess, 20){}
-    
-    int32_t GetMinVel(){ return le32toh(*((int32_t*) &bytes[8])); }
-    int32_t GetMaxVel(){ return le32toh(*((int32_t*) &bytes[12])); }
-    int32_t GetAcceleration(){ return le32toh(*((int32_t*) &bytes[16])); }
-};
+inline int EmptyIncomingQueue(){
+    while(true){
+        int ret = CheckIncomingQueue(NULL);
+        if (ret == EMPTY) return 0;
+        if (ret == MOVED_HOME_STATUS || ret == MOVE_COMPLETED_STATUS || ret == MOVE_STOPPED_STATUS || ret == 0) continue; 
+        switch(ret){
+            case FATAL_ERROR: return FATAL_ERROR;
+            case FT_ERROR: return FT_ERROR;
+            case DEVICE_ERROR: return DEVICE_ERROR;
+            case OTHER_MESSAGE: {
+                fprintf(stderr, "Unknown message received, protocol violated\n");
+                return FATAL_ERROR;
+            }
+        }
+    }
+}
 
-class SetJogParams:public LongMessage{
-public:
-    SetJogParams(uint8_t dest, uint8_t source, uint16_t chanId )
-            :LongMessage(SET_JOGPARAMS, 22, dest, source){
-                *((uint16_t *) &bytes[6]) = htole16(chanId);
-                *((int32_t *) &bytes[14]) = htole32(0); 
+inline int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess ){
+    int ret;
+    uint16_t msgID;
+    while(true){
+        ret = CheckIncomingQueue(&msgID);
+        if (ret == OTHER_MESSAGE){
+            if (msgID == expected_msg) {
+                *((int16_t *) &mess[0]) =  htole16(msgID);
+                unsigned int red;
+                FT_STATUS read_status = FT_Read(opened_device.handle, &mess[2], size-2, &red);
+                if ( read_status != FT_OK ) {
+                    fprintf(stderr, "FT_Error occured, error code :%d\n", read_status );
+                    return FT_ERROR;
                 }
-            
-    /**
-     * @param mode 1 for continuous jogging, 2 for single step
-     */
-    int SetJogMode(uint16_t mode){
-        if(mode != 1 && mode != 2) return INVALID_PARAM;
-        *((uint16_t *) &bytes[8]) = htole16(mode); 
-        return 0;
-    }
-    void SetStepSize(int32_t stepSize){ *((int32_t *) &bytes[10]) = htole32(stepSize); }
-    
-    int SetMaxVelocity(int32_t velocity){
-        if( abs(velocity) > opened_device.motor[GetMotorID()].max_vel ) return INVALID_PARAM;
-        *((int32_t *) &bytes[22]) = htole32(velocity);
-        return 0;
-    }
-    int SetAcceleration(int32_t acc){
-        if( abs(acc) > opened_device.motor[GetMotorID()].max_acc ) return INVALID_PARAM;
-        *((int32_t *) &bytes[18]) = htole32(acc);
-        return 0;
-    }
-    /**
-     * @param mode 1 for immediate stop, 2 for profiled stop
-     */
-    int SetStopMode(uint16_t mode){ 
-        if(mode != 1 && mode != 2) return INVALID_PARAM;
-        *((uint16_t *) &bytes[26]) = htole16(mode);
-        return 0;
-    }
-            
-};
-
-class ReqJogParams:public MessageHeader{
-public:
-    ReqJogParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_JOGPARAMS, chanId, 0, dest, source){}
-};
-
-class GetJogParams:public LongMessage{
-public:
-    GetJogParams(uint8_t *mess):LongMessage(mess, 28){}
-    
-    /**
-     * @return 1 for continuous jogging, 2 for single step 
-     */
-    uint16_t GetJogMode(){ return le16toh(*((uint16_t*) &bytes[8])); }
-    int32_t GetStepSize(){ return le32toh(*((int32_t*) &bytes[10])); }
-    int32_t GetMinVel(){ return le32toh(*((int32_t*) &bytes[14])); }
-    int32_t GetAcceleration(){ return le32toh(*((int32_t*) &bytes[18])); }
-    int32_t GetMaxVel(){ return le32toh(*((int32_t*) &bytes[22])); }
-    /** 
-     * @return 1 for immediate stop, 2 for profiled stop 
-     */
-    uint16_t GetStopMode(){ return le16toh(*((uint16_t*) &bytes[26])); }
-};
-
-class SetPowerParams:public LongMessage{
-public:
-    SetPowerParams(uint8_t dest, uint8_t source, uint16_t chanId )
-            :LongMessage(SET_POWERPARAMS, 6, dest, source){
-                *((uint16_t *) &bytes[6]) = htole16(chanId);
+                return 0;
             }
-    
-    /**
-     * @param rest_fac, range from 1 to 100, i.e 1% to 100%
-     */
-    int SetRestFactor(uint16_t rest_fac){ 
-        if (rest_fac > 100 || rest_fac == 0) return INVALID_PARAM;
-        *((uint16_t *) &bytes[8]) = htole16(rest_fac);
-        return 0;
-    }
-    
-    /**
-     * @param rest_fac, range from 1 to 100, i.e 1% to 100%
-     */
-    int SetMoveFactor(uint16_t move_fac){
-        if (move_fac > 100 || move_fac == 0) return INVALID_PARAM;
-        *((uint16_t *) &bytes[10]) = htole16(move_fac);
-        return 0;
-    }
-};
-
-class ReqPowerParams: public MessageHeader{
-public:
-    ReqPowerParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_POWERPARAMS, chanId, 0, dest, source){}
-};
-
-class GetPowerParams:public LongMessage{
-public:
-    GetPowerParams(uint8_t *mess):LongMessage(mess, 12){}
-    
-    /**
-     * @return phase power when motor is at rest in % 
-     */
-    uint16_t GetRestFactor(){ return le16toh(*((uint16_t*) &bytes[8]));  }
-    /**
-     * @return phase power when motor is moving in % 
-     */
-    uint16_t GetMoveFactor(){ return le16toh(*((uint16_t*) &bytes[10]));  }
-};
-
-class SetGeneralMoveParams:public LongMessage{
-public:
-    SetGeneralMoveParams(uint8_t dest, uint8_t source, uint16_t chanId)
-            :LongMessage(SET_GENMOVEPARAMS, 6, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);
-    }
-    
-    void SetBacklashDist(int32_t dist){ *((int32_t *) &bytes[8]) = htole16(dist); }
-};
-
-class ReqGeneralMoveParams:public MessageHeader{
-public:
-    ReqGeneralMoveParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_GENMOVEPARAMS, chanId, 0, dest, source){}
-};
-
-class GetGeneralMoveParams:public LongMessage{
-public:
-    GetGeneralMoveParams(uint8_t *mess):LongMessage(mess,12){};
-    
-    int32_t GetBacklashDist(){return le32toh(*((int32_t*) &bytes[8])); }
-};
-
-class SetRelativeMoveParams:public LongMessage{
-public:
-    SetRelativeMoveParams(uint8_t dest, uint8_t source, uint16_t chanId)
-            :LongMessage(SET_MOVERELPARAMS, 6, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);
+            else return FATAL_ERROR;
+        } 
+        if (ret == MOVED_HOME_STATUS || ret == MOVE_COMPLETED_STATUS || ret == MOVE_STOPPED_STATUS || ret == 0) continue; 
+        switch(ret){
+            case FATAL_ERROR: return FATAL_ERROR;
+            case FT_ERROR: return FT_ERROR;
+            case DEVICE_ERROR: return DEVICE_ERROR;
         }
-
-    void SetRelativeDist(int32_t dist){ *((int32_t *) &bytes[8]) = htole32(dist); }
-};
-
-class ReqRelativeMoveParams:public MessageHeader{
-public:
-    ReqRelativeMoveParams(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_MOVERELPARAMS, chanId, 0, dest, source){}
-};
-
-class GetRelativeMoveParams: public LongMessage{
-public:
-    GetRelativeMoveParams(uint8_t *mess):LongMessage(mess,12){}
-    
-    int32_t GetRelativeDist(){ return le32toh(*((int32_t*) &bytes[8])); }
-};
-
-class SetAbsoluteMoveParams:public LongMessage{
-public: 
-    SetAbsoluteMoveParams(uint8_t dest, uint8_t source, uint16_t chanId)
-            :LongMessage(SET_MOVEABSPARAMS, 6, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);   
-        }
-            
-    int SetAbsolutePos(int32_t pos){ 
-        if (pos < 0 || pos > opened_device.motor[GetMotorID()].max_pos ) return INVALID_PARAM;
-        *((int32_t *) &bytes[8]) = htole32(pos); 
-        return 0;
     }
+    return 0;
+}
+
+namespace device_calls{
+// ------------------------- Generic device calls ------------------------------
+
+inline int Identify(uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    IdentifyMs mes(dest, 0x01);
+    SendMessage(mes); 
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+inline int EnableChannel(uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8()){   
+    CHECK_ADDR_PARAMS(dest, chanel)
+    EMPTY_IN_QUEUE
+    SetChannelState mes(chanel, 1, dest, SOURCE);
+    SendMessage(mes);
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+inline int DisableChannel(uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8()){  
+    CHECK_ADDR_PARAMS(dest, chanel)
+    EMPTY_IN_QUEUE
+    SetChannelState mes(chanel, 2, dest, SOURCE);
+    SendMessage(mes);
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+inline int ChannelState(GetChannelState *info, uint8_t dest = DefaultDest(), uint8_t chanel = DefaultChanel8()){ 
+    CHECK_ADDR_PARAMS(dest, chanel)
+    EMPTY_IN_QUEUE
+    ReqChannelState mes(chanel, dest, SOURCE);
+    SendMessage(mes);
+    uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
+    ret = GetResponseMess( GET_CHANENABLESTATE, HEADER_SIZE , buff);
+    GetChannelState mess(buff);
+    *info = mess;
+    free(buff);
+    if ( ret != 0) return ret;  
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+inline int DisconnectHW(uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    HwDisconnect mes(dest, SOURCE);
+    SendMessage(mes);
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+inline int StartUpdateMess(uint8_t rate = DeafultRate(), uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    StartUpdateMessages mes(dest, SOURCE);
+    if (mes.SetUpdaterate(rate) == IGNORED_PARAM) printf("This parameter is ignored in connected device. Using default.\n");
+    SendMessage(mes);
+    opened_device.status_updates = true;
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+inline int StopUpdateMess(uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    StopUpdateMessages mes(dest, SOURCE);
+    SendMessage(mes);
+    opened_device.status_updates = false;
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+inline int GetHwInfo(HwInfo *message, uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    ReqHwInfo mes(dest, SOURCE);
+    SendMessage(mes);
+    uint8_t *buff = (uint8_t *) malloc(90);
+    ret = GetResponseMess( HW_GET_INFO, 90, buff);
+    HwInfo info(buff);
+    *message = info; 
+    free(buff);
+    if ( ret != 0) return ret;
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+inline int GetBayUsed(GetRackBayUsed *message, uint8_t bayID, uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    ReqRackBayUsed mes(dest, SOURCE);
+    mes.SetBayIdent(bayID);
+    SendMessage(mes);
+    uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
+    ret = GetResponseMess( RACK_GET_BAYUSED, HEADER_SIZE , buff);
+    GetRackBayUsed bayused(buff);
+    *message = bayused;
+    if ( ret != 0) return ret;
+    free(buff);
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+inline int GetHubUsed(GetHubBayUsed *message, uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1);
+    EMPTY_IN_QUEUE
+    ReqHubBayUsed mes(dest, SOURCE);
+    SendMessage(mes);
+    uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
+    ret = GetResponseMess( HUB_GET_BAYUSED, HEADER_SIZE , buff);
+    GetHubBayUsed hubused(buff);
+    *message = hubused;
+    if ( ret != 0) return ret;
+    free(buff);
+    EMPTY_IN_QUEUE
+    return 0;
+}
+
+//-------------------------- Motor control calls ------------------------------
+
+inline int FlashProgYes(uint8_t dest = DefaultDest() ){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    YesFlashProg mes(dest, SOURCE);
+    SendMessage(mes);
+    EMPTY_IN_QUEUE
+    return 0;
 };
 
-class ReqAbsoluteMoveParams:public MessageHeader{
-public:
-    ReqAbsoluteMoveParams(uint8_t dest, uint8_t source, uint8_t chanId): MessageHeader(REQ_MOVEABSPARAMS, chanId, 0, dest, source){}
+inline int FlashProgNo(uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    NoFlashProg mes(dest, SOURCE);
+    SendMessage(mes);
+    EMPTY_IN_QUEUE
+    return 0;
 };
 
-class GetAbsoluteMoveParams:public LongMessage{
-public:
-    GetAbsoluteMoveParams(uint8_t *mess):LongMessage(mess,12){}
-    
-    int32_t GetAbsolutePos(){ return le32toh(*((int32_t*) &bytes[8])); }
+inline int SetPositionCounter(int32_t pos, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetPosCounter mes(dest, SOURCE, channel);
+    mes.SetPosition(pos);
+    SendMessage(mes);
+    EMPTY_IN_QUEUE
+    return ret; //return WARNING
 };
 
-class SetHomeParams:public LongMessage{
-public:
-    SetHomeParams(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(SET_HOMEPARAMS, 14, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);
-    }
-    
-    int SetHomingVelocity(int32_t vel){
-        if (vel < 0 || vel > opened_device.motor[GetMotorID()].max_vel ) return INVALID_PARAM;
-        *((int32_t *) &bytes[12]) = htole32(vel); 
-        return 0;
-    }
+inline int GetPositionCounter(GetPosCounter *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqPosCounter,12,GET_POSCOUNTER,GetPosCounter)      
+    return 0;
 };
 
-class ReqHomeParams:public MessageHeader{
-public:
-    ReqHomeParams(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_HOMEPARAMS, chanId, 0, dest, source){}
+inline int SetEncoderCounter(int32_t count, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetEncCount mes(dest, SOURCE, channel);
+    mes.SetEncoderCount(count);
+    SendMessage(mes);
+    EMPTY_IN_QUEUE
+    return ret; //return WARNING
 };
 
-class GetHomeParams:public LongMessage{
-public:
-    GetHomeParams(uint8_t *mess):LongMessage(mess,20){}
-    
-    int32_t GetHomingVelocity(){ return le32toh(*((int32_t*) &bytes[12])); }
+inline int GetEncoderCounter(GetEncCount *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqEncCount,12,GET_ENCCOUNTER,GetEncCount)      
+    return 0;
 };
 
-class SetLimitSwitchParams:public LongMessage{
-public:
-    SetLimitSwitchParams(uint8_t dest, uint8_t source, uint16_t chanId)
-            :LongMessage(SET_LIMSWITCHPARAMS, 16, dest, source){
-                *((uint16_t *) &bytes[6]) = htole16(chanId);
-            }
-    
-    int SetClockwiseHardLimit(uint16_t limit){
-        if ( limit != 0x80 && limit > 0x06 ) return INVALID_PARAM;
-        *((uint16_t *) &bytes[8]) = htole16(limit);
-        return 0;
-    }
-    int SetCounterlockwiseHardLimit(uint16_t limit){ 
-        if ( limit != 0x80 && limit > 0x06 ) return INVALID_PARAM;
-        *((uint16_t *) &bytes[10]) = htole16(limit);
-        return 0;
-    }
-    
-    int SetClockwiseSoftLimit(int32_t limit){
-        if (opened_device.device_type == TDC001 ) return IGNORED_PARAM;
-        *((int32_t *) &bytes[12]) = htole32(limit); 
-        return 0;
-    }
-    int SetCounterlockwiseSoftLimit(int32_t limit){ 
-        if (opened_device.device_type == TDC001 ) return IGNORED_PARAM;
-        *((int32_t *) &bytes[16]) = htole32(limit); 
-        return 0;
-    }  
-    
-    int SetLimitMode(uint16_t mode){ 
-        if ( opened_device.device_type == TDC001 ) return IGNORED_PARAM;
-        if ( mode != 0x80 && mode > 0x03 ) return INVALID_PARAM;
-        *((uint16_t *) &bytes[20]) = htole16(mode); 
-        return 0;
-    }
+inline int SetVelocityP(int32_t acc, int32_t maxVel, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetVelocityParams mes(dest, SOURCE, channel);
+    if (mes.SetAcceleration(acc) == INVALID_PARAM) return INVALID_PARAM_1;
+    if (mes.SetMaxVel(maxVel) == INVALID_PARAM) return INVALID_PARAM_2;
+    SendMessage(mes);
+    EMPTY_IN_QUEUE
+    return 0;        
+}
+
+inline int GetVelocityP(GetVelocityParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqVelocityParams,20,GET_VELPARAMS,GetVelocityParams)       
+    return 0;
 };
 
-class ReqLimitSwitchParams:public MessageHeader{
-public:
-    ReqLimitSwitchParams(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_LIMSWITCHPARAMS, chanId, 0, dest, source){}
+inline int SetJogP(uint16_t mode, int32_t stepSize, int32_t vel, int32_t acc, uint16_t stopMode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetJogParams mes(dest, SOURCE, channel);
+    if (mes.SetJogMode(mode) == INVALID_PARAM) return INVALID_PARAM_1;
+    mes.SetStepSize(stepSize);
+    if (mes.SetMaxVelocity(vel) == INVALID_PARAM) return INVALID_PARAM_3;
+    if (mes.SetAcceleration(acc) == INVALID_PARAM) return INVALID_PARAM_4;
+    if (mes.SetStopMode(stopMode) == INVALID_PARAM) return INVALID_PARAM_5;
+    SendMessage(mes);
+    EMPTY_IN_QUEUE
+    return 0; 
 };
 
-class GetLimitSwitchParams:public LongMessage{
-public:
-    GetLimitSwitchParams(uint8_t *mess):LongMessage(mess, 22){}
-    
-    uint16_t GetClockwiseHardLimit(){ return le16toh(*((uint16_t*) &bytes[8])); }
-    uint16_t GetCounterlockwiseHardLimit(){ return le16toh(*((uint16_t*) &bytes[10])); }
-    
-    int32_t SetClockwiseSoftLimit(){ return le32toh(*((int32_t*) &bytes[12])); }
-    int32_t SetCounterlockwiseSoftLimit(){ return le32toh(*((int32_t*) &bytes[16])); }
-    
-    uint16_t GetLimitMode(){ return le16toh(*((uint16_t*) &bytes[20])); }
+inline int GetJogP(GetJogParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqJogParams,28,GET_JOGPARAMS,GetJogParams)
+    return 0;
 };
 
-class MoveHome:public MessageHeader{
-public:
-    MoveHome(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(MOVE_HOME, chanId, 0, dest, source){}
+inline int SetPowerUsed(uint16_t rest_power, uint16_t move_power, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetPowerParams mes(dest, SOURCE, channel);
+    if ( mes.SetRestFactor(rest_power) == INVALID_PARAM) return INVALID_PARAM_1;
+    if (mes.SetMoveFactor(move_power) == INVALID_PARAM )return INVALID_PARAM_2;        
+    SendMessage(mes);
+    EMPTY_IN_QUEUE        
+    return 0;
 };
 
-class MovedHome:public MessageHeader{
-public:
-    MovedHome(uint8_t *mess):MessageHeader(mess){}
+inline int GetPowerUsed(GetPowerParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqPowerParams,12,GET_POWERPARAMS,GetPowerParams)
+    return 0;
 };
 
-class MoveRelative1:public MessageHeader{
-public:
-    MoveRelative1(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(MOVE_RELATIVE, chanId, 0, dest, source){}
+inline int SetBacklashDist(uint32_t dist, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetGeneralMoveParams mes(dest, SOURCE, channel);
+    mes.SetBacklashDist(dist);    
+    SendMessage(mes);
+    EMPTY_IN_QUEUE        
+    return 0;
 };
 
-class MoveRelative2:public LongMessage{
-public:
-    MoveRelative2(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(MOVE_RELATIVE, 6, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);
-    }
-    
-    void SetRelativeDistance(int32_t dist){ *((int32_t *) &bytes[8]) = htole32(dist); }
+inline int GetBacklashDist(GetGeneralMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqGeneralMoveParams,12,GET_GENMOVEPARAMS,GetGeneralMoveParams)                        
+    return 0;
 };
 
-class MoveCompleted:public LongMessage{
-public:
-    MoveCompleted(uint8_t *mess):LongMessage(mess, 20){};
-    
-    
+inline int SetRelativeMoveP(uint32_t dist, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetRelativeMoveParams mes(dest, SOURCE, channel);
+    mes.SetRelativeDist(dist);    
+    SendMessage(mes);
+    EMPTY_IN_QUEUE 
+    return 0;        
+};
+
+inline int GetRelativeMoveP(GetRelativeMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqRelativeMoveParams,12,GET_MOVERELPARAMS,GetRelativeMoveParams) 
+    return 0;
+};
+
+inline int SetAbsoluteMoveP(uint32_t pos, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetAbsoluteMoveParams mes(dest, SOURCE, channel);
+    mes.SetAbsolutePos(pos);    
+    SendMessage(mes);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int GetAbsoluteMoveP(GetAbsoluteMoveParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqAbsoluteMoveParams,12,GET_MOVEABSPARAMS,GetAbsoluteMoveParams) 
+    return 0;
+};
+
+inline int SetHomingVel(uint32_t vel, int8_t dest = DefaultDest(),  uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetHomeParams mes(dest, SOURCE, channel);
+    if (mes.SetHomingVelocity(vel) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int GetHomingVel(GetHomeParams *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqHomeParams,20,GET_HOMEPARAMS,GetHomeParams) 
+    return 0;
+};
+
+inline int SetLimitSwitchConfig(uint16_t CwHwLim, uint16_t CCwHwLim, uint16_t CwSwLim, uint16_t CCwSwLim, uint16_t mode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetLimitSwitchParams mes(dest, SOURCE, channel);
+    if (mes.SetClockwiseHardLimit(CwHwLim) == INVALID_PARAM) return INVALID_PARAM_1;
+    if (mes.SetCounterlockwiseHardLimit(CCwHwLim) == INVALID_PARAM) return INVALID_PARAM_2;
+    if (mes.SetClockwiseSoftLimit(CwSwLim) == IGNORED_PARAM) printf("Software limit ignored in this device");
+    if (mes.SetCounterlockwiseSoftLimit(CCwSwLim)== IGNORED_PARAM) printf("Software limit ignored in this device");
+    ret = mes.SetLimitMode(mode);
+    if (ret == INVALID_PARAM) return INVALID_PARAM_5;
+    if (ret == IGNORED_PARAM) printf("Limit mode ignored in this device");
+    SendMessage(mes);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int GetLimitSwitchConfig(GetLimitSwitchParams *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqLimitSwitchParams,22,GET_LIMSWITCHPARAMS,GetLimitSwitchParams) 
+    return 0;
+};
+
+inline int MoveToHome(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    MoveHome mes(dest, SOURCE,channel);        
+    SendMessage(mes);
+    opened_device.motor[mes.GetMotorID()].homing=true;  
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int StartSetRelativeMove(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    MoveRelative1 mes(dest,SOURCE,channel);        
+    SendMessage(mes);
+    opened_device.motor[mes.GetMotorID()].moving=true;
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int StartRelativeMove(int32_t dist, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    MoveRelative2 mes(dest,SOURCE,channel);
+    mes.SetRelativeDistance(dist);
+    SendMessage(mes);
+    opened_device.motor[mes.GetMotorID()].moving=true;
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int StartSetAbsoluteMove(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    MoveAbsolute1 mes(dest,SOURCE,channel);        
+    SendMessage(mes);
+    opened_device.motor[mes.GetMotorID()].moving=true;
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int StartAbsoluteMove(int32_t pos, uint8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE       
+    MoveAbsolute2 mes(dest,SOURCE,channel);  
+    if (mes.SetAbsoluteDistance(pos) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes);
+    opened_device.motor[mes.GetMotorID()].moving=true;
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int StartJogMove(uint8_t direction, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE       
+    JogMove mes(dest,SOURCE,channel);  
+    if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes);
+    opened_device.motor[mes.GetMotorID()].moving=true;
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int StartSetVelocityMove( uint8_t direction, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE        
+    MovewVelocity mes(dest,SOURCE,channel);  
+    if (mes.SetDirection(direction) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes);
+    opened_device.motor[mes.GetMotorID()].moving=true;
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int StopMovement(uint8_t stopMode = DefaultStopMode(), uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    StopMove mes(dest,SOURCE,channel);  
+    if (mes.SetStopMode(stopMode) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes);
+    opened_device.motor[mes.GetMotorID()].stopping=true;
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int SetAccelerationProfile(uint16_t index, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetBowIndex mes(dest, SOURCE, channel);
+    if (mes.SetBowindex(index) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes);
+    EMPTY_IN_QUEUE 
+    return 0;
+};
+
+inline int GetAccelerationProfile(GetBowIndex *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqBowIndex,10,GET_BOWINDEX,GetBowIndex) 
+    return 0;
+};
+
+inline int SetLedP(uint16_t mode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetLedMode mes(dest, SOURCE, channel);
+    if (mes.SetMode(mode) == INVALID_PARAM) return INVALID_PARAM_1;
+    SendMessage(mes);
+    EMPTY_IN_QUEUE 
+    return 0;
 };
 
 
-class MoveAbsolute1:public MessageHeader{
-public:
-    MoveAbsolute1(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(MOVE_ABSOLUTE, chanId, 0 , dest, source){}
+inline int GetLedP(GetLedMode *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqLedMode,10,GET_AVMODES,GetLedMode) 
+    return 0;
 };
 
-class MoveAbsolute2:public LongMessage{
-public:
-    MoveAbsolute2(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(MOVE_ABSOLUTE, 6, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);
-    };
-     
-    int SetAbsoluteDistance(int32_t dist){
-        if (dist < 0 || dist > opened_device.motor[GetMotorID()].max_pos ) return INVALID_PARAM;
-        *((int32_t *) &bytes[8]) = htole32(dist); 
-        return 0;
-    }
+inline int SetButtons(uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetButtonParams mes(dest, SOURCE, channel);
+    if (mes.SetMode(mode) == INVALID_PARAM) return INVALID_PARAM_1;
+    if (mes.SetPosition1(pos1) == INVALID_PARAM) return INVALID_PARAM_2;
+    if (mes.SetPosition2(pos2) == INVALID_PARAM) return INVALID_PARAM_3;
+    if (mes.SetTimeout(timeout) == IGNORED_PARAM ) printf("Timeout ignored in this device");
+    SendMessage(mes);
+    EMPTY_IN_QUEUE 
+    return 0;
 };
 
-class JogMove:public MessageHeader{
-public:
-    JogMove(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(MOVE_JOG, chanId, 1, dest, source){}
-    
-    int SetDirection(uint8_t direction){
-        if (direction != 0x01 && direction != 0x02) return INVALID_PARAM;
-        SetSecondParam(direction);
-        return 0;
-    }
+inline int GetButtonsInfo(GetButtonParams *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqButtonParams,22,GET_BUTTONPARAMS,GetButtonParams) 
+    return 0;
 };
 
-class MovewVelocity:public MessageHeader{
-public:
-    MovewVelocity(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(MOVE_VELOCITY,chanId, 1, dest, source){}
-    
-    int SetDirection(uint8_t direction){
-        if (direction != 0x01 && direction != 0x02) return INVALID_PARAM;
-        SetSecondParam(direction);
-        return 0;
-    }
+// only requests for data, automatically stored in device info
+inline int ReqStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)                
+    EMPTY_IN_QUEUE                                          
+    ReqStatusUpdate mes(dest, SOURCE, channel);              
+    SendMessage(mes);                                       
+    EMPTY_IN_QUEUE  
+    return 0;
 };
 
-class StopMove:public MessageHeader{
-public:
-    StopMove(uint8_t dest, uint8_t source, uint8_t chanId ):MessageHeader(MOVE_STOP, chanId, 2, dest, source){}
-    
-    /**
-     * @param mode, 1 for immediate stop, 2 for profiled stop
-     */
-    int SetStopMode(uint8_t mode){
-        if (mode != 0x01 && mode != 0x02) return INVALID_PARAM;
-        SetSecondParam(mode);
-        return 0;
-    }
+// only requests for data, automatically s
+inline int ReqDcStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)                
+    EMPTY_IN_QUEUE                                          
+    ReqMotChanStatusUpdate mes(dest, SOURCE, channel);              
+    SendMessage(mes);                                       
+    EMPTY_IN_QUEUE  
+    return 0;
 };
 
-class MoveStopped: public LongMessage{
-public:
-    MoveStopped(uint8_t *mess):LongMessage(mess,20){}
-}; 
-
-class SetBowIndex:public LongMessage{
-public:
-    SetBowIndex(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(SET_BOWINDEX, 4, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);
-    }
-    
-    /**
-     * @param profile of acceleration/deceleration, 0 for trapezoidal, 1-18 for s-curve profile
-     */
-    int SetBowindex(uint16_t index){
-        if ( index > 18 ) return INVALID_PARAM;
-        *((uint16_t *) &bytes[8]) = htole16(index); 
-        return 0;
-    }
+inline int SendServerAlive(uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    ServerAlive mes(dest,SOURCE);
+    SendMessage(mes);
+    EMPTY_IN_QUEUE 
+    return 0;
 };
 
-class ReqBowIndex:public MessageHeader{
-public:
-    ReqBowIndex(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_BOWINDEX, chanId, 0, dest, source){}
+inline int GetStatBits(GetStatusBits *message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqStatusBits,12,GET_STATUSBITS,GetStatusBits) 
+    return 0;
 };
 
-class GetBowIndex:public LongMessage{
-public:
-    GetBowIndex(uint8_t *mess):LongMessage(mess, 10){};
-    
-    uint16_t BowIndex(){ return le16toh(*((uint16_t*) &bytes[8])); }
+inline int DisableEomMessages(uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    DisableEndMoveMessages mes(dest,SOURCE);
+    SendMessage(mes);
+    opened_device.end_of_move_messages = false;
+    EMPTY_IN_QUEUE 
+    return 0;
 };
 
-class SetLedMode:public LongMessage{
-public:
-    SetLedMode(uint8_t dest, uint8_t source, uint16_t chanId):LongMessage(SET_AVMODES, 4, dest, source){
-        *((uint16_t *) &bytes[6]) = htole16(chanId);
-    }
-    
-    int SetMode(uint16_t mode){ 
-        if ( mode != 1 && mode != 2 && mode != 3 && (mode < 8  || mode > 11)) return INVALID_PARAM;
-        *((uint16_t *) &bytes[8]) = htole16(mode); 
-         return 0;
-    }
-       
+inline int EnableEomMessages(uint8_t dest = DefaultDest()){
+    CHECK_ADDR_PARAMS(dest, -1)
+    EMPTY_IN_QUEUE
+    EnableEndMoveMessages mes(dest,SOURCE);
+    SendMessage(mes);
+    opened_device.end_of_move_messages = true;
+    EMPTY_IN_QUEUE 
+    return 0;
 };
 
-class ReqLedMode:public MessageHeader{
-public:
-    ReqLedMode(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_AVMODES, chanId, 0, dest, source){}
+inline int CreateTrigger(uint8_t mode, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    CHECK_ADDR_PARAMS(dest, channel)
+    EMPTY_IN_QUEUE
+    SetTrigger mes(dest,SOURCE, channel);
+    if (mes.SetMode(mode) == IGNORED_PARAM) printf("trigger ignored in this device");;
+    SendMessage(mes);
+    EMPTY_IN_QUEUE 
+    return 0;
 };
 
-class GetLedMode:public LongMessage{
-public:
-    GetLedMode(uint8_t *mess):LongMessage(mess, 10){}
-    
-    uint16_t GetMode(){ return le16toh(*((uint16_t*) &bytes[8])); } 
+inline int GetMotorTrigger(GetTrigger *message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8()){
+    GET_MESS(ReqTrigger,HEADER_SIZE,GET_TRIGGER,GetTrigger) 
+    return 0;
 };
 
-class SetButtonParams:public LongMessage{
-public:
-    SetButtonParams(uint8_t dest, uint8_t source, uint16_t chanId)
-            :LongMessage(SET_BUTTONPARAMS, 16, dest, source){
-                *((uint16_t *) &bytes[6]) = htole16(chanId);
-            }
-            
-    int SetMode(uint16_t mode){
-        if (mode != 1 && mode != 2 ) return INVALID_PARAM;
-        *((uint16_t *) &bytes[8]) = htole16(mode); 
-        return 0;
-    }
-    int SetPosition1(int32_t pos){
-        if (pos < 0 || pos > opened_device.motor[GetMotorID()].max_pos ) return INVALID_PARAM;
-        *((int32_t *) &bytes[10]) = htole32(pos);
-        return 0;
-    }
-    int SetPosition2(int32_t pos){
-        if (pos < 0 || pos > opened_device.motor[GetMotorID()].max_pos ) return INVALID_PARAM;
-        *((int32_t *) &bytes[14]) = htole32(pos);
-        return 0;
-    }
-    int SetTimeout(uint16_t ms){ 
-        if (opened_device.device_type == TDC001 ) return IGNORED_PARAM;
-        *((uint16_t *) &bytes[18]) = htole16(ms); 
-        return 0;
-    }
+
+} // namespace device_calls
+
+inline int OpenDevice(unsigned int index){
+    if (index >= devices_connected) return INVALID_PARAM_1;
+    device_calls::StopUpdateMess();
+    FT_Close(opened_device.handle);
+    opened_device = connected_device[index];
+    FT_HANDLE handle;
+    FT_STATUS ft_status;
+    ft_status = FT_OpenEx( opened_device.SN, FT_OPEN_BY_SERIAL_NUMBER, &handle);
+    if (ft_status != FT_OK ) { fprintf(stderr, "Error opening device: %d\n", ft_status); return FT_ERROR; }
+    opened_device.handle = handle;
+    opened_device_index = index;
+    device_calls::StartUpdateMess();
+    return 0;
 };
 
-class ReqButtonParams:public MessageHeader{
-public:
-    ReqButtonParams(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_BUTTONPARAMS, chanId, 0, dest, source){}
-};
-
-class GetButtonParams: public LongMessage{
-public:
-    GetButtonParams(uint8_t *mess):LongMessage(mess, 22){}
-    
-    uint16_t GetMode(){ return le16toh(*((uint16_t*) &bytes[8])); }
-    int32_t GetPosition1(){ return le32toh(*((int32_t*) &bytes[12])); }
-    int32_t GetPosition2(){ return le32toh(*((int32_t*) &bytes[14])); }
-    uint16_t GetTimeout(){ return le16toh(*((uint16_t*) &bytes[18])); }
-};
-
-class ReqStatusUpdate:public MessageHeader{
-public: 
-    ReqStatusUpdate(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_STATUSUPDATE, chanId, 0, dest, source){}
-};
-
-class GetStatusUpdate:public LongMessage{
-public:
-    GetStatusUpdate(uint8_t *mess):LongMessage(mess,20){}
-    
-    int32_t GetPosition(){ return le32toh(*((int32_t*) &bytes[8])); }
-    int32_t GetEncCount(){ return le32toh(*((int32_t*) &bytes[12])); }
-    uint32_t GetStatusBits(){ return le32toh(*((uint32_t*) &bytes[16])); }
-};
-
-class ReqMotChanStatusUpdate:public MessageHeader{
-public:
-    ReqMotChanStatusUpdate(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_DCSTATUSUPDATE, chanId, 0, dest, source){}
-};
-
-class GetMotChanStatusUpdate:public LongMessage{
-public:
-    GetMotChanStatusUpdate(uint8_t *mess):LongMessage(mess,20){}
-    
-    int32_t GetPosition(){ return le32toh(*((int32_t*) &bytes[8])); }
-    uint16_t GetVelocity(){ return le16toh(*((uint16_t*) &bytes[12])); }
-    uint32_t GetStatusBits(){ return le32toh(*((uint32_t*) &bytes[16])); }
-};
-
-class ServerAlive:public MessageHeader{
-public:
-    ServerAlive(uint8_t dest, uint8_t source):MessageHeader(ACK_DCSTATUSUPDATE, 0, 0, dest, source){}
-};
-
-class ReqStatusBits:public MessageHeader{
-public:
-    ReqStatusBits(uint8_t dest, uint8_t source,  uint8_t chanId):MessageHeader(REQ_STATUSBITS, chanId, 0, dest, source){}
-};
-
-class GetStatusBits:public LongMessage{
-public:
-    GetStatusBits(uint8_t *mess):LongMessage(mess,12){}
-    
-    uint32_t GetStatBits(){ return le32toh(*((uint32_t*) &bytes[8])); }
-};
-
-class DisableEndMoveMessages:public MessageHeader{
-public:
-    DisableEndMoveMessages(uint8_t dest, uint8_t source):MessageHeader(SUSPEND_ENDOFMOVEMSGS, 0, 0, dest, source){}
-};
-
-class EnableEndMoveMessages:public MessageHeader{
-public:
-    EnableEndMoveMessages(uint8_t dest, uint8_t source):MessageHeader(RESUME_ENDOFMOVEMSGS, 0, 0, dest, source){}
-};
-
-class SetTrigger:public MessageHeader{
-public:
-    SetTrigger(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(SET_TRIGGER, chanId, 0, dest, source){}
-    
-    int SetMode(uint8_t mode){
-        if (opened_device.device_type != BSC201 && opened_device.device_type != BSC202 && opened_device.device_type != BSC203 && 
-            opened_device.device_type != TBD001 && opened_device.device_type != BBD201 && opened_device.device_type != BBD202 && 
-            opened_device.device_type != BBD203) 
-            return IGNORED_PARAM;
-        SetSecondParam(mode);        
-        return 0;        
-    }
-    
-};
-
-class ReqTrigger:public MessageHeader{
-public:
-    ReqTrigger(uint8_t dest, uint8_t source, uint8_t chanId):MessageHeader(REQ_TRIGGER, chanId, 0, dest, source){}
-};
-
-class GetTrigger:public MessageHeader{
-public:
-    GetTrigger(uint8_t *mess):MessageHeader(mess){}
-    
-    uint8_t GetMode(){return GetSecondParam() ;}
-};
-
- #endif 
+#endif 

@@ -3,8 +3,6 @@
 #include "init.hpp"
 #include "cmd.hpp"
 #include "gui.hpp"
-#include "../ftdi_lib/ftd2xx.h"
-#include "../ftdi_lib/WinTypes.h"
 
 using namespace std;
 
