@@ -628,5 +628,7 @@ void GUI::openHelp(){
     helpw->Setup();
 };
 void GUI::openDoc(){
-    system("gnome-open ./docs/APT_Communications_Protocol_Rev_15.pdf");
+    if (system("gnome-open ./docs/APT_Communications_Protocol_Rev_15.pdf") !=0){
+        fprintf(stderr,"Default pdf viewer not set\n");
+    }
 };
