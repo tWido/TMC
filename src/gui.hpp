@@ -61,6 +61,7 @@ class DevOpt: public QWidget{
         QLabel *timeoutl;
         QPushButton *getbuttp;
         QPushButton *setbuttp;
+        QDialog *error_window;
         
         void Setup();
 };
@@ -113,7 +114,7 @@ class MovOpt: public QWidget{
         QLineEdit *jogp_stepe;
         QPushButton *jogp_set;
         QPushButton *jogp_get;
-
+        QDialog *error_window;
 
         void Setup(int index);
 };

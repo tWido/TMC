@@ -12,14 +12,23 @@
     return a.exec();
 }
  
-#define CHAN_SELECTED(command, params)  if (opened_device.bays == -1 )         \
-                if (chan_1->isChecked())device_calls::command(params, 0x50,1); \
-                if (chan_2->isChecked())device_calls::command(params, 0x50,2); \
-                if (chan_3->isChecked())device_calls::command(params, 0x50,3); \
-            else {                                                             \
-                if (chan_1->isChecked())device_calls::command(params, 0x21);   \
-                if (chan_2->isChecked())device_calls::command(params, 0x22);   \
-                if (chan_3->isChecked())device_calls::command(params, 0x23);   \
+#define ERROR_DIALOG(mess)                              \
+        error_window = new QDialog(this);               \
+        QLabel *err_mess = new QLabel(mess,error_window);\
+        err_mess->move(40,40);                          \
+        error_window->resize(350,100);                  \
+        error_window->show(); 
+ 
+#define CHAN_SELECTED(command, params)                                          \
+            if (opened_device.bays == -1 ){                                     \
+                if (chan_1->isChecked()) device_calls::command(params, 0x50,1); \
+                if (chan_2->isChecked()) device_calls::command(params, 0x50,2); \
+                if (chan_3->isChecked()) device_calls::command(params, 0x50,3); \
+            }                                                                   \
+            else {                                                              \
+                if (chan_1->isChecked()) device_calls::command(params, 0x21);   \
+                if (chan_2->isChecked()) device_calls::command(params, 0x22);   \
+                if (chan_3->isChecked()) device_calls::command(params, 0x23);   \
             }
 
 void DevOpt::Setup(){
@@ -209,9 +218,10 @@ void MovOpt::Setup(int index){
     connect(accp_set, &QPushButton::clicked, 
         [this]{
             uint16_t profile =std::stoi(this->accp_edit->text().toStdString(),0,10);
-            if (opened_device.bays == -1 )
-                device_calls::SetAccelerationProfile(profile, 0x50, chan_id);
-            else device_calls::SetAccelerationProfile(profile, chan_id+0x20);
+            int ret = 0;
+            if (opened_device.bays == -1 ) ret = device_calls::SetAccelerationProfile(profile, 0x50, chan_id);
+            else  ret = device_calls::SetAccelerationProfile(profile, chan_id+0x20);
+            if (ret ==INVALID_PARAM_1 ){ ERROR_DIALOG("ERROR: non existing value given") }
         } 
     );
     accp_layout->addWidget(accp_label);
@@ -247,9 +257,10 @@ void MovOpt::Setup(int index){
         [this]{
             uint16_t restf = std::stoi(this->powerp1_edit->text().toStdString(),0,10);
             uint16_t movef = std::stoi(this->powerp2_edit->text().toStdString(),0,10);
-            if (opened_device.bays == -1 )
-                device_calls::SetPowerUsed(restf, movef, 0x50, chan_id);
-            else device_calls::SetPowerUsed(restf, movef, chan_id+0x20);
+            int ret = 0;
+            if (opened_device.bays == -1 ) ret = device_calls::SetPowerUsed(restf, movef, 0x50, chan_id);
+            else  ret = device_calls::SetPowerUsed(restf, movef, chan_id+0x20);
+            if (ret ==INVALID_PARAM_1 || ret ==INVALID_PARAM_2 ){ ERROR_DIALOG("ERROR: invalid parameter given") }     
         } 
     );
     powerp_layout->addWidget(powerp1_label);
@@ -318,9 +329,11 @@ void MovOpt::Setup(int index){
             int32_t acc = std::stoi(this->jogp_acce->text().toStdString(),0,10);; 
             if (jogp_stopmode1->isChecked())  stopmode = 1; 
             else stopmode = 2;
-            if (opened_device.bays == -1 )
-                device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, 0x50, chan_id);
-            else device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, chan_id+0x20);
+            int ret = 0;
+            if (opened_device.bays == -1 ) ret = device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, 0x50, chan_id);
+            else ret = device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, chan_id+0x20);
+            if (ret ==INVALID_PARAM_1 ){ ERROR_DIALOG("ERROR: velocity exceeds restriction")}
+            else if (ret ==INVALID_PARAM_2 ){ ERROR_DIALOG("ERROR: acceleration exceeds restriction")} 
         } 
     );
     jogp_layout->addWidget(jogp_mode,0,0,3,1);
@@ -478,10 +491,12 @@ void GUI::Setup(){
     forward->setGeometry(450,100,70,70);
     connect(forward, &QPushButton::clicked,
         [this]{
-            if (jogm->isChecked()) 
+            if (jogm->isChecked()){ 
                 CHAN_SELECTED(StartJogMove,1)
-            if (velm->isChecked()) 
+            }
+            if (velm->isChecked()){ 
                 CHAN_SELECTED(StartSetVelocityMove,1)
+            }
         }
     );
     backward = new QPushButton(this);
@@ -490,10 +505,12 @@ void GUI::Setup(){
     backward->setGeometry(450,180,70,70);
     connect(backward, &QPushButton::clicked,
         [this]{
-            if (jogm->isChecked()) 
+            if (jogm->isChecked()){ 
                 CHAN_SELECTED(StartJogMove,2)
-            if (velm->isChecked())
+            }
+            if (velm->isChecked()){
                 CHAN_SELECTED(StartSetVelocityMove,2)
+            }
         }
     );
 
@@ -536,7 +553,18 @@ void GUI::Setup(){
         [this]{
             if (absm->isChecked()){
                 int32_t pos = std::stoi(this->reldist->text().toStdString(),0,10);
-                CHAN_SELECTED(StartAbsoluteMove,pos)
+                int ret = 0;
+                if (opened_device.bays == -1 ){
+                    if (chan_1->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x50,1);
+                    if (chan_2->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x50,2);
+                    if (chan_3->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x50,3);
+                }
+                else {
+                    if (chan_1->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x21);
+                    if (chan_2->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x22);
+                    if (chan_3->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x23);
+                }
+                if (ret == INVALID_PARAM_1) {ERROR_DIALOG("ERROR: position exceeds restriction")}
             }
             if (relm->isChecked()){
                 int32_t dist = std::stoi(this->abspos->text().toStdString(),0,10);
@@ -629,6 +657,7 @@ void GUI::openHelp(){
 };
 void GUI::openDoc(){
     if (system("gnome-open ./docs/APT_Communications_Protocol_Rev_15.pdf") !=0){
+        ERROR_DIALOG("ERROR: Default pdf viewer not set")
         fprintf(stderr,"Default pdf viewer not set\n");
     }
 };
