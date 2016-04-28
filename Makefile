@@ -1,6 +1,6 @@
 CC = g++
 
-CFLAGS = -Wall -g -std=c++11 
+CFLAGS = -Wall -Wextra -g -std=c++11 
 
 LIBS = -lpthread -lftd2xx -lpthread
 
