@@ -182,7 +182,7 @@ int OpenDeviceC(std::vector<string> args){
             printf("Serial not specified\n");
             return INVALID_CALL;
         }
-        int ret;
+        int ret = 0;
         for (int i = 0; i< devices_connected; i++ ){
             std::string to_comp (connected_device[i].SN);
             if ( to_comp.compare(args.at(2)) == 0 ) ret = OpenDevice(i); 
@@ -244,7 +244,7 @@ int IdentC(std::vector<string> args){
         device_calls::Identify();
         return 0;
     }
-    uint8_t dest;
+    uint8_t dest = 0;
 
     if (args.at(1) == "-h"){
         printf("Flashes front LED on device, optional destination parameter\n");
@@ -296,7 +296,7 @@ int ChannelAbleC(std::vector<string> args){
             }
     }
     for (unsigned int i = 1; i< args.size(); i++){
-        uint8_t index;
+        uint8_t index = 0;
         if (args.at(i).compare("-h") == 0){
             printf("Operating channels or bays, numbers range from 1 \n");
             printf("-e NUMBER    enable channel or bay with given number\n");
@@ -360,8 +360,8 @@ int PosCounterC(std::vector<string> args){
                 printf("Not enough parameters\n");
                 return INVALID_CALL;
             }
-            uint8_t index;
-            int32_t value;
+            uint8_t index = 0;
+            int32_t value = 0;
             try {
                 index = std::stoi(args.at(i+1), 0, 10);
                 value = std::stoi(args.at(i+2), 0, 10);
@@ -390,7 +390,7 @@ int PosCounterC(std::vector<string> args){
                 printf("Not enough paramaters\n");
                 return INVALID_CALL;
             }
-            uint8_t index;
+            uint8_t index = 0;
             GET_NUM(index)
             GetPosCounter* counter = (GetPosCounter*) malloc(sizeof(GetPosCounter));
             if (opened_device.bays == -1){
@@ -436,8 +436,8 @@ int EncCountC(std::vector<string> args){
                 printf("Not enough paramaters\n");
                 return INVALID_CALL;
             }
-            uint8_t index;
-            int32_t value;
+            uint8_t index = 0;
+            int32_t value = 0;
             try {
                 index = std::stoi(args.at(i+1), 0, 10);
                 value = std::stoi(args.at(i+2), 0, 10);
@@ -466,7 +466,7 @@ int EncCountC(std::vector<string> args){
                 printf("Not enough parameters\n");
                 return INVALID_CALL;
             }
-            uint8_t index;
+            uint8_t index = 0;
             GET_NUM(index)
             GetEncCount* counter = (GetEncCount*) malloc(sizeof(GetEncCount));
             if (opened_device.bays == -1){
@@ -500,9 +500,9 @@ int VelParamC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    int32_t acc;
-    int32_t maxvel;
+    uint8_t index = 0;
+    int32_t acc = 0;
+    int32_t maxvel = 0;
     bool acc_spec = false;
     bool maxvel_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
@@ -570,9 +570,9 @@ int JogParamC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    int32_t maxvel, acc, step_size;
-    uint16_t mode, stop_mode;
+    uint8_t index = 0;
+    int32_t maxvel = 0, acc = 0, step_size = 0;
+    uint16_t mode = 0, stop_mode = 0;
     bool acc_spec = false, maxvel_spec = false, step_size_spec = false, mode_spec = false, stop_mode_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -609,7 +609,7 @@ int JogParamC(std::vector<string> args){
         printf("Step size: %d\n",mess->GetStepSize());
     }
     if (operation == 1){
-        int ret;
+        int ret = 0;
         if(!acc_spec || !maxvel_spec || !step_size_spec || !mode_spec || !stop_mode_spec) {
             printf("Not all mandatory parameters specified\n");
             return INVALID_CALL;
@@ -649,8 +649,8 @@ int PowerParamC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    uint16_t mfact, rfact;
+    uint8_t index = 0;
+    uint16_t mfact = 0, rfact = 0;
     bool mfact_spec = false, rfact_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -713,8 +713,8 @@ int BacklashDistC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    int32_t dist;
+    uint8_t index = 0;
+    int32_t dist = 0;
     bool dist_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -738,7 +738,7 @@ int BacklashDistC(std::vector<string> args){
         printf("Backlash distance: %d\n",mess->GetBacklashDist());
     }
     if (operation == 1){
-        int ret;
+        int ret = 0;
         if(!dist_spec) {
             printf("Not all mandatory parameters specified\n");
             return INVALID_CALL;
@@ -770,8 +770,8 @@ int RelMoveParamC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    int32_t dist;
+    uint8_t index = 0;
+    int32_t dist = 0;
     bool dist_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -827,8 +827,8 @@ int AbsMoveParamC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    int32_t pos;
+    uint8_t index = 0;
+    int32_t pos = 0;
     bool pos_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -852,7 +852,7 @@ int AbsMoveParamC(std::vector<string> args){
         printf("Absolute position for next move held in controller: %d\n",mess->GetAbsolutePos());
     }
     if (operation == 1){
-        int ret;
+        int ret = 0;
         if(!pos_spec) {
             printf("Not all mandatory parameters specified\n");
             return INVALID_CALL;
@@ -884,8 +884,8 @@ int HomingVelC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    int32_t vel;
+    uint8_t index = 0;
+    int32_t vel = 0;
     bool vel_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -909,7 +909,7 @@ int HomingVelC(std::vector<string> args){
         printf("Homing velocity: %d\n",mess->GetHomingVelocity());
     }
     if (operation == 1){
-        int ret;
+        int ret = 0;
         if(!vel_spec) {
             printf("Not all mandatory parameters specified\n");
             return INVALID_CALL;
@@ -985,7 +985,7 @@ int StartRelMoveC(std::vector<string> args){
         }
     }
     uint8_t index = 1;
-    int32_t dist;
+    int32_t dist = 0;
     bool dist_spec = false, index_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -1031,7 +1031,7 @@ int StartAbsMoveC(std::vector<string> args){
         }
     }
     uint8_t index = 1;
-    int32_t pos;
+    int32_t pos = 0;
     bool pos_spec = false, index_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -1045,7 +1045,7 @@ int StartAbsMoveC(std::vector<string> args){
         FLAG("-p", pos, pos_spec, "Position set more than once\n")
     }
 
-    int ret;
+    int ret = 0;
     if (opened_device.bays == -1){
         if (pos_spec) ret = device_calls::StartSetAbsoluteMove(0x50, index);
         else ret = device_calls::StartAbsoluteMove(pos, 0x50, index); 
@@ -1076,7 +1076,7 @@ int StartJogMoveC(std::vector<string> args){
         }
     }
     uint8_t index = 1;
-    uint8_t direction;
+    uint8_t direction = 0;
     bool direction_spec = false, index_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -1123,7 +1123,7 @@ int StartVelMoveC(std::vector<string> args){
         }
     }
     uint8_t index = 1;
-    uint8_t direction;
+    uint8_t direction = 0;
     bool direction_spec = false, index_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -1137,7 +1137,7 @@ int StartVelMoveC(std::vector<string> args){
         FLAG("-d", direction, direction_spec, "Direction set more than once\n")
     }
 
-    int ret;
+    int ret = 0;
     if(!direction_spec) {
         printf("Not all mandatory parameters specified\n");
         return INVALID_CALL;
@@ -1217,8 +1217,8 @@ int AccParamC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    uint16_t accp;
+    uint8_t index = 0;
+    uint16_t accp = 0;
     bool accp_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -1276,8 +1276,8 @@ int LedParamC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    uint16_t mode;
+    uint8_t index = 0;
+    uint16_t mode = 0;
     bool mode_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -1336,9 +1336,9 @@ int ButtonsParamC(std::vector<string> args){
             }
     }
     int operation = -1; // -1 unspecified, 0 get, 1 set
-    uint8_t index;
-    uint16_t mode, timeout;
-    int32_t pos1, pos2;
+    uint8_t index = 0;
+    uint16_t mode = 0, timeout = 0;
+    int32_t pos1 = 0, pos2 = 0;
     bool mode_spec = false, timeout_spec = false, pos1_spec = false, pos2_spec = false;
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-h") == 0){
@@ -1424,7 +1424,7 @@ void PrintStatus(int at){
 }
 
 int StatusC(std::vector<string> args){
-    uint8_t index;
+    uint8_t index = 0;
     NULL_ARGS
     if (args.at(1).compare("-h") == 0){
         printf("Prints info from status message.\n");
@@ -1475,7 +1475,7 @@ int WaitForStopC(std::vector<string> args){
             return INVALID_CALL;
         }
         int i = 1;
-        uint8_t index;
+        uint8_t index = 0;
         GET_NUM(index);
         end_wait = false;
         if (signal(SIGTSTP, &StopWait) == SIG_ERR)fprintf(stderr,"Failed to use signal handler, wait cannot be interrupted\n");
