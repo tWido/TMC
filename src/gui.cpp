@@ -32,8 +32,8 @@ void DevOpt::Setup(){
     this->setFont(font);
 
     //led params box
-    ledpl = new QGridLayout(this);
     ledp = new QGroupBox("LED parameters",this);
+    ledpl = new QGridLayout(ledp);
     lp1 = new QCheckBox("Flash on request",this);
     lp2 = new QCheckBox("Flash when limit is reached",this);
     lp3 = new QCheckBox("Lit while moving",this);
@@ -71,8 +71,8 @@ void DevOpt::Setup(){
     ledp->setGeometry(10,10,580,150);
 
     //button param box
-    buttpl = new QGridLayout(this);
     buttp = new QGroupBox("Buttons parameters",this);
+    buttpl = new QGridLayout(buttp);
     gotoopt = new QRadioButton("Goto positions",this);
     jogopt = new QRadioButton("Jog",this);
     pos1 = new QLineEdit(this);
@@ -142,7 +142,7 @@ void MovOpt::Setup(int index){
 
     // Homing velocity
     hvel_box = new QGroupBox("Homing velocity",this);
-    hvel_layout = new QHBoxLayout(this);
+    hvel_layout = new QHBoxLayout(hvel_box);
     hvel_label = new QLabel("Velocity",this);
     hvel_edit = new QLineEdit(this);
     hvel_edit->setInputMask("999999");
@@ -159,7 +159,7 @@ void MovOpt::Setup(int index){
 
     //Backlash distance
     bdist_box = new QGroupBox("Backlash Distance",this);
-    bdist_layout = new QHBoxLayout(this);
+    bdist_layout = new QHBoxLayout(bdist_box);
     bdist_label = new QLabel("Distance",this);
     bdist_edit = new QLineEdit(this);
     bdist_edit->setInputMask("999999");
@@ -191,7 +191,7 @@ void MovOpt::Setup(int index){
 
     //Acceleration profile
     accp_box = new QGroupBox("Acceleration profile",this);
-    accp_layout = new QHBoxLayout(this);
+    accp_layout = new QHBoxLayout(accp_box);
     accp_label = new QLabel("Profile (0-18)",this);
     accp_edit = new QLineEdit(this);
     accp_edit->setInputMask("99");
@@ -223,7 +223,7 @@ void MovOpt::Setup(int index){
 
     //Power parameters
     powerp_box = new QGroupBox("Power parameters",this);
-    powerp_layout = new QHBoxLayout(this);
+    powerp_layout = new QHBoxLayout(powerp_box);
     powerp1_label = new QLabel("Move power in %",this);
     powerp1_edit = new QLineEdit(this);
     powerp1_edit->setInputMask("999");
@@ -263,16 +263,16 @@ void MovOpt::Setup(int index){
 
     //Jog parameters
     jogp_box = new QGroupBox(this);
-    jogp_layout = new QGridLayout(this);
-    jogp_model = new QVBoxLayout(this);
+    jogp_layout = new QGridLayout(jogp_box);
     jogp_mode = new QGroupBox("Mode",this);
+    jogp_model = new QVBoxLayout(jogp_mode);
     jogp_mode1 = new QRadioButton("Continuous",this);
     jogp_mode2 = new QRadioButton("Single step",this);
     jogp_model->addWidget(jogp_mode1);
     jogp_model->addWidget(jogp_mode2);
     jogp_mode->setLayout(jogp_model);
     jogp_stopmode = new QGroupBox("Stop mode",this);
-    jogp_stopmodel = new QVBoxLayout(this);
+    jogp_stopmodel = new QVBoxLayout(jogp_stopmode);
     jogp_stopmode1 = new QRadioButton("Immediate stop",this);
     jogp_stopmode2 = new QRadioButton("Profiled stop",this);
     jogp_stopmodel->addWidget(jogp_stopmode1);
@@ -399,7 +399,7 @@ void GUI::Setup(){
 
     //channel switch
     channels = new QGroupBox("Channels",this);
-    chan_box = new QVBoxLayout(this);
+    chan_box = new QVBoxLayout(channels);
     font.setPointSize(12);
     channels->setFont(font);
     chan_1 = new QRadioButton(this);
@@ -498,7 +498,7 @@ void GUI::Setup(){
     );
 
     dir_moves = new QGroupBox("Directional",this);
-    ldir_moves = new QVBoxLayout(this);
+    ldir_moves = new QVBoxLayout(dir_moves);
     font.setPointSize(12);
     dir_moves->setFont(font);
     jogm = new QRadioButton("Jog",this);
@@ -513,7 +513,7 @@ void GUI::Setup(){
 
     //moves non-directional
     moves = new QGroupBox(this);
-    lmoves = new QGridLayout(this);
+    lmoves = new QGridLayout(moves);
     absm = new QRadioButton("Absolute",this);
     absm->resize(100, 50);
     abspl = new QLabel("Position",this);
@@ -566,7 +566,7 @@ void GUI::Setup(){
 
     //status bar
     status_box = new QGroupBox("Status",this);
-    lstat = new QGridLayout(this);
+    lstat = new QGridLayout(status_box);
     font.setPointSize(11);
     status_box->setFont(font);
     moving = new QLabel("Moving",this);
