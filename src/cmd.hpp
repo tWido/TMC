@@ -1459,7 +1459,7 @@ int StatusC(std::vector<string> args){
 bool end_wait;
 
 void StopWait(int sig_num){
-    end_wait = true;
+    if (sig_num == SIGTSTP) end_wait = true;
 }
 
 int WaitForStopC(std::vector<string> args){
@@ -1478,8 +1478,8 @@ int WaitForStopC(std::vector<string> args){
         uint8_t index;
         GET_NUM(index);
         end_wait = false;
-        signal(SIGTSTP, &StopWait);
-        printf("Started wait, press ctrl+z to end wait\n");
+        if (signal(SIGTSTP, &StopWait) == SIG_ERR)fprintf(stderr,"Failed to use signal handler, wait cannot be interrupted\n");
+        else printf("Started wait, press ctrl+z to end wait\n");
         while(true){
             GET_MESSAGE(GetStatusBits, device_calls::GetStatBits)
             opened_device.motor[mess->GetMotorID()].status_status_bits = mess->GetStatBits();
