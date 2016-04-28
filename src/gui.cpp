@@ -6,8 +6,8 @@
     char **argv = NULL;
     int argc = 0;
     QApplication a( argc, argv );
-    GUI *gui = new GUI();
-    gui->Setup();
+    GUI gui;
+    gui.Setup();
     
     return a.exec();
 }
