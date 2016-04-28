@@ -12,11 +12,11 @@
     return a.exec();
 }
  
-#define CHAN_SELECTED(command, params)  if (opened_device.bays == -1 )              \
-                if (chan_1->isChecked())device_calls::command(params, 0x50,1);      \
+#define CHAN_SELECTED(command, params)  if (opened_device.bays == -1 )         \
+                if (chan_1->isChecked())device_calls::command(params, 0x50,1); \
                 if (chan_2->isChecked())device_calls::command(params, 0x50,2); \
                 if (chan_3->isChecked())device_calls::command(params, 0x50,3); \
-            else {                                                                  \
+            else {                                                             \
                 if (chan_1->isChecked())device_calls::command(params, 0x21);   \
                 if (chan_2->isChecked())device_calls::command(params, 0x22);   \
                 if (chan_3->isChecked())device_calls::command(params, 0x23);   \
@@ -264,7 +264,7 @@ void MovOpt::Setup(int index){
     //Jog parameters
     jogp_box = new QGroupBox(this);
     jogp_layout = new QGridLayout(this);
-    jogp_model = new QVBoxLayout();
+    jogp_model = new QVBoxLayout(this);
     jogp_mode = new QGroupBox("Mode",this);
     jogp_mode1 = new QRadioButton("Continuous",this);
     jogp_mode2 = new QRadioButton("Single step",this);
@@ -272,7 +272,7 @@ void MovOpt::Setup(int index){
     jogp_model->addWidget(jogp_mode2);
     jogp_mode->setLayout(jogp_model);
     jogp_stopmode = new QGroupBox("Stop mode",this);
-    jogp_stopmodel = new QVBoxLayout();
+    jogp_stopmodel = new QVBoxLayout(this);
     jogp_stopmode1 = new QRadioButton("Immediate stop",this);
     jogp_stopmode2 = new QRadioButton("Profiled stop",this);
     jogp_stopmodel->addWidget(jogp_stopmode1);
@@ -399,7 +399,7 @@ void GUI::Setup(){
 
     //channel switch
     channels = new QGroupBox("Channels",this);
-    chan_box = new QVBoxLayout();
+    chan_box = new QVBoxLayout(this);
     font.setPointSize(12);
     channels->setFont(font);
     chan_1 = new QRadioButton(this);
@@ -498,7 +498,7 @@ void GUI::Setup(){
     );
 
     dir_moves = new QGroupBox("Directional",this);
-    ldir_moves = new QVBoxLayout();
+    ldir_moves = new QVBoxLayout(this);
     font.setPointSize(12);
     dir_moves->setFont(font);
     jogm = new QRadioButton("Jog",this);
@@ -513,7 +513,7 @@ void GUI::Setup(){
 
     //moves non-directional
     moves = new QGroupBox(this);
-    lmoves = new QGridLayout();
+    lmoves = new QGridLayout(this);
     absm = new QRadioButton("Absolute",this);
     absm->resize(100, 50);
     abspl = new QLabel("Position",this);
@@ -566,12 +566,12 @@ void GUI::Setup(){
 
     //status bar
     status_box = new QGroupBox("Status",this);
-    lstat = new QGridLayout();
+    lstat = new QGridLayout(this);
     font.setPointSize(11);
     status_box->setFont(font);
-    moving = new QLabel("Moving");
-    homing = new QLabel("Homing");
-    stopping = new QLabel("Stopping");
+    moving = new QLabel("Moving",this);
+    homing = new QLabel("Homing",this);
+    stopping = new QLabel("Stopping",this);
     std::string pos = "Position: ";
     pos.append(std::to_string(opened_device.motor[actual_channel].status_position));
     std::string encc = "Encoder counter: ";

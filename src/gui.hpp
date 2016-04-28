@@ -30,6 +30,7 @@
 #include <QPalette>
 #include <QPlainTextEdit>
 #include <QTimer>
+#include <QDialog>
 
 
 #define GET_DEV_MESSAGE(mess_type, call)                            \
@@ -39,7 +40,7 @@
 extern int run_gui();
 
 class DevOpt: public QWidget{
-     Q_OBJECT    
+    Q_OBJECT    
     public:    
         QGridLayout *ledpl;
         QGroupBox *ledp;
@@ -62,11 +63,10 @@ class DevOpt: public QWidget{
         QPushButton *setbuttp;
         
         void Setup();
-
 };
 
 class MovOpt: public QWidget{
-     Q_OBJECT
+    Q_OBJECT
     public:
         int chan_id;
         QGroupBox *hvel_box;
@@ -116,7 +116,6 @@ class MovOpt: public QWidget{
 
 
         void Setup(int index);
-
 };
 
 class HelpText : public QWidget{
@@ -133,7 +132,7 @@ public:
         text->setGeometry(5,5,590,390);
         this->show();
     }
-
+    
 };
 
 class GUI: public QMainWindow{
@@ -158,7 +157,6 @@ class GUI: public QMainWindow{
         QAction *doc_action;
         QLabel *dev_name;
         QLabel *dev_ser;
-        QLabel *serial;
         QRadioButton *chan_1;
         QRadioButton *chan_2;
         QRadioButton *chan_3;
@@ -195,9 +193,10 @@ class GUI: public QMainWindow{
         DevOpt *devOpt;
         HelpText *helpw;
         QTimer *update_timer;
+        QDialog *error_window;
         
         void Setup();
-
+        
 };
 
 
