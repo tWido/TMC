@@ -140,6 +140,7 @@ int HelpC(std::vector<string> args){
     printf(" accp        acceleration profile\n");
     printf(" status      get motor status \n");
     printf(" swait       wait for stop\n");
+    printf(" wait        wait for specified amount of seconds\n");
     return 0;
 }
 
@@ -1456,6 +1457,36 @@ int StatusC(std::vector<string> args){
     return 0;
 }
 
+int WaitC(std::vector<string> args){
+    NULL_ARGS
+    if (args.at(1).compare("-h") == 0){
+        printf("Blocks all commands for specified amount of time\n");
+        printf("-s NUMBER       seconds to wait, mandatory\n");
+        return 0;
+    } else if (args.at(1).compare("-s") == 0){
+        if (args.size() == 2){ 
+            printf("Time not specified\n");
+            return INVALID_CALL;
+        }
+        int seconds = 0;
+        int i = 1;
+        GET_NUM(seconds);
+        if (seconds < 0 || seconds > INT_MAX) {
+            printf("Invalid number of seconds\n");
+            return INVALID_CALL;
+        }
+        for (int i = 0; i < seconds; i++){
+            EmptyIncomingQueue();
+            sleep(1);
+        }
+    }
+    else {
+        printf("Unknown argument\n");
+        return INVALID_CALL;
+    }
+    return 0;
+}
+
 bool end_wait;
 
 void StopWait(int sig_num){
@@ -1540,7 +1571,8 @@ call_map calls = {
     std::make_pair("ledp", &LedParamC),
     std::make_pair("buttp", &ButtonsParamC),
     std::make_pair("status", &StatusC),
-    std::make_pair("swait", &WaitForStopC)
+    std::make_pair("swait", &WaitForStopC),
+    std::make_pair("wait", &WaitC)
 };
 
 
