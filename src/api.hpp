@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <pthread.h>
 #include "messages.hpp"
 
 #define MAX_RESPONSE_SIZE 128
@@ -51,6 +52,17 @@ static uint8_t DefaultStopMode(){
     return 0x02;
 }
 
+extern int OpenDevice(int index);
+
+//----------------- Input buffer monitoring thread --------------------------------
+
+extern int getInBuffDesc();
+
+extern int monInit();
+
+extern void monDestr();
+
+//----------------- Device communication functions ---------------------------------
 
 extern int CheckParams( uint8_t dest, int chanID);
 
@@ -61,6 +73,8 @@ extern int CheckIncomingQueue(uint16_t *ret_msgID);
 extern int EmptyIncomingQueue();
 
 extern int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess );
+
+
 
 namespace device_calls{
     
@@ -182,6 +196,5 @@ extern int GetMotorTrigger(GetTrigger *message, uint8_t dest = DefaultDest(), ui
 
 } // namespace device_calls
 
-extern int OpenDevice(int index);
 
 #endif 
