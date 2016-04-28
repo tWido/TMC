@@ -14,12 +14,12 @@
  
 #define CHAN_SELECTED(command, params)  if (opened_device.bays == -1 )              \
                 if (chan_1->isChecked())device_calls::command(params, 0x50,1);      \
-                if (chan_2->isChecked())device_calls::StopMovement(params, 0x50,2); \
-                if (chan_3->isChecked())device_calls::StopMovement(params, 0x50,3); \
+                if (chan_2->isChecked())device_calls::command(params, 0x50,2); \
+                if (chan_3->isChecked())device_calls::command(params, 0x50,3); \
             else {                                                                  \
-                if (chan_1->isChecked())device_calls::StopMovement(params, 0x21);   \
-                if (chan_2->isChecked())device_calls::StopMovement(params, 0x22);   \
-                if (chan_3->isChecked())device_calls::StopMovement(params, 0x23);   \
+                if (chan_1->isChecked())device_calls::command(params, 0x21);   \
+                if (chan_2->isChecked())device_calls::command(params, 0x22);   \
+                if (chan_3->isChecked())device_calls::command(params, 0x23);   \
             }
 
 void DevOpt::Setup(){
