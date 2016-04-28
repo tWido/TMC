@@ -31,7 +31,7 @@ int addVidPid(){
     
     DIR *usb_devs = opendir(usb_path.c_str());
     if (usb_devs == NULL ) {
-        printf("Error while opening usb devices directory %s", strerror(errno));
+        printf("Error while opening usb devices directory, %s", strerror(errno));
         return SYSTEM_ERROR;
     }
     struct dirent *st_dir;
@@ -42,7 +42,12 @@ int addVidPid(){
         FILE *file_man = fopen(file_path.c_str(), "r");
         if (file_man == NULL) continue;
         char fread_buff[50];
-        fgets(fread_buff, 50, file_man);
+        if (fgets(fread_buff, 50, file_man) == NULL){
+            fprintf(stderr, "Error while reading manufacturer, %s", strerror(errno));
+            fclose(file_man);
+            closedir(usb_devs);
+            return SYSTEM_ERROR;
+        };
         fclose(file_man);
         if ( (strncmp(fread_buff,"Thorlabs", 8)==0) ){
             string vid_path = usb_path;
@@ -50,11 +55,17 @@ int addVidPid(){
             vid_path.append("/idVendor");
             FILE *read_file = fopen(vid_path.c_str() ,"r");
             if (read_file == NULL) {
-                fprintf(stderr, "Error while reading vendor id %s", strerror(errno));
+                fprintf(stderr, "Error while opening vendor id file, %s", strerror(errno));
+                closedir(usb_devs);
+                fclose(read_file);
+                return SYSTEM_ERROR;
+            }
+            if (fgets(fread_buff, 5, read_file) == NULL){
+                fprintf(stderr, "Error while reading vendor id, %s", strerror(errno));
+                fclose(read_file);
                 closedir(usb_devs);
                 return SYSTEM_ERROR;
             }
-            fgets(fread_buff, 5, read_file);
             fclose(read_file);
             unsigned int vid = strtol(fread_buff, &p, 16);
             
@@ -63,11 +74,17 @@ int addVidPid(){
             pid_path.append("/idProduct");
             read_file = fopen(pid_path.c_str() ,"r");
             if (read_file == NULL) {
-                fprintf(stderr, "Error while reading product id %s", strerror(errno));
+                fprintf(stderr, "Error while reading product id file, %s", strerror(errno));
                 closedir(usb_devs);
+                fclose(read_file);
                 return SYSTEM_ERROR;
             }
-            fgets(fread_buff, 5, read_file);
+            if (fgets(fread_buff, 5, read_file) == NULL){
+                fprintf(stderr, "Error while reading product id, %s", strerror(errno));
+                fclose(read_file);
+                closedir(usb_devs);
+                return SYSTEM_ERROR;
+            };
             fclose(read_file);
             unsigned int pid = strtol(fread_buff, &p, 16);
             
@@ -85,9 +102,15 @@ int addVidPid(){
             if (read_file == NULL) {
                 fprintf(stderr, "Error while reading product serial %s", strerror(errno));
                 closedir(usb_devs);
+                fclose(read_file);
                 return SYSTEM_ERROR;
             }
-            fgets(fread_buff, 9, read_file); 
+            if (fgets(fread_buff, 9, read_file) == NULL){
+                fprintf(stderr, "Error while reading product id, %s", strerror(errno));
+                fclose(read_file);
+                closedir(usb_devs);
+                return SYSTEM_ERROR;
+            } 
             fclose(read_file);
            
             SN.push_back(string(fread_buff));
