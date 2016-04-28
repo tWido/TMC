@@ -17,7 +17,7 @@ typedef std::unordered_map<std::string,helper> call_map;
 #define INVALID_CALL -50
 #define ERR_CALL -51
 
-#define HAS_FLAG(x) if ((opened_device.motor[x].status_status_bits & x) == x) 
+#define HAS_FLAG(x) if ((opened_device.motor[at].status_status_bits & x) == x) 
 
 #define GET_NUM(x) try {                                            \
                 x = std::stoi(args.at(i+1), 0, 10);                 \
