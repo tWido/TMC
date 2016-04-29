@@ -632,6 +632,29 @@ void GUI::Setup(){
         [this]{
             EmptyIncomingQueue();
             
+            if (opened_device.motor[actual_channel -1].homing) homing->setEnabled(true);
+            else homing->setDisabled(true);
+            if (opened_device.motor[actual_channel -1].moving) moving->setEnabled(true);
+            else moving->setDisabled(true);
+            if (opened_device.motor[actual_channel -1].stopping) stopping->setEnabled(true);
+            else stopping->setDisabled(true);
+
+            std::string pos = "Position: ";
+            std::string encc = "Encoder counter: ";
+            std::string vel = "Velocity: ";
+            pos.append(std::to_string(opened_device.motor[actual_channel -1].status_position));
+            if (opened_device.enc_counter == 1) {
+                encc.append(std::to_string(opened_device.motor[actual_channel -1].status_enc_count));
+                vel.append("Unknown");
+            }
+            else {
+                vel.append(std::to_string(opened_device.motor[actual_channel -1].status_velocity));
+                encc.append("Unknown");
+            }
+            position->setText(pos.c_str());
+            enc_count->setText(encc.c_str());
+            velocity->setText(vel.c_str());
+            
             this->repaint();
         }
     );
