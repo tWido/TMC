@@ -382,7 +382,7 @@ int init(){
 
 void exit(){
     delete(connected_device);
-    device_calls::StopUpdateMess();
+    if (opened_device_index != -1) device_calls::StopUpdateMess();
     for (int i = 0; i < devices_connected; i++){
         FT_Close(opened_device.handle);
     }
