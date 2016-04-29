@@ -383,6 +383,7 @@ void GUI::Setup(){
         dev_label.append(connected_device->SN);
         device_switch_actions[i] = new QAction(dev_label.c_str(),this);
         connect(move_opt_action, &QAction::triggered, this, [this, i]{ OpenDevice(i); });
+        device_menu->addAction(device_switch_actions[i]);
     }
     menuBar->addMenu(help_menu);
     help_action = new QAction("Help",this);
