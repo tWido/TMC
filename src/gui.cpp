@@ -18,18 +18,6 @@
         err_mess->move(40,40);                          \
         error_window->resize(350,100);                  \
         error_window->show(); 
- 
-#define CHAN_SELECTED(command, params)                                          \
-            if (opened_device.bays == -1 ){                                     \
-                if (chan_1->isChecked()) device_calls::command(params, 0x50,1); \
-                if (chan_2->isChecked()) device_calls::command(params, 0x50,2); \
-                if (chan_3->isChecked()) device_calls::command(params, 0x50,3); \
-            }                                                                   \
-            else {                                                              \
-                if (chan_1->isChecked()) device_calls::command(params, 0x21);   \
-                if (chan_2->isChecked()) device_calls::command(params, 0x22);   \
-                if (chan_3->isChecked()) device_calls::command(params, 0x23);   \
-            }
 
 void DevOpt::Setup(){
     this->setWindowTitle("Device setting");
@@ -438,26 +426,29 @@ void GUI::Setup(){
     chan_1->resize(100,50);
     chan_1->setText("Channel 1");
     chan_1->setChecked(true);
-    actual_channel = 0;
-    chan_1->setFont(font);           
+    actual_channel = 1;
+    chan_1->setFont(font);
+    connect(chan_1, &QRadioButton::clicked, [this]{ actual_channel = 1; } );
     chan_2 = new QRadioButton(this);
     chan_2->resize(100,50);
     chan_2->setText("Channel 2");
     chan_2->setFont(font);
     chan_2->setChecked(false);
     if (opened_device.channels == 2 || (opened_device.bays >=2 && opened_device.bay_used[1])){
-        chan_2->setDisabled(false);
+        chan_2->setEnabled(true);
     }
     else chan_2->setDisabled(true);
+    connect(chan_2, &QRadioButton::clicked, [this]{ actual_channel = 2; } );
     chan_3 = new QRadioButton(this);
     chan_3->resize(100,50);
     chan_3->setText("Channel 3");
     chan_3->setFont(font);
     chan_3->setChecked(false);
     if (opened_device.bays == 3 && opened_device.bay_used[2]){
-        chan_3->setDisabled(false);
+        chan_3->setEnabled(true);
     }
-    else chan_3->setDisabled(true);  
+    else chan_3->setDisabled(true);
+    connect(chan_3, &QRadioButton::clicked, [this]{ actual_channel = 3; } );
     chan_box->addWidget(chan_1);
     chan_box->addWidget(chan_2);
     chan_box->addWidget(chan_3);
@@ -474,9 +465,7 @@ void GUI::Setup(){
             if (opened_device.bays == -1 )
                 device_calls::Identify();
             else {
-                if (chan_1->isChecked())device_calls::Identify(0x21);
-                if (chan_2->isChecked())device_calls::Identify(0x22);
-                if (chan_3->isChecked())device_calls::Identify(0x23);
+                device_calls::Identify(0x20 + actual_channel);
             }
         }
     );
@@ -485,16 +474,8 @@ void GUI::Setup(){
     home_button->setText("Home");
     connect(home_button, &QPushButton::clicked,
         [this]{
-            if (opened_device.bays == -1 ){
-                if (chan_1->isChecked())device_calls::MoveToHome(0x50,1);
-                if (chan_2->isChecked())device_calls::MoveToHome(0x50,2);
-                if (chan_3->isChecked())device_calls::MoveToHome(0x50,3);
-        }
-            else {
-                if (chan_1->isChecked())device_calls::MoveToHome(0x21);
-                if (chan_2->isChecked())device_calls::MoveToHome(0x22);
-                if (chan_3->isChecked())device_calls::MoveToHome(0x23);
-            }
+            if (opened_device.bays == -1 ) device_calls::MoveToHome(0x50, actual_channel);
+            else device_calls::MoveToHome(0x20 + actual_channel);
         }
     );
 
@@ -511,10 +492,12 @@ void GUI::Setup(){
     connect(forward, &QPushButton::clicked,
         [this]{
             if (jogm->isChecked()){ 
-                CHAN_SELECTED(StartJogMove,1)
+                if (opened_device.bays == -1 ) device_calls::StartJogMove(1,0x50, actual_channel);
+                else device_calls::StartJogMove(1,0x20 + actual_channel);
             }
             if (velm->isChecked()){ 
-                CHAN_SELECTED(StartSetVelocityMove,1)
+                if (opened_device.bays == -1 ) device_calls::StartSetVelocityMove(1,0x50, actual_channel);
+                else device_calls::StartSetVelocityMove(1,0x20 + actual_channel);
             }
         }
     );
@@ -525,10 +508,12 @@ void GUI::Setup(){
     connect(backward, &QPushButton::clicked,
         [this]{
             if (jogm->isChecked()){ 
-                CHAN_SELECTED(StartJogMove,2)
+                if (opened_device.bays == -1 ) device_calls::StartJogMove(2,0x50, actual_channel);
+                else device_calls::StartJogMove(2,0x20 + actual_channel);
             }
             if (velm->isChecked()){
-                CHAN_SELECTED(StartSetVelocityMove,2)
+                if (opened_device.bays == -1 ) device_calls::StartSetVelocityMove(2,0x50, actual_channel);
+                else device_calls::StartSetVelocityMove(2,0x20 + actual_channel);
             }
         }
     );
@@ -573,21 +558,14 @@ void GUI::Setup(){
             if (absm->isChecked()){
                 int32_t pos = std::stoi(this->reldist->text().toStdString(),0,10);
                 int ret = 0;
-                if (opened_device.bays == -1 ){
-                    if (chan_1->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x50,1);
-                    if (chan_2->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x50,2);
-                    if (chan_3->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x50,3);
-                }
-                else {
-                    if (chan_1->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x21);
-                    if (chan_2->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x22);
-                    if (chan_3->isChecked()) ret = device_calls:: StartAbsoluteMove ( pos , 0x23);
-                }
+                if (opened_device.bays == -1 ) ret = device_calls:: StartAbsoluteMove ( pos, 0x50, actual_channel);
+                else  ret = device_calls:: StartAbsoluteMove ( pos , 0x20 + actual_channel);
                 if (ret == INVALID_PARAM_1) {ERROR_DIALOG("ERROR: position exceeds restriction")}
             }
             if (relm->isChecked()){
                 int32_t dist = std::stoi(this->abspos->text().toStdString(),0,10);
-                CHAN_SELECTED(StartRelativeMove,dist)
+                if (opened_device.bays == -1 ) device_calls::StartRelativeMove( dist, 0x50, actual_channel);
+                else device_calls::StartRelativeMove( dist, 0x20 + actual_channel);
             }
         } 
     );
@@ -607,7 +585,8 @@ void GUI::Setup(){
     stop->setGeometry(310,380,100,50);
     connect(stop, &QPushButton::clicked,
         [this]{
-            CHAN_SELECTED(StopMovement,2)
+            if (opened_device.bays == -1 ) device_calls::StopMovement( 2, 0x50, actual_channel);
+            else device_calls::StopMovement( 2, 0x20 + actual_channel);
         }
     );   
 
@@ -620,24 +599,24 @@ void GUI::Setup(){
     homing = new QLabel("Homing",this);
     stopping = new QLabel("Stopping",this);
     std::string pos = "Position: ";
-    pos.append(std::to_string(opened_device.motor[actual_channel].status_position));
+    pos.append(std::to_string(opened_device.motor[actual_channel -1].status_position));
     std::string encc = "Encoder counter: ";
     std::string vel = "Velocity: ";
     position = new QLabel(pos.c_str(),this);
     if (opened_device.enc_counter == 1) {
-        encc.append(std::to_string(opened_device.motor[actual_channel].status_enc_count));
+        encc.append(std::to_string(opened_device.motor[actual_channel -1].status_enc_count));
         vel.append("Unknown");
     }
     else {
-        vel.append(std::to_string(opened_device.motor[actual_channel].status_velocity));
+        vel.append(std::to_string(opened_device.motor[actual_channel -1].status_velocity));
         encc.append("Unknown");
     }
     enc_count = new QLabel(encc.c_str(),this);
     velocity = new QLabel(vel.c_str(),this);
 
-    homing->setEnabled(opened_device.motor[actual_channel].homing);
-    moving->setEnabled(opened_device.motor[actual_channel].moving);
-    stopping->setEnabled(opened_device.motor[actual_channel].stopping);
+    homing->setEnabled(opened_device.motor[actual_channel -1].homing);
+    moving->setEnabled(opened_device.motor[actual_channel -1].moving);
+    stopping->setEnabled(opened_device.motor[actual_channel -1].stopping);
     lstat->addWidget(moving,0,0);
     lstat->addWidget(homing,0,1);
     lstat->addWidget(stopping,0,2);
@@ -652,6 +631,7 @@ void GUI::Setup(){
     connect(update_timer, &QTimer::timeout, this, 
         [this]{
             EmptyIncomingQueue();
+            
             this->repaint();
         }
     );
