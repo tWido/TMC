@@ -157,8 +157,23 @@ void MovOpt::Setup(int index){
     hvel_edit->setInputMask("999999");
     hvel_get = new QPushButton("Get",this);
     hvel_set = new QPushButton("Set",this);
-    connect(hvel_get, &QPushButton::clicked, [this]{} );
-    connect(hvel_set, &QPushButton::clicked, [this]{} );
+    connect(hvel_get, &QPushButton::clicked,
+        [this]{
+            std::stringstream sts;
+            GET_DEV_MESSAGE(GetHomeParams, GetHomingVel)
+            sts << mess->GetHomingVelocity();
+            hvel_edit->setText(sts.str().c_str());
+            free(mess);
+        } 
+    );
+    connect(hvel_set, &QPushButton::clicked, 
+        [this]{
+            int32_t dist =std::stoi(this->hvel_edit->text().toStdString(),0,10);
+            if (opened_device.bays == -1 )
+                device_calls::SetBacklashDist(dist, 0x50, chan_id);
+            else device_calls::SetBacklashDist(dist, chan_id+0x20);
+        } 
+    );
     hvel_layout->addWidget(hvel_label);
     hvel_layout->addWidget(hvel_edit);
     hvel_layout->addWidget(hvel_get);
@@ -308,7 +323,6 @@ void MovOpt::Setup(int index){
             else jogp_mode2->setChecked(true);
             
             sts << mess->GetStepSize();
-            printf("step size: %d", mess->GetStepSize());
             jogp_stepe->setText(sts.str().c_str());
             sts.str("");
             sts<< mess->GetMaxVel();
