@@ -724,6 +724,16 @@ int OpenDevice(int index){
     if (ft_status != FT_OK ) { fprintf(stderr, "Error opening device: %d\n", ft_status); return FT_ERROR; }
     opened_device.handle = handle;
     opened_device_index = index;
+    if (ft_status != FT_OK ) { fprintf(stderr, "Error opening device: %d\n", ft_status); return FT_ERROR; }
+    if (FT_SetBaudRate(opened_device.handle, 115200) != FT_OK) return FT_ERROR;
+    if (FT_SetDataCharacteristics(opened_device.handle, FT_BITS_8, FT_STOP_BITS_1, FT_PARITY_NONE) != FT_OK ) return FT_ERROR;
+    usleep(50);
+    if (FT_Purge(opened_device.handle, FT_PURGE_RX | FT_PURGE_TX) != FT_OK ) return FT_ERROR;
+    usleep(50);
+    if (FT_SetFlowControl(opened_device.handle, FT_FLOW_RTS_CTS, 0, 0) != FT_OK) return FT_ERROR;
+    if (FT_SetRts(opened_device.handle) != FT_OK ) return FT_ERROR;
+    usleep(100);
+    
     device_calls::StartUpdateMess();
     return 0;
 };

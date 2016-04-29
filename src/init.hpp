@@ -359,23 +359,13 @@ int init(){
     for (int j = 0; j<  devices_connected; j++){
         for (unsigned int i = 0; i< num_ftdi_devices; i++){
             if (OpenDevice(j) == FT_ERROR ) { delete(ftdi_devs); return FT_ERROR; };
-            if (ft_status != FT_OK ) { delete(ftdi_devs); return FT_ERROR; }
-
-            if (FT_SetBaudRate(opened_device.handle, 115200) != FT_OK) return FT_ERROR;
-            if (FT_SetDataCharacteristics(opened_device.handle, FT_BITS_8, FT_STOP_BITS_1, FT_PARITY_NONE) != FT_OK ) return FT_ERROR;
-            usleep(50);
-            if (FT_Purge(opened_device.handle, FT_PURGE_RX | FT_PURGE_TX) != FT_OK ) return FT_ERROR;
-            usleep(50);
-            if (FT_SetFlowControl(opened_device.handle, FT_FLOW_RTS_CTS, 0, 0) != FT_OK) return FT_ERROR;
-            if (FT_SetRts(opened_device.handle) != FT_OK ) return FT_ERROR;
-            usleep(50);
-                              
+            if (ft_status != FT_OK ) { delete(ftdi_devs); return FT_ERROR; }                  
             ret = LoadDeviceInfo(connected_device[j]);
             if (ret != 0 ){ delete(ftdi_devs); return ret; }               
-            }
         }
+    }
     
-    delete(ftdi_devs);  
+    delete(ftdi_devs);
     if (OpenDevice(0) == FT_ERROR) return FT_ERROR;
     return 0;
 }
