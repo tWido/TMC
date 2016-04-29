@@ -63,9 +63,9 @@ void DevOpt::Setup(){
         [this]{
             uint8_t mode = 0;
             if (this->lp1->isChecked()) mode +=1;
-            if (this->lp1->isChecked()) mode +=2;
-            if (this->lp1->isChecked()) mode +=8;
-            device_calls::SetLedP(mode);
+            if (this->lp2->isChecked()) mode +=2;
+            if (this->lp3->isChecked()) mode +=8;
+            device_calls::SetLedP(mode, 0x50, 1);
         } 
     );
 
