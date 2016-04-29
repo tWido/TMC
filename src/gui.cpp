@@ -273,7 +273,7 @@ void MovOpt::Setup(int index){
     powerp_box->setGeometry(10,310,480,100);
 
     //Jog parameters
-    jogp_box = new QGroupBox(this);
+    jogp_box = new QGroupBox("Jog parameters",this);
     jogp_layout = new QGridLayout(jogp_box);
     jogp_mode = new QGroupBox("Mode",this);
     jogp_model = new QVBoxLayout(jogp_mode);
@@ -305,15 +305,19 @@ void MovOpt::Setup(int index){
             std::stringstream sts;
             GET_DEV_MESSAGE(GetJogParams, GetJogP)
             if ( mess->GetJogMode() == 1 ) jogp_mode1->setChecked(true);
-            else {
-                jogp_mode2->setChecked(true);
-                sts << mess->GetStepSize();
-                jogp_stepe->setText(sts.str().c_str());
-                sts<< mess->GetMaxVel();
-                jogp_vele->setText(sts.str().c_str());
-                sts<< mess->GetAcceleration();
-                jogp_acce->setText(sts.str().c_str());
-            }
+            else jogp_mode2->setChecked(true);
+            
+            sts << mess->GetStepSize();
+            printf("step size: %d", mess->GetStepSize());
+            jogp_stepe->setText(sts.str().c_str());
+            sts.str("");
+            sts<< mess->GetMaxVel();
+            jogp_vele->setText(sts.str().c_str());
+            sts.str("");
+            sts<< mess->GetAcceleration();
+            jogp_acce->setText(sts.str().c_str());
+            sts.str("");
+            
             if (mess->GetStopMode() == 1) jogp_stopmode1->setChecked(true);
             else jogp_stopmode2->setChecked(true);
             free(mess);
