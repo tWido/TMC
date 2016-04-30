@@ -4,11 +4,213 @@
 #include <unistd.h>
 #include <errno.h>
 
-//device globals definitions
+//------------------ device globals definitions --------------------------------
 int devices_connected = 0;
 controller_device *connected_device = NULL;
 controller_device opened_device;
 int opened_device_index  = -1;
+
+functions_set tdc{
+    IDENTIFY,
+    
+    SET_CHANENABLESTATE,
+    REQ_CHANENABLESTATE,
+    GET_CHANENABLESTATE,
+    
+    HW_DISCONNECT,
+    HW_RESPONSE,
+    RICHRESPONSE,
+    
+    HW_START_UPDATEMSGS,
+    HW_STOP_UPDATEMSGS,
+    HW_REQ_INFO,
+    HW_GET_INFO,
+    
+    HUB_REQ_BAYUSED,
+    HUB_GET_BAYUSED,
+    
+    SET_POSCOUNTER,
+    REQ_POSCOUNTER,
+    GET_POSCOUNTER,
+    
+    SET_ENCCOUNTER,
+    REQ_ENCCOUNTER,
+    GET_ENCCOUNTER,
+    
+    SET_VELPARAMS,
+    REQ_VELPARAMS,
+    GET_VELPARAMS,
+    
+    SET_JOGPARAMS,
+    REQ_JOGPARAMS,
+    GET_JOGPARAMS,
+    
+    SET_GENMOVEPARAMS,
+    REQ_GENMOVEPARAMS,
+    GET_GENMOVEPARAMS,
+    
+    SET_MOVERELPARAMS,
+    REQ_MOVERELPARAMS,
+    GET_MOVERELPARAMS,
+    
+    SET_MOVEABSPARAMS,
+    REQ_MOVEABSPARAMS,
+    GET_MOVEABSPARAMS,
+    
+    SET_HOMEPARAMS,
+    REQ_HOMEPARAMS,
+    GET_HOMEPARAMS,
+    
+    SET_LIMSWITCHPARAMS,
+    REQ_LIMSWITCHPARAMS,
+    GET_LIMSWITCHPARAMS,
+    
+    MOVE_HOME,
+    MOVE_HOMED,
+    
+    MOVE_RELATIVE,
+    MOVE_COMPLETED,
+    MOVE_ABSOLUTE,
+    MOVE_JOG,
+    MOVE_VELOCITY,
+    MOVE_STOP,
+    MOVE_STOPPED,
+    
+    SET_AVMODES,
+    REQ_AVMODES,
+    GET_AVMODES,
+    
+    SET_BUTTONPARAMS,
+    REQ_BUTTONPARAMS,
+    GET_BUTTONPARAMS,
+    
+    GET_DCSTATUSUPDATE,
+    REQ_DCSTATUSUPDATE,
+    ACK_DCSTATUSUPDATE,
+    
+    REQ_STATUSBITS,
+    GET_STATUSBITS,
+    
+    SUSPEND_ENDOFMOVEMSGS,
+    RESUME_ENDOFMOVEMSGS,
+      
+};
+
+functions_set tsc{};
+
+functions_set tst{};
+
+functions_set bsc{};
+
+functions_set bbd{};
+
+functions_set all{
+    IDENTIFY,
+    
+    SET_CHANENABLESTATE,
+    REQ_CHANENABLESTATE,
+    GET_CHANENABLESTATE,
+    
+    HW_DISCONNECT,
+    HW_RESPONSE,
+    RICHRESPONSE,
+    
+    HW_START_UPDATEMSGS,
+    HW_STOP_UPDATEMSGS,
+    HW_REQ_INFO,
+    HW_GET_INFO,
+    
+    RACK_REQ_BAYUSED,
+    RACK_GET_BAYUSED,
+    HUB_REQ_BAYUSED,
+    HUB_GET_BAYUSED,
+            
+    HW_YES_FLASH_PROGRAMMING,
+    HW_NO_FLASH_PROGRAMMING,
+    
+    SET_POSCOUNTER,
+    REQ_POSCOUNTER,
+    GET_POSCOUNTER,
+    
+    SET_ENCCOUNTER,
+    REQ_ENCCOUNTER,
+    GET_ENCCOUNTER,
+    
+    SET_VELPARAMS,
+    REQ_VELPARAMS,
+    GET_VELPARAMS,
+    
+    SET_JOGPARAMS,
+    REQ_JOGPARAMS,
+    GET_JOGPARAMS,
+    
+    SET_POWERPARAMS,
+    REQ_POWERPARAMS,
+    GET_POWERPARAMS,
+    
+    SET_GENMOVEPARAMS,
+    REQ_GENMOVEPARAMS,
+    GET_GENMOVEPARAMS,
+    
+    SET_MOVERELPARAMS,
+    REQ_MOVERELPARAMS,
+    GET_MOVERELPARAMS,
+    
+    SET_MOVEABSPARAMS,
+    REQ_MOVEABSPARAMS,
+    GET_MOVEABSPARAMS,
+    
+    SET_HOMEPARAMS,
+    REQ_HOMEPARAMS,
+    GET_HOMEPARAMS,
+    
+    SET_LIMSWITCHPARAMS,
+    REQ_LIMSWITCHPARAMS,
+    GET_LIMSWITCHPARAMS,
+    
+    MOVE_HOME,
+    MOVE_HOMED,
+    
+    MOVE_RELATIVE,
+    MOVE_COMPLETED,
+    MOVE_ABSOLUTE,
+    MOVE_JOG,
+    MOVE_VELOCITY,
+    MOVE_STOP,
+    MOVE_STOPPED,
+    
+    SET_BOWINDEX,
+    REQ_BOWINDEX,
+    GET_BOWINDEX,
+    
+    SET_AVMODES,
+    REQ_AVMODES,
+    GET_AVMODES,
+    
+    SET_BUTTONPARAMS,
+    REQ_BUTTONPARAMS,
+    GET_BUTTONPARAMS,
+    
+    GET_STATUSUPDATE,
+    REQ_STATUSUPDATE,
+    
+    GET_DCSTATUSUPDATE,
+    REQ_DCSTATUSUPDATE,
+    ACK_DCSTATUSUPDATE,
+    
+    REQ_STATUSBITS,
+    GET_STATUSBITS,
+    
+    SUSPEND_ENDOFMOVEMSGS,
+    RESUME_ENDOFMOVEMSGS,
+    
+    SET_TRIGGER,
+    REQ_TRIGGER,
+    GET_TRIGGER,
+};
+
+
+//----------------- Device communication functions ---------------------------------
 
 #define READ_REST(x)  unsigned int bytes_red; ftStatus = FT_Read(opened_device.handle, &buff[2], x, &bytes_red); \
         if (ftStatus != FT_OK) {                                    \

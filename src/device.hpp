@@ -11,7 +11,6 @@ typedef struct {
     int max_vel;
     int max_acc;
     int tick;
-    int enc_count = -1;
     uint8_t dest;
     int32_t status_position;
     int16_t status_velocity;
@@ -72,17 +71,7 @@ enum {
     TBD001
 };
 
-functions_set tdc{};
 
-functions_set tsc{};
-
-functions_set tst{};
-
-functions_set bsc{};
-
-functions_set bbd{};
-
-functions_set all{};
 
  #endif 
 
