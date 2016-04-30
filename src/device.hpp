@@ -67,7 +67,6 @@ enum {
     ODC001,
     TST001,
     TDC001,
-    TSC001,
     TBD001
 };
 

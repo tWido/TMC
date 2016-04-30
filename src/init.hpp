@@ -240,7 +240,6 @@ int ToDevType(std::string name){
     FIND_DEV(ODC001)
     FIND_DEV(TST001)
     FIND_DEV(TDC001)
-    FIND_DEV(TSC001)
     FIND_DEV(TBD001)
     return -1;
 }
@@ -253,7 +252,7 @@ int Bays(int type){
 
 int Channels(int type){
     if ( type == BSC001 || type == BMS001 || type == BSC101 || type == OST001 || type == ODC001
-      || type == TST001 || type == TDC001 || type == TSC001 || type == TBD001 ) return 1;
+      || type == TST001 || type == TDC001 || type == TBD001 ) return 1;
     
     if ( type == BSC002 || type == BMS002 || type == MST601 || type == MST601 || type == BSC102 ) return 2;
     

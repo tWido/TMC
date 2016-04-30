@@ -96,8 +96,6 @@ functions_set tdc{
       
 };
 
-functions_set tsc{};
-
 functions_set tst{};
 
 functions_set bsc{};
