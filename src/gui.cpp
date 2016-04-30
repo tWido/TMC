@@ -47,6 +47,7 @@ void DevOpt::Setup(){
     ledpl->addWidget(lp3,0,2);
     ledpl->addWidget(ledset,1,0);
     ledpl->addWidget(leddef,1,2);
+    if (opened_device.functions.count(SET_AVMODES) == 0) ledset->setDisabled(true);
     connect(ledset, &QPushButton::clicked, 
         [this]{
             uint8_t mode = 0;
@@ -83,6 +84,10 @@ void DevOpt::Setup(){
     timeoutl = new QLabel("Timeout", this);
     getbuttp = new QPushButton("Set",this);
     setbuttp = new QPushButton("Get",this);
+    if (opened_device.functions.count(GET_BUTTONPARAMS) == 0){ 
+        setbuttp->setDisabled(true);
+        getbuttp->setDisabled(true);
+    }
     connect(setbuttp, &QPushButton::clicked, 
         [this]{
             uint16_t mode = 0;
@@ -129,7 +134,9 @@ void DevOpt::Setup(){
 
 void MovOpt::Setup(int index){
     chan_id = index;
-    this->setWindowTitle("Move options");
+    std::string title = "Move options for channel ";
+    title.append(std::to_string(chan_id));
+    this->setWindowTitle(title.c_str());
     this->resize(500,700);
     this->setMaximumSize(500,700);
     this->setMinimumSize(500,700);
@@ -145,6 +152,10 @@ void MovOpt::Setup(int index){
     hvel_edit->setInputMask("999999");
     hvel_get = new QPushButton("Get",this);
     hvel_set = new QPushButton("Set",this);
+    if (opened_device.functions.count(GET_HOMEPARAMS) == 0){
+        hvel_get->setDisabled(true);
+        hvel_set->setDisabled(true);
+    }
     connect(hvel_get, &QPushButton::clicked,
         [this]{
             std::stringstream sts;
@@ -177,6 +188,10 @@ void MovOpt::Setup(int index){
     bdist_edit->setInputMask("999999");
     bdist_get = new QPushButton("Get",this);
     bdist_set = new QPushButton("Set",this);
+    if (opened_device.functions.count(GET_GENMOVEPARAMS) == 0){
+        bdist_get->setDisabled(true);
+        bdist_set->setDisabled(true);
+    }
     connect(bdist_get, &QPushButton::clicked, 
         [this]{
             std::stringstream sts;
@@ -209,6 +224,10 @@ void MovOpt::Setup(int index){
     accp_edit->setInputMask("99");
     accp_get = new QPushButton("Get",this);
     accp_set = new QPushButton("Set",this);
+    if (opened_device.functions.count(GET_BOWINDEX) == 0){
+        accp_get->setDisabled(true);
+        accp_set->setDisabled(true);
+    }
     connect(accp_get, &QPushButton::clicked, 
         [this]{
             std::stringstream sts;
@@ -245,6 +264,10 @@ void MovOpt::Setup(int index){
     powerp2_edit->setInputMask("999");
     powerp_get = new QPushButton("Get",this);
     powerp_set = new QPushButton("Set",this);
+    if (opened_device.functions.count(GET_POWERPARAMS) == 0){
+        powerp_get->setDisabled(true);
+        powerp_set->setDisabled(true);
+    }
     connect(powerp_get, &QPushButton::clicked, 
         [this]{
             std::stringstream sts;
@@ -303,6 +326,10 @@ void MovOpt::Setup(int index){
     jogp_stepe->setInputMask("999999");
     jogp_get = new QPushButton("Get",this);
     jogp_set = new QPushButton("Set",this);
+    if (opened_device.functions.count(GET_JOGPARAMS) == 0){
+        jogp_get->setDisabled(true);
+        jogp_set->setDisabled(true);
+    }
     connect(jogp_get, &QPushButton::clicked, 
         [this]{
             std::stringstream sts;
@@ -388,7 +415,14 @@ void GUI::Setup(){
         dev_label.append(": ");
         dev_label.append(connected_device->SN);
         device_switch_actions[i] = new QAction(dev_label.c_str(),this);
-        connect(move_opt_action, &QAction::triggered, this, [this, i]{ OpenDevice(i); });
+        connect(move_opt_action, &QAction::triggered, this, 
+            [this, i]{
+                OpenDevice(i); 
+                this->repaint(); 
+                devOpt->close();
+                moveOpt->close();
+            }
+        );
         device_menu->addAction(device_switch_actions[i]);
     }
     menuBar->addMenu(help_menu);
@@ -460,6 +494,7 @@ void GUI::Setup(){
     flash_button = new QPushButton(this);
     flash_button->setGeometry(40,350,100,50);
     flash_button->setText("Flash LED");
+    if (opened_device.functions.count(IDENTIFY) == 0){ flash_button->setDisabled(true); }
     connect(flash_button, &QPushButton::clicked,
         [this]{
             if (opened_device.bays == -1 )
@@ -472,6 +507,7 @@ void GUI::Setup(){
     home_button = new QPushButton(this);
     home_button->setGeometry(150,350,100,50);
     home_button->setText("Home");
+    if (opened_device.functions.count(MOVE_HOME) == 0){ home_button->setDisabled(true); }
     connect(home_button, &QPushButton::clicked,
         [this]{
             if (opened_device.bays == -1 ) device_calls::MoveToHome(0x50, actual_channel);
@@ -526,6 +562,8 @@ void GUI::Setup(){
     jogm->resize(100,50);
     velm = new QRadioButton("Velocity",this);
     velm->resize(100,50);
+    if (opened_device.functions.count(MOVE_JOG) == 0){ jogm->setDisabled(true); }
+    if (opened_device.functions.count(MOVE_VELOCITY) == 0){ velm->setDisabled(true); }
     ldir_moves->addWidget(jogm);
     ldir_moves->addWidget(velm);
     ldir_moves->setSpacing(8);
@@ -553,6 +591,8 @@ void GUI::Setup(){
     reldl->resize(50,50);
     start = new QPushButton("Start",this);
     start->resize(50,40);
+    if (opened_device.functions.count(MOVE_ABSOLUTE) == 0){ absm->setDisabled(true); }
+    if (opened_device.functions.count(MOVE_RELATIVE) == 0){ relm->setDisabled(true); }
     connect(start, &QPushButton::clicked,
         [this]{
             if (absm->isChecked()){
