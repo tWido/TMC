@@ -1,6 +1,10 @@
 #ifndef DEVICE
 #define DEVICE
 
+#include <set>
+
+typedef std::set<int> functions_set;
+
 typedef struct {
     int motor_type;
     int max_pos;
@@ -32,6 +36,7 @@ typedef struct{
     int enc_counter;     //controllers use either encoder count(1) or microsteps(0), unspecified (-1)
     motor_device motor[3];
     bool end_of_move_messages = true;
+    functions_set functions;
 } controller_device;
 
 extern int devices_connected;
@@ -66,6 +71,18 @@ enum {
     TSC001,
     TBD001
 };
+
+functions_set tdc{};
+
+functions_set tsc{};
+
+functions_set tst{};
+
+functions_set bsc{};
+
+functions_set bbd{};
+
+functions_set all{};
 
  #endif 
 
