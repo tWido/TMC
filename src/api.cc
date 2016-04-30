@@ -10,7 +10,7 @@ controller_device *connected_device = NULL;
 controller_device opened_device;
 int opened_device_index  = -1;
 
-functions_set tdc{
+functions_set tdc_set{
     IDENTIFY,
     
     SET_CHANENABLESTATE,
@@ -96,7 +96,7 @@ functions_set tdc{
       
 };
 
-functions_set tst{
+functions_set tst_set{
     IDENTIFY,
     
     SET_CHANENABLESTATE,
@@ -172,7 +172,7 @@ functions_set tst{
     GET_STATUSBITS,
 };
 
-functions_set bsc{
+functions_set bsc_set{
     IDENTIFY,
     
     SET_CHANENABLESTATE,
@@ -253,7 +253,7 @@ functions_set bsc{
     GET_TRIGGER
 };
 
-functions_set bbd{
+functions_set bbd_set{
     IDENTIFY,
     
     SET_CHANENABLESTATE,
@@ -334,7 +334,7 @@ functions_set bbd{
     GET_TRIGGER
 };
 
-functions_set all{
+functions_set all_set{
     IDENTIFY,
     
     SET_CHANENABLESTATE,

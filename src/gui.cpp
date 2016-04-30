@@ -603,14 +603,15 @@ void GUI::Setup(){
     std::string encc = "Encoder counter: ";
     std::string vel = "Velocity: ";
     position = new QLabel(pos.c_str(),this);
-    if (opened_device.enc_counter == 1) {
+    
+    if (opened_device.functions.count(GET_STATUSUPDATE) == 1)
         encc.append(std::to_string(opened_device.motor[actual_channel -1].status_enc_count));
-        vel.append("Unknown");
-    }
-    else {
+    else encc.append("Unknown");
+    
+    if (opened_device.functions.count(GET_DCSTATUSUPDATE) == 1)
         vel.append(std::to_string(opened_device.motor[actual_channel -1].status_velocity));
-        encc.append("Unknown");
-    }
+    else vel.append("Unknown");
+    
     enc_count = new QLabel(encc.c_str(),this);
     velocity = new QLabel(vel.c_str(),this);
 
@@ -643,14 +644,15 @@ void GUI::Setup(){
             std::string encc = "Encoder counter: ";
             std::string vel = "Velocity: ";
             pos.append(std::to_string(opened_device.motor[actual_channel -1].status_position));
-            if (opened_device.enc_counter == 1) {
+            
+            if (opened_device.functions.count(GET_STATUSUPDATE) == 1)
                 encc.append(std::to_string(opened_device.motor[actual_channel -1].status_enc_count));
-                vel.append("Unknown");
-            }
-            else {
+            else encc.append("Unknown");
+            
+            if (opened_device.functions.count(GET_DCSTATUSUPDATE) == 1)
                 vel.append(std::to_string(opened_device.motor[actual_channel -1].status_velocity));
-                encc.append("Unknown");
-            }
+            else vel.append("Unknown");
+            
             position->setText(pos.c_str());
             enc_count->setText(encc.c_str());
             velocity->setText(vel.c_str());

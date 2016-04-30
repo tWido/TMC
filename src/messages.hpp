@@ -342,7 +342,6 @@ public:
     }
     
     int SetEncoderCount(int32_t count){
-        if (opened_device.enc_counter == 0 ) return IGNORED_PARAM;
         *((int32_t *) &bytes[8]) = htole32(count); 
         return WARNING;
     }

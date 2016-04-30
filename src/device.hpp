@@ -12,10 +12,10 @@ typedef struct {
     int max_acc;
     int tick;
     uint8_t dest;
-    int32_t status_position;
-    int16_t status_velocity;
-    int32_t status_enc_count;
-    uint16_t status_status_bits;
+    int32_t status_position = 0;
+    int16_t status_velocity = 0;
+    int32_t status_enc_count = 0;
+    uint16_t status_status_bits = 0;
     bool moving = false;
     bool homing = false;
     bool stopping = false;
@@ -32,7 +32,6 @@ typedef struct{
     char *SN =(char*) "00000000";
     char *dev_type_name =(char*) "No device name";
     bool bay_used[3];
-    int enc_counter;     //controllers use either encoder count(1) or microsteps(0), unspecified (-1)
     motor_device motor[3];
     bool end_of_move_messages = true;
     functions_set functions;
@@ -42,6 +41,12 @@ extern int devices_connected;
 extern controller_device *connected_device;
 extern controller_device opened_device;
 extern int opened_device_index;
+
+extern functions_set tdc_set;
+extern functions_set tst_set;
+extern functions_set bsc_set;
+extern functions_set bbd_set;
+extern functions_set all_set;
 
 // enum for device types
 enum {

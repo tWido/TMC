@@ -1404,8 +1404,9 @@ int ButtonsParamC(std::vector<string> args){
 
 void PrintStatus(int at){
     printf("Position: %d\n", opened_device.motor[at].status_position);
-    if (opened_device.enc_counter == 1) printf("Encoder count: %d\n", opened_device.motor[at].status_enc_count);
-    else printf("Velocity: %d\n", opened_device.motor[at].status_velocity);
+    if (opened_device.functions.count(GET_STATUSUPDATE) == 1) printf("Encoder count: %d\n", opened_device.motor[at].status_enc_count);
+    if (opened_device.functions.count(GET_DCSTATUSUPDATE) == 1) printf("Velocity: %d\n", opened_device.motor[at].status_velocity);
+    
     HAS_FLAG(0x00000001) printf("Forward hardware switch active\n");
     HAS_FLAG(0x00000002) printf("Reverse hardware switch active\n");
     HAS_FLAG(0x00000004) printf("Forward software switch active\n");

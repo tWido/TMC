@@ -259,13 +259,12 @@ int Channels(int type){
     return -1;
 };
 
-int ContainEncCounter(int type){
-    if ( type == TBD001 || type == BBD101 || type == BBD102 || type == BBD103 
-            || type == BBD201 || type == BBD202 || type == BBD203 ) return 1;
-    
-    if (type == TST001 || type == BSC103 || type == BSC201 || type == BSC202 || type == BSC203 || type == BSC102 ||
-          type == TDC001 || type == BSC001 ||  type == BSC101 ||  type == BSC002 || type == MST601 || type == MST601  ) return 0;
-    return -1;
+functions_set functionsSet(int devtype){
+    if (devtype == TDC001) return tdc_set;
+    if (devtype == TST001) return tst_set;
+    if (devtype == BSC001 || devtype == BSC002 || devtype == BSC101 || devtype == BSC102 || devtype == BSC103 || devtype == BSC201 || devtype == BSC202 || devtype == BSC203) return bsc_set;
+    if (devtype == BBD101 || devtype == BBD102 || devtype == BBD103 || devtype == BBD201 || devtype == BBD202 || devtype == BBD203) return bbd_set;
+    return all_set;
 }
 
 int LoadDeviceInfo( controller_device &device){
@@ -298,8 +297,8 @@ int LoadDeviceInfo( controller_device &device){
     
     device.channels = Channels(device.device_type);
     device.bays = Bays(device.device_type);
-    device.enc_counter = ContainEncCounter(device.device_type);
-            
+    device.functions = functionsSet(device.device_type); 
+    
     if (device.bays != -1){
         for (uint8_t i = 0; i< device.bays; i++){
             GetRackBayUsed *bayused =  (GetRackBayUsed*) malloc(sizeof(GetRackBayUsed));
