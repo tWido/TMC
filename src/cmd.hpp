@@ -16,6 +16,7 @@ typedef std::unordered_map<std::string,helper> call_map;
 
 #define INVALID_CALL -50
 #define ERR_CALL -51
+#define UNSUPPORTED -52
 
 #define HAS_FLAG(x) if ((opened_device.motor[at].status_status_bits & x) == x) 
 
@@ -112,6 +113,8 @@ typedef std::unordered_map<std::string,helper> call_map;
             GET_NUM(int_val)                            \
             bool_val = true;                            \
         }
+
+#define HAS_FUNCTION(x) if (opened_device.functions.count(x) == 0) return UNSUPPORTED;
 
 int HelpC(std::vector<string> args){
     if (args.size() > 1) printf("No arguments needed\n");
@@ -241,6 +244,7 @@ int DeviceInfoC(std::vector<string> args){
 }
 
 int IdentC(std::vector<string> args){
+    HAS_FUNCTION(IDENTIFY)
     if (args.size() == 1 ) {
         device_calls::Identify();
         return 0;
@@ -288,6 +292,7 @@ int IdentC(std::vector<string> args){
 }
 
 int ChannelAbleC(std::vector<string> args){
+    HAS_FUNCTION(GET_CHANENABLESTATE)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-e") == 0 || args.at(i).compare("-d") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
@@ -340,6 +345,7 @@ int ChannelAbleC(std::vector<string> args){
 }
 
 int PosCounterC(std::vector<string> args){
+    HAS_FUNCTION(GET_POSCOUNTER)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0) {i++; continue; }
@@ -416,6 +422,7 @@ int PosCounterC(std::vector<string> args){
 }
 
 int EncCountC(std::vector<string> args){
+    HAS_FUNCTION(GET_ENCCOUNTER)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0) {i++; continue; }
@@ -492,6 +499,7 @@ int EncCountC(std::vector<string> args){
 }
 
 int VelParamC(std::vector<string> args){
+    HAS_FUNCTION(GET_VELPARAMS)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-m") == 0 || args.at(i).compare("-a") == 0) {i++; continue; }
@@ -561,6 +569,7 @@ int VelParamC(std::vector<string> args){
 }
 
 int JogParamC(std::vector<string> args){
+    HAS_FUNCTION(GET_JOGPARAMS)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-t") == 0 || args.at(i).compare("-m") == 0
@@ -641,6 +650,7 @@ int JogParamC(std::vector<string> args){
 }
 
 int PowerParamC(std::vector<string> args){
+    HAS_FUNCTION(GET_POWERPARAMS)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-r") == 0  || args.at(i).compare("-m") == 0 ) {i++; continue; }
@@ -705,6 +715,7 @@ int PowerParamC(std::vector<string> args){
 }
 
 int BacklashDistC(std::vector<string> args){
+    HAS_FUNCTION(GET_GENMOVEPARAMS)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-d") == 0 ) {i++; continue; }
@@ -762,6 +773,7 @@ int BacklashDistC(std::vector<string> args){
 }
 
 int RelMoveParamC(std::vector<string> args){
+    HAS_FUNCTION(GET_MOVERELPARAMS)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-d") == 0 ) {i++; continue; }
@@ -819,6 +831,7 @@ int RelMoveParamC(std::vector<string> args){
 }
 
 int AbsMoveParamC(std::vector<string> args){
+    HAS_FUNCTION(GET_MOVEABSPARAMS)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-p") == 0 ) {i++; continue; }
@@ -876,6 +889,7 @@ int AbsMoveParamC(std::vector<string> args){
 }
 
 int HomingVelC(std::vector<string> args){
+    HAS_FUNCTION(GET_HOMEPARAMS)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-v") == 0 ) {i++; continue; }
@@ -935,6 +949,7 @@ int HomingVelC(std::vector<string> args){
 }
 
 int HomeC(std::vector<string> args){
+    HAS_FUNCTION(MOVE_HOME)
     if (args.size() == 1){ 
         device_calls::MoveToHome();
         return 0;
@@ -974,6 +989,7 @@ int HomeC(std::vector<string> args){
 }
 
 int StartRelMoveC(std::vector<string> args){
+    HAS_FUNCTION(MOVE_RELATIVE)
     if (args.size() == 1){ 
         device_calls::StartSetRelativeMove();
         return 0;
@@ -1020,6 +1036,7 @@ int StartRelMoveC(std::vector<string> args){
 }
 
 int StartAbsMoveC(std::vector<string> args){
+    HAS_FUNCTION(MOVE_ABSOLUTE)
     if (args.size() == 1){ 
         device_calls::StartSetAbsoluteMove();
         return 0;
@@ -1068,6 +1085,7 @@ int StartAbsMoveC(std::vector<string> args){
 }
 
 int StartJogMoveC(std::vector<string> args){
+    HAS_FUNCTION(MOVE_JOG)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-d") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
@@ -1115,6 +1133,7 @@ int StartJogMoveC(std::vector<string> args){
 }
 
 int StartVelMoveC(std::vector<string> args){
+    HAS_FUNCTION(MOVE_VELOCITY)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-d") == 0 || args.at(i).compare("-i") == 0 ) {i++; continue; }
@@ -1162,6 +1181,7 @@ int StartVelMoveC(std::vector<string> args){
 }
 
 int StopC(std::vector<string> args){
+    HAS_FUNCTION(MOVE_STOP)
     if (args.size() == 1){ 
         device_calls::StopMovement();
         return 0;
@@ -1209,6 +1229,7 @@ int StopC(std::vector<string> args){
 }
 
 int AccParamC(std::vector<string> args){
+    HAS_FUNCTION(GET_BOWINDEX)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-d") == 0 ) {i++; continue; }
@@ -1268,6 +1289,7 @@ int AccParamC(std::vector<string> args){
 }
 
 int LedParamC(std::vector<string> args){
+    HAS_FUNCTION(GET_AVMODES)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-m") == 0 ) {i++; continue; }
@@ -1327,6 +1349,7 @@ int LedParamC(std::vector<string> args){
 }
 
 int ButtonsParamC(std::vector<string> args){
+    HAS_FUNCTION(GET_BUTTONPARAMS)
     NULL_ARGS
     for (unsigned int i = 1; i< args.size(); i++){
         if (args.at(i).compare("-g") == 0 || args.at(i).compare("-s") == 0 || args.at(i).compare("-m") == 0 || args.at(i).compare("-p") == 0  
@@ -1582,14 +1605,19 @@ int run_cmd(int mode){
     struct timeval time;
     int ret;
     int command_num = 1;
-    if (mode == 3 ) RedirectOutput();
+    if (mode == 3 ) {
+        RedirectOutput();
+        opened_device.functions = all_set;
+    }
     if (mode != 3) printf("Awaiting commands. Type \"help\" to display available commands.\n");
+    //--------------------------- main loop ------------------------------------
     unsigned int tick = 0;
     while(true){
         FD_ZERO(&in_set);
         FD_SET(STDIN_FILENO, &in_set);
         time.tv_sec = 1;
         time.tv_usec = 0;
+        //empty input buffer every second if no command occurs
         ret = select(1, &in_set, NULL, NULL, &time);
         if (ret == -1) return FATAL_ERROR;
         if (ret == 0 ){
@@ -1598,6 +1626,7 @@ int run_cmd(int mode){
             if (mode != 3 && (tick % 5 == 0))  device_calls::SendServerAlive(0x50);
             continue;
         }
+        //command given, parse arguments
         
         std::string line = "";
         std::getline(std::cin, line);
@@ -1605,13 +1634,12 @@ int run_cmd(int mode){
         
         std::vector<std::string> args;
         string tok; 
-        stringstream ss(line); 
-
+        stringstream ss(line);
         while (ss >> tok) args.push_back(tok);  
         
         if ( args.at(0).compare("exit") == 0 ) break;
         
-        if ( calls.count(args.at(0))== 0 ) {
+        if ( calls.count(args.at(0))== 0 ) {         //unrecognized command
             if (mode == 3) { 
                 EnableOutput();
                 printf("File not valid on line %d, unrecognized command\n", command_num);
@@ -1620,7 +1648,9 @@ int run_cmd(int mode){
             printf("Unrecognized command %s\n", args.at(0).c_str() );
             continue;
         }
-        ret = calls.at(args.at(0))(args);
+        
+        ret = calls.at(args.at(0))(args);           //call function from call_map
+        if (ret == UNSUPPORTED) printf("Command not used in controller\n"); 
         if (ret == FT_ERROR && mode != 3) return FT_ERROR;
         if (ret == INVALID_CALL) {
             if (mode == 3) {
