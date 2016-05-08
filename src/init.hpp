@@ -137,10 +137,7 @@ int RemoveModules(std::string module_name){
             if( syscall(SYS_delete_module, module_name.c_str(), 0) == 0) return 0;
             else {
                 if (errno == 2) return 0; //module not loaded
-                if (errno == 1){          //privileged operation
-                    printf("Removing modules not permitted to user.\n");
-                    return SYSTEM_ERROR;
-                }
+                if (errno == 1) printf("Removing modules not permitted to user.\n");
                 return SYSTEM_ERROR;
             }
         }
