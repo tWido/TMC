@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include <algorithm>
 #include <sys/syscall.h>
 #include <errno.h>
@@ -126,14 +127,23 @@ int addVidPid(){
 }
 
 int RemoveModules(std::string module_name){
-    if( syscall(SYS_delete_module, module_name.c_str(), 0) == 0) return 0;
-    else {
-        if (errno == 2) return 0; //module not loaded
-        if (errno == 1){          //privileged operation
-            printf("Removing modules not permitted to user\n");
-            return SYSTEM_ERROR;
+    std::ifstream proc_mod("/proc/modules");
+    string line;
+    while (getline(proc_mod, line)){
+        string mod_name; 
+        stringstream ss(line);
+        ss >> mod_name;
+        if (mod_name.compare(module_name) == 0){
+            if( syscall(SYS_delete_module, module_name.c_str(), 0) == 0) return 0;
+            else {
+                if (errno == 2) return 0; //module not loaded
+                if (errno == 1){          //privileged operation
+                    printf("Removing modules not permitted to user.\n");
+                    return SYSTEM_ERROR;
+                }
+                return SYSTEM_ERROR;
+            }
         }
-        return SYSTEM_ERROR;
     }
     return 0;
 }
@@ -311,9 +321,11 @@ int init(){
     int ret;
     printf("Starting.\n");
     if( RemoveModules("ftdi_sio")  != 0){ 
+        printf(" Cannot continue with ftdi_sio module loaded.\n");
         return SYSTEM_ERROR;
     }
     if( RemoveModules("usbserial")  != 0){
+        printf(" Cannot continue with usbserial module loaded.\n");
         return SYSTEM_ERROR;
     }
     ret = addVidPid();
