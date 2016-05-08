@@ -12,6 +12,8 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
+#include <sys/syscall.h>
+#include <errno.h>
 #include "api.hpp"
 
 #define STOP 1
@@ -124,24 +126,13 @@ int addVidPid(){
 }
 
 int RemoveModules(std::string module_name){
-    string lsmod_cmd= "lsmod | grep ";
-    lsmod_cmd.append(module_name);
-    FILE* out = popen(lsmod_cmd.c_str(), "r");
-    if (out == NULL){
-        fprintf(stderr, "Failed to run system command. Modules not checked. \n");
-        return SYSTEM_ERROR;
-    }
-    
-    char buff[64];
-    if (fgets(buff, 64, out) != NULL){
-        string rmmod_cmd = "rmmod ";
-        rmmod_cmd.append(module_name);
-        if (system(rmmod_cmd.c_str()) != 0) return SYSTEM_ERROR;
-        printf("Removing loaded module : %s \n",module_name.c_str());
-    }
-    
-    if( pclose(out) == -1 ){ 
-        fprintf(stderr, "Failed to close input from system. \n");
+    if( syscall(SYS_delete_module, module_name.c_str(), 0) == 0) return 0;
+    else {
+        if (errno == 2) return 0; //module not loaded
+        if (errno == 1){          //privileged operation
+            printf("Removing modules not permitted to user\n");
+            return SYSTEM_ERROR;
+        }
         return SYSTEM_ERROR;
     }
     return 0;
