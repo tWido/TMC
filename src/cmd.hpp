@@ -1513,9 +1513,6 @@ int WaitC(std::vector<string> args){
 
 bool end_wait;
 
-void StopWait(int sig_num){
-    if (sig_num == SIGTSTP) end_wait = true;
-}
 
 int WaitForStopC(std::vector<string> args){
     NULL_ARGS
@@ -1532,18 +1529,25 @@ int WaitForStopC(std::vector<string> args){
         int i = 1;
         uint8_t index = 0;
         GET_NUM(index);
-        end_wait = false;
-        if (signal(SIGTSTP, &StopWait) == SIG_ERR)fprintf(stderr,"Failed to use signal handler, wait cannot be interrupted\n");
-        else printf("Started wait, press ctrl+z to end wait\n");
+        
+        sigset_t mask;
+	struct timespec timeout;
+        sigemptyset (&mask);
+	sigaddset (&mask, SIGTSTP);
+        timeout.tv_sec = 1;
+	timeout.tv_nsec = 0;
+        if (sigprocmask(SIG_BLOCK, &mask, NULL) != 0) fprintf(stderr, "Failed to block signal for handling\n");
+        
+        printf("Started wait, press ctrl+z to end wait\n");
         while(true){
+            if (sigtimedwait(&mask, NULL, &timeout) == SIGTSTP) break;
             GET_MESSAGE(GetStatusBits, device_calls::GetStatBits)
             opened_device.motor[mess->GetMotorID()].status_status_bits = mess->GetStatBits();
-            if (end_wait) break;
             if ((mess->GetStatBits() & 0x00000010) == 0x00000010 || (mess->GetStatBits() & 0x00000020) == 0x00000020 || (mess->GetStatBits() & 0x00000040) == 0x00000040 || 
-                    (mess->GetStatBits() & 0x00000080) == 0x00000080 || (mess->GetStatBits() & 0x00000200) == 0x00000200 ) sleep(1);
+                    (mess->GetStatBits() & 0x00000080) == 0x00000080 || (mess->GetStatBits() & 0x00000200) == 0x00000200 ) continue;
             else break;
         }
-        signal(SIGTSTP, SIG_DFL);
+        if (sigprocmask(SIG_UNBLOCK, &mask, NULL) != 0) fprintf(stderr, "Failed to block signal for handling\n");
         printf("Motor in stable position\n");
     }
     else {
