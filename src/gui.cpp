@@ -93,10 +93,13 @@ void DevOpt::Setup(){
             uint16_t mode = 0;
             if (gotoopt->isChecked()) mode = 2;
             else mode = 1;
-            int32_t position1 = std::stoi(this->pos1->text().toStdString(),0,10);
-            int32_t position2 = std::stoi(this->pos2->text().toStdString(),0,10);
-            uint16_t timeout_val = std::stoi(this->timeout->text().toStdString(),0,10);
-            device_calls::SetButtons(mode, position1, position2, timeout_val);
+            try{
+                int32_t position1 = std::stoi(this->pos1->text().toStdString(),0,10);
+                int32_t position2 = std::stoi(this->pos2->text().toStdString(),0,10);
+                uint16_t timeout_val = std::stoi(this->timeout->text().toStdString(),0,10);
+                device_calls::SetButtons(mode, position1, position2, timeout_val);
+            }
+            catch(const std::exception& e) { }
         } 
     );
     connect(getbuttp, &QPushButton::clicked, 
@@ -167,10 +170,13 @@ void MovOpt::Setup(int index){
     );
     connect(hvel_set, &QPushButton::clicked, 
         [this]{
-            int32_t dist =std::stoi(this->hvel_edit->text().toStdString(),0,10);
-            if (opened_device.bays == -1 )
-                device_calls::SetBacklashDist(dist, 0x50, chan_id);
-            else device_calls::SetBacklashDist(dist, chan_id+0x20);
+            try{
+                int32_t dist =std::stoi(this->hvel_edit->text().toStdString(),0,10);
+                if (opened_device.bays == -1 )
+                    device_calls::SetBacklashDist(dist, 0x50, chan_id);
+                else device_calls::SetBacklashDist(dist, chan_id+0x20);
+            }
+            catch(const std::exception& e) { ERROR_DIALOG("ERROR: no parameter given") }
         } 
     );
     hvel_layout->addWidget(hvel_label);
@@ -203,10 +209,13 @@ void MovOpt::Setup(int index){
     );
     connect(bdist_set, &QPushButton::clicked, 
         [this]{
-            int32_t dist =std::stoi(this->bdist_edit->text().toStdString(),0,10);
-            if (opened_device.bays == -1 )
-                device_calls::SetBacklashDist(dist, 0x50, chan_id);
-            else device_calls::SetBacklashDist(dist, chan_id+0x20);
+            try{
+                int32_t dist =std::stoi(this->bdist_edit->text().toStdString(),0,10);
+                if (opened_device.bays == -1 )
+                    device_calls::SetBacklashDist(dist, 0x50, chan_id);
+                else device_calls::SetBacklashDist(dist, chan_id+0x20);
+            }
+            catch(const std::exception& e) { ERROR_DIALOG("ERROR: no parameter given") }
         } 
     );
     bdist_layout->addWidget(bdist_label);
@@ -239,11 +248,14 @@ void MovOpt::Setup(int index){
     );
     connect(accp_set, &QPushButton::clicked, 
         [this]{
-            uint16_t profile =std::stoi(this->accp_edit->text().toStdString(),0,10);
             int ret = 0;
-            if (opened_device.bays == -1 ) ret = device_calls::SetAccelerationProfile(profile, 0x50, chan_id);
-            else  ret = device_calls::SetAccelerationProfile(profile, chan_id+0x20);
-            if (ret ==INVALID_PARAM_1 ){ ERROR_DIALOG("ERROR: non existing value given") }
+            try{
+                uint16_t profile =std::stoi(this->accp_edit->text().toStdString(),0,10);
+                if (opened_device.bays == -1 ) ret = device_calls::SetAccelerationProfile(profile, 0x50, chan_id);
+                else  ret = device_calls::SetAccelerationProfile(profile, chan_id+0x20);
+            }
+            catch(const std::exception& e) { if (ret ==INVALID_PARAM_1 ){ ERROR_DIALOG("ERROR: no parameter given") } }
+            
         } 
     );
     accp_layout->addWidget(accp_label);
@@ -281,12 +293,17 @@ void MovOpt::Setup(int index){
     );
     connect(powerp_set, &QPushButton::clicked, 
         [this]{
-            uint16_t restf = std::stoi(this->powerp1_edit->text().toStdString(),0,10);
-            uint16_t movef = std::stoi(this->powerp2_edit->text().toStdString(),0,10);
             int ret = 0;
-            if (opened_device.bays == -1 ) ret = device_calls::SetPowerUsed(restf, movef, 0x50, chan_id);
-            else  ret = device_calls::SetPowerUsed(restf, movef, chan_id+0x20);
-            if (ret ==INVALID_PARAM_1 || ret ==INVALID_PARAM_2 ){ ERROR_DIALOG("ERROR: invalid parameter given") }     
+            try{
+                uint16_t restf = std::stoi(this->powerp1_edit->text().toStdString(),0,10);
+                uint16_t movef = std::stoi(this->powerp2_edit->text().toStdString(),0,10);
+                if (opened_device.bays == -1 ) ret = device_calls::SetPowerUsed(restf, movef, 0x50, chan_id);
+                else  ret = device_calls::SetPowerUsed(restf, movef, chan_id+0x20);
+            }
+            catch(const std::exception& e) {
+                if (ret ==INVALID_PARAM_1 || ret ==INVALID_PARAM_2 ){ ERROR_DIALOG("ERROR: invalid parameter given") }  
+                else ERROR_DIALOG("ERROR: no parameter given")
+            }   
         } 
     );
     powerp_layout->addWidget(powerp1_label);
@@ -357,16 +374,21 @@ void MovOpt::Setup(int index){
             uint16_t mode, stopmode;
             if (jogp_mode1->isChecked())  mode = 1; 
             else mode = 2;
-            int32_t stepSize = std::stoi(this->jogp_stepe->text().toStdString(),0,10);;  
-            int32_t vel = std::stoi(this->jogp_vele->text().toStdString(),0,10);;
-            int32_t acc = std::stoi(this->jogp_acce->text().toStdString(),0,10);; 
             if (jogp_stopmode1->isChecked())  stopmode = 1; 
             else stopmode = 2;
             int ret = 0;
-            if (opened_device.bays == -1 ) ret = device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, 0x50, chan_id);
-            else ret = device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, chan_id+0x20);
-            if (ret ==INVALID_PARAM_1 ){ ERROR_DIALOG("ERROR: velocity exceeds restriction")}
-            else if (ret ==INVALID_PARAM_2 ){ ERROR_DIALOG("ERROR: acceleration exceeds restriction")} 
+            try {
+                int32_t stepSize = std::stoi(this->jogp_stepe->text().toStdString(),0,10);;  
+                int32_t vel = std::stoi(this->jogp_vele->text().toStdString(),0,10);;
+                int32_t acc = std::stoi(this->jogp_acce->text().toStdString(),0,10);; 
+                if (opened_device.bays == -1 ) ret = device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, 0x50, chan_id);
+                else ret = device_calls::SetJogP(mode, stepSize, vel, acc, stopmode, chan_id+0x20);
+            }
+            catch(const std::exception& e){
+                if (ret ==INVALID_PARAM_1 ){ ERROR_DIALOG("ERROR: velocity exceeds restriction")}
+                else if (ret ==INVALID_PARAM_2 ){ ERROR_DIALOG("ERROR: acceleration exceeds restriction")}
+                else ERROR_DIALOG("ERROR: no parameter given")
+            }
         } 
     );
     jogp_layout->addWidget(jogp_mode,0,0,3,1);
@@ -596,16 +618,26 @@ void GUI::Setup(){
     connect(start, &QPushButton::clicked,
         [this]{
             if (absm->isChecked()){
-                int32_t pos = std::stoi(this->reldist->text().toStdString(),0,10);
                 int ret = 0;
-                if (opened_device.bays == -1 ) ret = device_calls:: StartAbsoluteMove ( pos, 0x50, actual_channel);
-                else  ret = device_calls:: StartAbsoluteMove ( pos , 0x20 + actual_channel);
-                if (ret == INVALID_PARAM_1) {ERROR_DIALOG("ERROR: position exceeds restriction")}
+                try{
+                    int32_t pos = std::stoi(this->reldist->text().toStdString(),0,10);
+                    if (opened_device.bays == -1 ) ret = device_calls:: StartAbsoluteMove ( pos, 0x50, actual_channel);
+                    else  ret = device_calls:: StartAbsoluteMove ( pos , 0x20 + actual_channel);
+                }
+                catch(const std::exception& e){
+                    if (ret == INVALID_PARAM_1) {ERROR_DIALOG("ERROR: position exceeds restriction")}
+                    else ERROR_DIALOG("ERROR: no parameter given")
+                }
             }
             if (relm->isChecked()){
-                int32_t dist = std::stoi(this->abspos->text().toStdString(),0,10);
-                if (opened_device.bays == -1 ) device_calls::StartRelativeMove( dist, 0x50, actual_channel);
-                else device_calls::StartRelativeMove( dist, 0x20 + actual_channel);
+                try{
+                    int32_t dist = std::stoi(this->abspos->text().toStdString(),0,10);
+                    if (opened_device.bays == -1 ) device_calls::StartRelativeMove( dist, 0x50, actual_channel);
+                    else device_calls::StartRelativeMove( dist, 0x20 + actual_channel);
+                }
+                catch(const std::exception& e){
+                    ERROR_DIALOG("ERROR: no parameter given")
+                }
             }
         } 
     );
