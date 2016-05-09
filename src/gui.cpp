@@ -415,10 +415,12 @@ void GUI::Setup(){
         dev_label.append(": ");
         dev_label.append(connected_device->SN);
         device_switch_actions[i] = new QAction(dev_label.c_str(),this);
-        connect(move_opt_action, &QAction::triggered, this, 
+        connect(device_switch_actions[i], &QAction::triggered, this, 
             [this, i]{
                 OpenDevice(i); 
                 this->repaint(); 
+                moveOpt->close();
+                devOpt->close();
             }
         );
         device_menu->addAction(device_switch_actions[i]);
