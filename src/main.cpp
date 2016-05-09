@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     }
     
     int ret_code = 0;
-    //if (UI !=3) ret_code = init();
+    if (UI !=3) ret_code = init();
     if ( ret_code != 0 ){ 
         FailExit(ret_code);
         return ret_code;
