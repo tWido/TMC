@@ -314,6 +314,8 @@ int LoadDeviceInfo( controller_device &device){
     return 0;
 }
 
+FT_DEVICE_LIST_INFO_NODE *ftdi_devs;
+
 int init(){
     int ret;
     printf("Starting.\n");
@@ -336,13 +338,30 @@ int init(){
         return STOP;
     }
     connected_device = new controller_device[devices_connected];
+    
     for (unsigned int i = 0; i< SN.size(); i++) connected_device[i].SN = strdup(SN.at(i).c_str());
+    FT_STATUS ft_status;
+    unsigned int num_ftdi_devices;
+    ft_status = FT_CreateDeviceInfoList(&num_ftdi_devices);
+    if (ft_status != FT_OK) {
+        fprintf(stderr, "Detecting devices failed\n");
+        return FT_ERROR;
+    }
+     
+    ftdi_devs = new FT_DEVICE_LIST_INFO_NODE[num_ftdi_devices];
+    ft_status = FT_GetDeviceInfoList( ftdi_devs, &num_ftdi_devices) ;  
+    if (ft_status != FT_OK) {
+        fprintf(stderr, "Detecting devices failed\n");
+        delete(ftdi_devs);
+        return FT_ERROR;
+    }
     
     //Find additional info to Thorlabs devices
     for (int j = 0; j<  devices_connected; j++){
-        if (OpenDevice(j) == FT_ERROR ) return FT_ERROR;                 
-        ret = LoadDeviceInfo(connected_device[j]);             
-        if (ret != 0 ) return ret;               
+        if (OpenDevice(j) == FT_ERROR ) return FT_ERROR;
+        if (ft_status != FT_OK ) return FT_ERROR;                  
+        ret = LoadDeviceInfo(connected_device[j]);
+        if (ret != 0 ){ return ret; }                        
     }
     
     if (OpenDevice(0) == FT_ERROR) return FT_ERROR;
@@ -350,7 +369,7 @@ int init(){
 }
 
 void exit(){
-    //delete(connected_device);
+    delete ftdi_devs;
     if (opened_device_index != -1) device_calls::StopUpdateMess();
     for (int i = 0; i < devices_connected; i++){
         FT_Close(opened_device.handle);
