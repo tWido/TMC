@@ -82,8 +82,8 @@ void DevOpt::Setup(){
     pos1l = new QLabel("Position 1",this);
     pos2l = new QLabel("Position 2",this);
     timeoutl = new QLabel("Timeout", this);
-    getbuttp = new QPushButton("Set",this);
-    setbuttp = new QPushButton("Get",this);
+    getbuttp = new QPushButton("Get",this);
+    setbuttp = new QPushButton("Set",this);
     if (opened_device.functions.count(GET_BUTTONPARAMS) == 0){ 
         setbuttp->setDisabled(true);
         getbuttp->setDisabled(true);
