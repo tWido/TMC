@@ -12,33 +12,39 @@ void FailExit(int ret_code){
 
 switch (ret_code){
         case STOP : {
-            exit();
+            freeResources();
             break;
         }
         case SYSTEM_ERROR : {
             printf("Encountered system error.\n");
-            exit();
+            freeResources();
             break;
         }
         case FT_ERROR : {
             printf("Encountered error with FTDI library.\n");
-            exit();
+            freeResources();
             break;
         }
         case DEVICE_ERROR : {
             printf("Motor device encountered error.\n");
-            exit();
+            freeResources();
             break;
         }
         case FATAL_ERROR :{
             printf("Fatal error.\n");
-            exit();
+            freeResources();
             break;
         }
     }
 
 }
 
+void exit_signal(int signum){
+    if (signum == SIGINT){
+        freeResources();
+        exit(-1);
+    }
+} 
 
 int main(int argc, char** argv) {
     for (int i = 1; i < argc; i++){
@@ -70,7 +76,7 @@ int main(int argc, char** argv) {
         FailExit(ret_code);
         return ret_code;
     }
-    
+    signal(SIGINT, exit_signal);
     if (UI == 1) ret_code = run_cmd(1);
     if (UI == 2) run_gui();
     if (UI == 3) ret_code = run_cmd(3);
@@ -79,8 +85,8 @@ int main(int argc, char** argv) {
         FailExit(ret_code);
         return ret_code;
     }
-    
-    exit();
+
+    freeResources();    
     return 0;
 }
 

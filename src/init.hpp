@@ -368,7 +368,7 @@ int init(){
     return 0;
 }
 
-void exit(){
+void freeResources(){
     delete ftdi_devs;
     if (opened_device_index != -1) device_calls::StopUpdateMess();
     for (int i = 0; i < devices_connected; i++){
