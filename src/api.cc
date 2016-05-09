@@ -601,7 +601,8 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
 
 int EmptyIncomingQueue(){
     while(true){
-        int ret = CheckIncomingQueue(NULL);
+        uint16_t messID;
+        int ret = CheckIncomingQueue(&messID);
         if (ret == EMPTY) return 0;
         if (ret == MOVED_HOME_STATUS || ret == MOVE_COMPLETED_STATUS || ret == MOVE_STOPPED_STATUS || ret == 0) continue; 
         switch(ret){
