@@ -419,8 +419,6 @@ void GUI::Setup(){
             [this, i]{
                 OpenDevice(i); 
                 this->repaint(); 
-                devOpt->close();
-                moveOpt->close();
             }
         );
         device_menu->addAction(device_switch_actions[i]);
