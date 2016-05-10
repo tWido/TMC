@@ -96,6 +96,8 @@ public:
 
 class LongMessage:public Message{
 public:
+    LongMessage(unsigned int size):Message(size){}
+    
     LongMessage(uint8_t *input_bytes, unsigned int buffer_size):Message(input_bytes, buffer_size){};
     
     LongMessage(uint16_t type, uint16_t data_size, uint8_t dest, uint8_t source):Message(HEADER_SIZE + data_size){
@@ -104,6 +106,8 @@ public:
         bytes[4] = dest | 0x80;
         bytes[5] = source;
     }
+    
+    void SetData(uint8_t *data){ bytes = (uint8_t *) memcpy(bytes, data, length); }
     
     void SetDest(uint8_t dest){ bytes[4] = (dest | 0x80); }
     uint8_t GetDest(){ return bytes[4]; }
@@ -237,6 +241,8 @@ public:
 
 class HwInfo:public LongMessage{
 public:
+    HwInfo():LongMessage(90){}
+    
     HwInfo(uint8_t *mess):LongMessage(mess, 90){}
     
     int32_t SerialNumber(){ return le32toh(*((int32_t*) &bytes[6])) ; }

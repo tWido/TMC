@@ -272,12 +272,12 @@ int LoadDeviceInfo( controller_device &device){
     ret = device_calls::FlashProgNo(device.dest);
     if (ret != 0) return ret;
     
-    HwInfo *info = (HwInfo*) malloc(sizeof(HwInfo));
+    HwInfo info;
     ret = device_calls::GetHwInfo( info, 0x50);
     if (ret != 0) return ret;
-    device.hw_type = info->HWType();
-    std::string model_num = info->ModelNumber();
-    device.dev_type_name = strdup(info->ModelNumber().c_str());
+    device.hw_type = info.HWType();
+    std::string model_num = info.ModelNumber();
+    device.dev_type_name = strdup(info.ModelNumber().c_str());
     device.device_type = ToDevType(model_num);
     if (device.device_type == -1 ){ 
         printf("WARNING: unrecognized controller device\n");
@@ -292,7 +292,7 @@ int LoadDeviceInfo( controller_device &device){
         }
         else return STOP;
     }
-    free(info);
+    //free(info);
     
     device.channels = Channels(device.device_type);
     device.bays = Bays(device.device_type);
@@ -369,7 +369,7 @@ int init(){
 }
 
 void freeResources(){
-    delete ftdi_devs;
+   // delete ftdi_devs;
     if (opened_device_index != -1) device_calls::StopUpdateMess();
     for (int i = 0; i < devices_connected; i++){
         FT_Close(opened_device.handle);

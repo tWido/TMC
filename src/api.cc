@@ -718,15 +718,15 @@ int device_calls::StopUpdateMess(uint8_t dest){
     return 0;
 }
 
-int device_calls::GetHwInfo(HwInfo *message, uint8_t dest){
+int device_calls::GetHwInfo(HwInfo &message, uint8_t dest){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     ReqHwInfo mes(dest, SOURCE);
     SendMessage(mes);
     uint8_t *buff = (uint8_t *) malloc(90);
     ret = GetResponseMess( HW_GET_INFO, 90, buff);
-    HwInfo info(buff);
-    *message = info; 
+    message.SetData(buff);
+    //printf("before: %s\n", message.ModelNumber().c_str());
     free(buff);
     if ( ret != 0) return ret;
     EMPTY_IN_QUEUE

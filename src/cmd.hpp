@@ -233,11 +233,10 @@ int DeviceInfoC(std::vector<string> args){
                 printf(" Channel 2\n");
             }
         }
-        HwInfo *info = (HwInfo*) malloc(sizeof(HwInfo));
+        HwInfo info;
         if (device_calls::GetHwInfo(info) != 0) printf("Error occured while receiving info from device\n");
-        printf("  Hardware version: %d\n", info->HwVersion());
-        printf("  Notes: %s\n", info->Notes().c_str());
-        free(info);
+        printf("  Hardware version: %d\n", info.HwVersion());
+        printf("  Notes: %s\n", info.Notes().c_str());
     }
     
     if (OpenDevice(prev_opened) == FT_ERROR) return FT_ERROR;

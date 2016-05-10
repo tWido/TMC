@@ -94,7 +94,7 @@ extern int StartUpdateMess(uint8_t rate = DeafultRate(), uint8_t dest = DefaultD
 
 extern int StopUpdateMess(uint8_t dest = DefaultDest());
 
-extern int GetHwInfo(HwInfo *message, uint8_t dest = DefaultDest());
+extern int GetHwInfo(HwInfo &message, uint8_t dest = DefaultDest());
 
 extern int GetBayUsed(GetRackBayUsed *message, uint8_t bayID, uint8_t dest = DefaultDest());
 
