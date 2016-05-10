@@ -300,12 +300,11 @@ int LoadDeviceInfo( controller_device &device){
     
     if (device.bays != -1){
         for (uint8_t i = 0; i< device.bays; i++){
-            GetRackBayUsed *bayused =  (GetRackBayUsed*) malloc(sizeof(GetRackBayUsed));
+            GetRackBayUsed bayused;
             ret = device_calls::GetBayUsed(bayused, i, device.dest);
             if (ret != 0) return ret;
-            if (bayused->GetBayState() == 1) device.bay_used[i]=true;
+            if (bayused.GetBayState() == 1) device.bay_used[i]=true;
             else device.bay_used[i]=false;
-            free (bayused);
         }
     }
     

@@ -33,8 +33,8 @@
 #include <QDialog>
 
 
-#define GET_DEV_MESSAGE(mess_type, call)                            \
-        mess_type* mess = (mess_type*) malloc(sizeof(mess_type));   \
+#define GET_DEV_MESSAGE(mess_type, call)    \
+        mess_type mess;                     \
         device_calls::call(mess);          
 
 extern int run_gui();

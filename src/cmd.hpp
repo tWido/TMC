@@ -51,11 +51,10 @@ typedef std::unordered_map<std::string,helper> call_map;
             i++;
 
 #define GET_MESSAGE(mess_type, call)                                \
-        mess_type* mess = (mess_type*) malloc(sizeof(mess_type));   \
+        mess_type mess;                                             \
         if (opened_device.bays == -1){                              \
             if (call(mess, 0x50, index) == INVALID_CHANNEL){        \
                 printf("Not existing channel number given\n");      \
-                free(mess);                                         \
                 return ERR_CALL;                                    \
             }                                                       \
         }                                                           \
@@ -63,7 +62,6 @@ typedef std::unordered_map<std::string,helper> call_map;
             index += 0x20;                                          \
             if (call(mess, index) == INVALID_DEST){                 \
                 printf("Wrong address given\n");                    \
-                free(mess);                                         \
                 return ERR_CALL;                                    \
             }                                                       \
         }                                                                   
@@ -317,27 +315,24 @@ int ChannelAbleC(std::vector<string> args){
                 return INVALID_CALL;                                        
             }
             GET_NUM(index)
-            GetChannelState *state = (GetChannelState*) malloc(sizeof(GetChannelState));
+            GetChannelState state;
             if (opened_device.bays == -1){     
                 if (device_calls::ChannelState(state,0x50,index) == INVALID_CHANNEL){
                     printf("Not existing channel number given\n");
-                    free(state);
                     return ERR_CALL;                                               
                 }
-                if (state->GetSecondParam() == 0x01 ) printf("Enabled\n");
+                if (state.GetSecondParam() == 0x01 ) printf("Enabled\n");
                 else printf("Disabled\n");
             }                                                               
             else {                                                          
                 index += 0x20;                                                
                 if (device_calls::ChannelState(state,index) == INVALID_DEST){
                     printf("Wrong address given\n");
-                    free(state);
                     return ERR_CALL;  
                 }
-                if(state->GetSecondParam() == 0x01 ) printf("Enabled\n");
+                if(state.GetSecondParam() == 0x01 ) printf("Enabled\n");
                 else printf("Disabled\n");
             }
-            free(state);
             i++; 
         }
     }
@@ -399,11 +394,10 @@ int PosCounterC(std::vector<string> args){
             }
             uint8_t index = 0;
             GET_NUM(index)
-            GetPosCounter* counter = (GetPosCounter*) malloc(sizeof(GetPosCounter));
+            GetPosCounter counter;
             if (opened_device.bays == -1){
                 if (device_calls::GetPositionCounter(counter, 0x50, index) == INVALID_CHANNEL){
                     printf("Not existing channel number given\n");
-                    free(counter);
                     return ERR_CALL;
                 }
             }
@@ -411,11 +405,10 @@ int PosCounterC(std::vector<string> args){
                 index += 0x20;
                 if (device_calls::GetPositionCounter(counter, index) == INVALID_DEST){
                     printf("Wrong address given\n");
-                    free(counter);
                     return ERR_CALL;
                 }
             }
-            printf("Position counter: %d\n", counter->GetPosition());
+            printf("Position counter: %d\n", counter.GetPosition());
         }
     }
     return 0;
@@ -476,11 +469,10 @@ int EncCountC(std::vector<string> args){
             }
             uint8_t index = 0;
             GET_NUM(index)
-            GetEncCount* counter = (GetEncCount*) malloc(sizeof(GetEncCount));
+            GetEncCount counter;
             if (opened_device.bays == -1){
                 if (device_calls::GetEncoderCounter(counter, 0x50, index) == INVALID_CHANNEL){
                     printf("Not existing channel number given\n");
-                    free(counter);
                     return ERR_CALL;
                 }
             }
@@ -488,11 +480,10 @@ int EncCountC(std::vector<string> args){
                 index += 0x20;
                 if (device_calls::GetEncoderCounter(counter, index) == INVALID_DEST){
                     printf("Wrong address given\n");
-                    free(counter);
                     return ERR_CALL;
                 }
             }
-            printf("Encoder counter: %d\n", counter->GetEncCounter());
+            printf("Encoder counter: %d\n", counter.GetEncCounter());
         }
     }
     return 0;
@@ -538,8 +529,8 @@ int VelParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetVelocityParams, device_calls::GetVelocityP)
-        printf("Acceleration: %d\n",mess->GetAcceleration());
-        printf("Maximum velocity: %d\n",mess->GetMaxVel());
+        printf("Acceleration: %d\n",mess.GetAcceleration());
+        printf("Maximum velocity: %d\n",mess.GetMaxVel());
     }
     if (operation == 1){
         int ret;
@@ -612,11 +603,11 @@ int JogParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetJogParams, device_calls::GetJogP)
-        printf("Acceleration: %d\n",mess->GetAcceleration());
-        printf("Maximum velocity: %d\n",mess->GetMaxVel());
-        printf("Mode: %d\n",mess->GetJogMode());
-        printf("Stop mode: %d\n",mess->GetStopMode());
-        printf("Step size: %d\n",mess->GetStepSize());
+        printf("Acceleration: %d\n",mess.GetAcceleration());
+        printf("Maximum velocity: %d\n",mess.GetMaxVel());
+        printf("Mode: %d\n",mess.GetJogMode());
+        printf("Stop mode: %d\n",mess.GetStopMode());
+        printf("Step size: %d\n",mess.GetStepSize());
     }
     if (operation == 1){
         int ret = 0;
@@ -684,8 +675,8 @@ int PowerParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetPowerParams, device_calls::GetPowerUsed)
-        printf("Rest factor: %d\n",mess->GetRestFactor());
-        printf("Move factor: %d\n",mess->GetMoveFactor());
+        printf("Rest factor: %d\n",mess.GetRestFactor());
+        printf("Move factor: %d\n",mess.GetMoveFactor());
     }
     if (operation == 1){
         int ret;
@@ -747,7 +738,7 @@ int BacklashDistC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetGeneralMoveParams, device_calls::GetBacklashDist)
-        printf("Backlash distance: %d\n",mess->GetBacklashDist());
+        printf("Backlash distance: %d\n",mess.GetBacklashDist());
     }
     if (operation == 1){
         int ret = 0;
@@ -805,7 +796,7 @@ int RelMoveParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetRelativeMoveParams, device_calls::GetRelativeMoveP)
-        printf("Relative distance held in controller: %d\n",mess->GetRelativeDist());
+        printf("Relative distance held in controller: %d\n",mess.GetRelativeDist());
     }
     if (operation == 1){
         int ret;
@@ -863,7 +854,7 @@ int AbsMoveParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetAbsoluteMoveParams, device_calls::GetAbsoluteMoveP)
-        printf("Absolute position for next move held in controller: %d\n",mess->GetAbsolutePos());
+        printf("Absolute position for next move held in controller: %d\n",mess.GetAbsolutePos());
     }
     if (operation == 1){
         int ret = 0;
@@ -921,7 +912,7 @@ int HomingVelC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetHomeParams, device_calls::GetHomingVel)
-        printf("Homing velocity: %d\n",mess->GetHomingVelocity());
+        printf("Homing velocity: %d\n",mess.GetHomingVelocity());
     }
     if (operation == 1){
         int ret = 0;
@@ -1261,7 +1252,7 @@ int AccParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetBowIndex, device_calls::GetAccelerationProfile)
-        printf("Acceleration profile: %d\n",mess->BowIndex());
+        printf("Acceleration profile: %d\n",mess.BowIndex());
     }
     if (operation == 1){
         int ret;
@@ -1321,7 +1312,7 @@ int LedParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetLedMode, device_calls::GetLedP)
-        printf("Mode actually set: %d\n",mess->GetMode());
+        printf("Mode actually set: %d\n",mess.GetMode());
     }
     if (operation == 1){
         int ret;
@@ -1389,10 +1380,10 @@ int ButtonsParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetButtonParams, device_calls::GetButtonsInfo)
-        printf("Mode actually set: %d\n", mess->GetMode());
-        printf("Position 1: %d\n", mess->GetPosition1());
-        printf("Position 2: %d\n", mess->GetPosition2());
-        printf("Timeout: %d\n", mess->GetTimeout());
+        printf("Mode actually set: %d\n", mess.GetMode());
+        printf("Position 1: %d\n", mess.GetPosition1());
+        printf("Position 2: %d\n", mess.GetPosition2());
+        printf("Timeout: %d\n", mess.GetTimeout());
     }
     if (operation == 1){
         int ret;
@@ -1542,9 +1533,9 @@ int WaitForStopC(std::vector<string> args){
         while(true){
             if (sigtimedwait(&mask, NULL, &timeout) == SIGTSTP) break;
             GET_MESSAGE(GetStatusBits, device_calls::GetStatBits)
-            opened_device.motor[mess->GetMotorID()].status_status_bits = mess->GetStatBits();
-            if ((mess->GetStatBits() & 0x00000010) == 0x00000010 || (mess->GetStatBits() & 0x00000020) == 0x00000020 || (mess->GetStatBits() & 0x00000040) == 0x00000040 || 
-                    (mess->GetStatBits() & 0x00000080) == 0x00000080 || (mess->GetStatBits() & 0x00000200) == 0x00000200 ) continue;
+            opened_device.motor[mess.GetMotorID()].status_status_bits = mess.GetStatBits();
+            if ((mess.GetStatBits() & 0x00000010) == 0x00000010 || (mess.GetStatBits() & 0x00000020) == 0x00000020 || (mess.GetStatBits() & 0x00000040) == 0x00000040 || 
+                    (mess.GetStatBits() & 0x00000080) == 0x00000080 || (mess.GetStatBits() & 0x00000200) == 0x00000200 ) continue;
             else break;
         }
         if (sigprocmask(SIG_UNBLOCK, &mask, NULL) != 0) fprintf(stderr, "Failed to block signal for handling\n");

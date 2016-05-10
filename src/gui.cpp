@@ -37,8 +37,7 @@ void DevOpt::Setup(){
     ledset = new QPushButton("Set",this);
     leddef = new QPushButton("Defaults",this);
     GET_DEV_MESSAGE(GetLedMode,GetLedP)
-    int mode = mess->GetMode();
-    free(mess);
+    int mode = mess.GetMode();
     lp1->setChecked(mode & 1);
     lp2->setChecked(mode & 2);
     lp3->setChecked(mode & 8);
@@ -105,18 +104,17 @@ void DevOpt::Setup(){
     connect(getbuttp, &QPushButton::clicked, 
         [this]{
             GET_DEV_MESSAGE(GetButtonParams,GetButtonsInfo)
-            if (mess->GetMode() == 1) this->jogopt->setChecked(true);
-            if (mess->GetMode() == 2){ 
+            if (mess.GetMode() == 1) this->jogopt->setChecked(true);
+            if (mess.GetMode() == 2){ 
                 this->gotoopt->setChecked(true);
                 std::stringstream sts ;
-                sts << mess->GetPosition1(); 
+                sts << mess.GetPosition1(); 
                 this->pos1->setText(sts.str().c_str());
-                sts << mess->GetPosition2(); 
+                sts << mess.GetPosition2(); 
                 this->pos2->setText(sts.str().c_str());
-                sts << mess->GetTimeout(); 
+                sts << mess.GetTimeout(); 
                 this->timeout->setText(sts.str().c_str());
             }
-            free(mess);
         } 
     );
     buttpl->addWidget(jogopt, 0, 0);
@@ -163,9 +161,8 @@ void MovOpt::Setup(int index){
         [this]{
             std::stringstream sts;
             GET_DEV_MESSAGE(GetHomeParams, GetHomingVel)
-            sts << mess->GetHomingVelocity();
+            sts << mess.GetHomingVelocity();
             hvel_edit->setText(sts.str().c_str());
-            free(mess);
         } 
     );
     connect(hvel_set, &QPushButton::clicked, 
@@ -202,9 +199,8 @@ void MovOpt::Setup(int index){
         [this]{
             std::stringstream sts;
             GET_DEV_MESSAGE(GetGeneralMoveParams, GetBacklashDist)
-            sts << mess->GetBacklashDist();
+            sts << mess.GetBacklashDist();
             bdist_edit->setText(sts.str().c_str());
-            free(mess);
         } 
     );
     connect(bdist_set, &QPushButton::clicked, 
@@ -241,9 +237,8 @@ void MovOpt::Setup(int index){
         [this]{
             std::stringstream sts;
             GET_DEV_MESSAGE(GetBowIndex, GetAccelerationProfile)
-            sts << mess->BowIndex();
+            sts << mess.BowIndex();
             bdist_edit->setText(sts.str().c_str());
-            free(mess);
         } 
     );
     connect(accp_set, &QPushButton::clicked, 
@@ -284,11 +279,10 @@ void MovOpt::Setup(int index){
         [this]{
             std::stringstream sts;
             GET_DEV_MESSAGE(GetPowerParams, GetPowerUsed)
-            sts << mess->GetRestFactor();
+            sts << mess.GetRestFactor();
             powerp1_edit->setText(sts.str().c_str());
-            sts << mess->GetMoveFactor();
+            sts << mess.GetMoveFactor();
             powerp2_edit->setText(sts.str().c_str());
-            free(mess);
         } 
     );
     connect(powerp_set, &QPushButton::clicked, 
@@ -351,22 +345,21 @@ void MovOpt::Setup(int index){
         [this]{
             std::stringstream sts;
             GET_DEV_MESSAGE(GetJogParams, GetJogP)
-            if ( mess->GetJogMode() == 1 ) jogp_mode1->setChecked(true);
+            if ( mess.GetJogMode() == 1 ) jogp_mode1->setChecked(true);
             else jogp_mode2->setChecked(true);
             
-            sts << mess->GetStepSize();
+            sts << mess.GetStepSize();
             jogp_stepe->setText(sts.str().c_str());
             sts.str("");
-            sts<< mess->GetMaxVel();
+            sts<< mess.GetMaxVel();
             jogp_vele->setText(sts.str().c_str());
             sts.str("");
-            sts<< mess->GetAcceleration();
+            sts<< mess.GetAcceleration();
             jogp_acce->setText(sts.str().c_str());
             sts.str("");
             
-            if (mess->GetStopMode() == 1) jogp_stopmode1->setChecked(true);
+            if (mess.GetStopMode() == 1) jogp_stopmode1->setChecked(true);
             else jogp_stopmode2->setChecked(true);
-            free(mess);
         } 
     );
     connect(jogp_set, &QPushButton::clicked, 

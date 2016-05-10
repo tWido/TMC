@@ -462,8 +462,7 @@ functions_set all_set{
         SendMessage(mes);                                       \
         uint8_t *buff = (uint8_t *) malloc(buff_size);          \
         ret = GetResponseMess(get_mess_code, buff_size, buff);  \
-        get_mess_class mess(buff);                              \
-        *message = mess;                                        \
+        message.SetData(buff);                                  \
         free(buff);                                             \
         if ( ret != 0) return ret;                              \
         EMPTY_IN_QUEUE  
@@ -673,15 +672,14 @@ int device_calls::DisableChannel(uint8_t dest, uint8_t chanel){
     return 0;
 }
 
-int device_calls::ChannelState(GetChannelState *info, uint8_t dest, uint8_t chanel){ 
+int device_calls::ChannelState(GetChannelState &info, uint8_t dest, uint8_t chanel){ 
     CHECK_ADDR_PARAMS(dest, chanel)
     EMPTY_IN_QUEUE
     ReqChannelState mes(chanel, dest, SOURCE);
     SendMessage(mes);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess( GET_CHANENABLESTATE, HEADER_SIZE , buff);
-    GetChannelState mess(buff);
-    *info = mess;
+    info.SetData(buff);
     free(buff);
     if ( ret != 0) return ret;  
     EMPTY_IN_QUEUE
@@ -726,14 +724,13 @@ int device_calls::GetHwInfo(HwInfo &message, uint8_t dest){
     uint8_t *buff = (uint8_t *) malloc(90);
     ret = GetResponseMess( HW_GET_INFO, 90, buff);
     message.SetData(buff);
-    //printf("before: %s\n", message.ModelNumber().c_str());
     free(buff);
     if ( ret != 0) return ret;
     EMPTY_IN_QUEUE
     return 0;
 }
 
-int device_calls::GetBayUsed(GetRackBayUsed *message, uint8_t bayID, uint8_t dest){
+int device_calls::GetBayUsed(GetRackBayUsed &message, uint8_t bayID, uint8_t dest){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
     ReqRackBayUsed mes(dest, SOURCE);
@@ -741,25 +738,23 @@ int device_calls::GetBayUsed(GetRackBayUsed *message, uint8_t bayID, uint8_t des
     SendMessage(mes);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess( RACK_GET_BAYUSED, HEADER_SIZE , buff);
-    GetRackBayUsed bayused(buff);
-    *message = bayused;
-    if ( ret != 0) return ret;
+    message.SetData(buff);
     free(buff);
+    if ( ret != 0) return ret;
     EMPTY_IN_QUEUE
     return 0;
 }
 
-int device_calls::GetHubUsed(GetHubBayUsed *message, uint8_t dest){
+int device_calls::GetHubUsed(GetHubBayUsed &message, uint8_t dest){
     CHECK_ADDR_PARAMS(dest, -1);
     EMPTY_IN_QUEUE
     ReqHubBayUsed mes(dest, SOURCE);
     SendMessage(mes);
     uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
     ret = GetResponseMess( HUB_GET_BAYUSED, HEADER_SIZE , buff);
-    GetHubBayUsed hubused(buff);
-    *message = hubused;
-    if ( ret != 0) return ret;
+    message.SetData(buff);
     free(buff);
+    if ( ret != 0) return ret;
     EMPTY_IN_QUEUE
     return 0;
 }
@@ -792,7 +787,7 @@ int device_calls::SetPositionCounter(int32_t pos, uint8_t dest, uint16_t channel
     return ret; //return WARNING
 };
 
-int device_calls::GetPositionCounter(GetPosCounter *message, uint8_t dest, uint8_t channel){
+int device_calls::GetPositionCounter(GetPosCounter &message, uint8_t dest, uint8_t channel){
     GET_MESS(ReqPosCounter,12,GET_POSCOUNTER,GetPosCounter)      
     return 0;
 };
@@ -807,7 +802,7 @@ int device_calls::SetEncoderCounter(int32_t count, uint8_t dest, uint16_t channe
     return ret; //return WARNING
 };
 
-int device_calls::GetEncoderCounter(GetEncCount *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetEncoderCounter(GetEncCount &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqEncCount,12,GET_ENCCOUNTER,GetEncCount)      
     return 0;
 };
@@ -823,7 +818,7 @@ int device_calls::SetVelocityP(int32_t acc, int32_t maxVel, uint8_t dest, uint16
     return 0;        
 };
 
-int device_calls::GetVelocityP(GetVelocityParams *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetVelocityP(GetVelocityParams &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqVelocityParams,20,GET_VELPARAMS,GetVelocityParams)       
     return 0;
 };
@@ -842,7 +837,7 @@ int device_calls::SetJogP(uint16_t mode, int32_t stepSize, int32_t vel, int32_t 
     return 0; 
 };
 
-int device_calls::GetJogP(GetJogParams *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetJogP(GetJogParams &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqJogParams,28,GET_JOGPARAMS,GetJogParams)
     return 0;
 };
@@ -858,7 +853,7 @@ int device_calls::SetPowerUsed(uint16_t rest_power, uint16_t move_power, int8_t 
     return 0;
 };
 
-int device_calls::GetPowerUsed(GetPowerParams *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetPowerUsed(GetPowerParams &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqPowerParams,12,GET_POWERPARAMS,GetPowerParams)
     return 0;
 };
@@ -873,7 +868,7 @@ int device_calls::SetBacklashDist(uint32_t dist, int8_t dest, uint16_t channel){
     return 0;
 };
 
-int device_calls::GetBacklashDist(GetGeneralMoveParams *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetBacklashDist(GetGeneralMoveParams &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqGeneralMoveParams,12,GET_GENMOVEPARAMS,GetGeneralMoveParams)                        
     return 0;
 };
@@ -888,7 +883,7 @@ int device_calls::SetRelativeMoveP(uint32_t dist, int8_t dest, uint16_t channel)
     return 0;        
 };
 
-int device_calls::GetRelativeMoveP(GetRelativeMoveParams *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetRelativeMoveP(GetRelativeMoveParams &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqRelativeMoveParams,12,GET_MOVERELPARAMS,GetRelativeMoveParams) 
     return 0;
 };
@@ -903,7 +898,7 @@ int device_calls::SetAbsoluteMoveP(uint32_t pos, int8_t dest, uint16_t channel){
     return 0;
 };
 
-int device_calls::GetAbsoluteMoveP(GetAbsoluteMoveParams *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetAbsoluteMoveP(GetAbsoluteMoveParams &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqAbsoluteMoveParams,12,GET_MOVEABSPARAMS,GetAbsoluteMoveParams) 
     return 0;
 };
@@ -918,7 +913,7 @@ int device_calls::SetHomingVel(uint32_t vel, int8_t dest,  uint16_t channel){
     return 0;
 };
 
-int device_calls::GetHomingVel(GetHomeParams *message, uint8_t dest, uint8_t channel){
+int device_calls::GetHomingVel(GetHomeParams &message, uint8_t dest, uint8_t channel){
     GET_MESS(ReqHomeParams,20,GET_HOMEPARAMS,GetHomeParams) 
     return 0;
 };
@@ -939,7 +934,7 @@ int device_calls::SetLimitSwitchConfig(uint16_t CwHwLim, uint16_t CCwHwLim, uint
     return 0;
 };
 
-int device_calls::GetLimitSwitchConfig(GetLimitSwitchParams *message, uint8_t dest, uint8_t channel){
+int device_calls::GetLimitSwitchConfig(GetLimitSwitchParams &message, uint8_t dest, uint8_t channel){
     GET_MESS(ReqLimitSwitchParams,22,GET_LIMSWITCHPARAMS,GetLimitSwitchParams) 
     return 0;
 };
@@ -1039,7 +1034,7 @@ int device_calls::SetAccelerationProfile(uint16_t index, int8_t dest, uint16_t c
     return 0;
 };
 
-int device_calls::GetAccelerationProfile(GetBowIndex *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetAccelerationProfile(GetBowIndex &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqBowIndex,10,GET_BOWINDEX,GetBowIndex) 
     return 0;
 };
@@ -1054,7 +1049,7 @@ int device_calls::SetLedP(uint16_t mode, int8_t dest, uint16_t channel){
     return 0;
 };
 
-int device_calls::GetLedP(GetLedMode *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetLedP(GetLedMode &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqLedMode,10,GET_AVMODES,GetLedMode) 
     return 0;
 };
@@ -1072,7 +1067,7 @@ int device_calls::SetButtons(uint16_t mode, int32_t pos1, int32_t pos2, uint16_t
     return 0;
 };
 
-int device_calls::GetButtonsInfo(GetButtonParams *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetButtonsInfo(GetButtonParams &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqButtonParams,22,GET_BUTTONPARAMS,GetButtonParams) 
     return 0;
 };
@@ -1104,7 +1099,7 @@ int device_calls::SendServerAlive(uint8_t dest){
     return 0;
 };
 
-int device_calls::GetStatBits(GetStatusBits *message ,uint8_t dest, uint8_t channel){
+int device_calls::GetStatBits(GetStatusBits &message ,uint8_t dest, uint8_t channel){
     GET_MESS(ReqStatusBits,12,GET_STATUSBITS,GetStatusBits) 
     return 0;
 };
@@ -1139,7 +1134,7 @@ int device_calls::CreateTrigger(uint8_t mode, uint8_t dest, uint8_t channel){
     return 0;
 };
 
-int device_calls::GetMotorTrigger(GetTrigger *message, uint8_t dest, uint8_t channel){
+int device_calls::GetMotorTrigger(GetTrigger &message, uint8_t dest, uint8_t channel){
     GET_MESS(ReqTrigger,HEADER_SIZE,GET_TRIGGER,GetTrigger) 
     return 0;
 };
