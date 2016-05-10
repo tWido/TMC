@@ -48,6 +48,8 @@ protected:
 
 class MessageHeader:public Message{
 public:
+    MessageHeader():Message(6){}
+    
     MessageHeader(uint8_t *header_bytes): Message(header_bytes, HEADER_SIZE){}
     
     MessageHeader(uint16_t type, uint8_t param1, uint8_t param2 ,uint8_t dest, uint8_t source):Message(HEADER_SIZE){
@@ -57,6 +59,8 @@ public:
         bytes[4] = dest;
         bytes[5] = source;
     }
+    
+    void SetData(uint8_t *data){ bytes = (uint8_t *) memcpy(bytes, data, length); }
     
     void GetParams(uint8_t *p1, uint8_t *p2){
         *p1 =(uint8_t) bytes[2];
@@ -172,6 +176,8 @@ public:
 /** Info sent from device. */
 class GetChannelState:public MessageHeader{
 public:
+    GetChannelState():MessageHeader(){}
+    
     GetChannelState(uint8_t *mess):MessageHeader(mess){}
     
     /**
@@ -184,6 +190,8 @@ public:
 
 class HwDisconnect:public MessageHeader{
 public:
+    HwDisconnect():MessageHeader(){}
+    
     HwDisconnect(uint8_t dest, uint8_t source):MessageHeader( HW_DISCONNECT, 0, 0, dest, source){}
     
     HwDisconnect(uint8_t *mess):MessageHeader(mess){}
@@ -192,12 +200,16 @@ public:
 /** Sent from device to notify of unexpected event. */
 class HwResponse: public MessageHeader{
 public:
+    HwResponse():MessageHeader(){}
+    
     HwResponse(uint8_t *mess):MessageHeader(mess){}
 };
 
 /** Sent from device to specify error. */
 class HwResponseInfo:public LongMessage{
 public:
+    HwResponseInfo():LongMessage(74){}
+    
     HwResponseInfo(uint8_t *mess):LongMessage(mess, 74){}
     
     /**
@@ -280,6 +292,8 @@ public:
 
 class GetRackBayUsed:public MessageHeader{
 public:
+    GetRackBayUsed():MessageHeader(){};
+    
     GetRackBayUsed(uint8_t *mess):MessageHeader(mess){}
 
     uint8_t GetBayID(){ return GetFirstParam(); }
@@ -297,6 +311,8 @@ public:
 
 class GetHubBayUsed:public MessageHeader{
 public:
+    GetHubBayUsed():MessageHeader(){}
+    
     GetHubBayUsed(uint8_t *mess):MessageHeader(mess){}
     
     int8_t GetBayID(){ return GetFirstParam(); }
@@ -336,6 +352,8 @@ public:
 
 class GetPosCounter:public LongMessage{
 public:
+    GetPosCounter():LongMessage(12){};
+    
     GetPosCounter(uint8_t *mess):LongMessage(mess,12){};
 
     int32_t GetPosition(){ return le32toh(*((int32_t*) &bytes[8])); }
@@ -360,6 +378,8 @@ public:
 
 class GetEncCount:public LongMessage{
 public:
+    GetEncCount():LongMessage(12){}
+    
     GetEncCount(uint8_t *mess):LongMessage(mess, 12){}
 
     int32_t GetEncCounter(){ return le32toh(*((int16_t*) &bytes[8])); }
@@ -392,6 +412,8 @@ public:
 
 class GetVelocityParams: public LongMessage{
 public:
+    GetVelocityParams():LongMessage(20){}
+    
     GetVelocityParams(uint8_t *mess):LongMessage(mess, 20){}
     
     int32_t GetMinVel(){ return le32toh(*((int32_t*) &bytes[8])); }
@@ -445,6 +467,8 @@ public:
 
 class GetJogParams:public LongMessage{
 public:
+    GetJogParams():LongMessage(28){}
+    
     GetJogParams(uint8_t *mess):LongMessage(mess, 28){}
     
     /**
@@ -494,6 +518,8 @@ public:
 
 class GetPowerParams:public LongMessage{
 public:
+    GetPowerParams():LongMessage(12){}
+    
     GetPowerParams(uint8_t *mess):LongMessage(mess, 12){}
     
     /**
@@ -523,6 +549,8 @@ public:
 
 class GetGeneralMoveParams:public LongMessage{
 public:
+    GetGeneralMoveParams():LongMessage(12){}
+    
     GetGeneralMoveParams(uint8_t *mess):LongMessage(mess,12){};
     
     int32_t GetBacklashDist(){return le32toh(*((int32_t*) &bytes[8])); }
@@ -545,6 +573,8 @@ public:
 
 class GetRelativeMoveParams: public LongMessage{
 public:
+    GetRelativeMoveParams():LongMessage(12){}
+    
     GetRelativeMoveParams(uint8_t *mess):LongMessage(mess,12){}
     
     int32_t GetRelativeDist(){ return le32toh(*((int32_t*) &bytes[8])); }
@@ -571,6 +601,8 @@ public:
 
 class GetAbsoluteMoveParams:public LongMessage{
 public:
+    GetAbsoluteMoveParams():LongMessage(12){}
+    
     GetAbsoluteMoveParams(uint8_t *mess):LongMessage(mess,12){}
     
     int32_t GetAbsolutePos(){ return le32toh(*((int32_t*) &bytes[8])); }
@@ -596,6 +628,8 @@ public:
 
 class GetHomeParams:public LongMessage{
 public:
+    GetHomeParams():LongMessage(20){}
+    
     GetHomeParams(uint8_t *mess):LongMessage(mess,20){}
     
     int32_t GetHomingVelocity(){ return le32toh(*((int32_t*) &bytes[12])); }
@@ -645,6 +679,8 @@ public:
 
 class GetLimitSwitchParams:public LongMessage{
 public:
+    GetLimitSwitchParams():LongMessage(22){}
+    
     GetLimitSwitchParams(uint8_t *mess):LongMessage(mess, 22){}
     
     uint16_t GetClockwiseHardLimit(){ return le16toh(*((uint16_t*) &bytes[8])); }
@@ -663,6 +699,8 @@ public:
 
 class MovedHome:public MessageHeader{
 public:
+    MovedHome():MessageHeader(){}
+    
     MovedHome(uint8_t *mess):MessageHeader(mess){}
 };
 
@@ -684,7 +722,7 @@ class MoveCompleted:public LongMessage{
 public:
     MoveCompleted(uint8_t *mess):LongMessage(mess, 20){};
     
-    
+    MoveCompleted():LongMessage(20){}
 };
 
 
@@ -744,6 +782,8 @@ public:
 
 class MoveStopped: public LongMessage{
 public:
+    MoveStopped():LongMessage(20){}
+    
     MoveStopped(uint8_t *mess):LongMessage(mess,20){}
 }; 
 
@@ -770,6 +810,8 @@ public:
 
 class GetBowIndex:public LongMessage{
 public:
+    GetBowIndex():LongMessage(10){}
+    
     GetBowIndex(uint8_t *mess):LongMessage(mess, 10){};
     
     uint16_t BowIndex(){ return le16toh(*((uint16_t*) &bytes[8])); }
@@ -796,6 +838,8 @@ public:
 
 class GetLedMode:public LongMessage{
 public:
+    GetLedMode():LongMessage(10){}
+    
     GetLedMode(uint8_t *mess):LongMessage(mess, 10){}
     
     uint16_t GetMode(){ return le16toh(*((uint16_t*) &bytes[8])); } 
@@ -837,6 +881,8 @@ public:
 
 class GetButtonParams: public LongMessage{
 public:
+    GetButtonParams():LongMessage(22){}
+    
     GetButtonParams(uint8_t *mess):LongMessage(mess, 22){}
     
     uint16_t GetMode(){ return le16toh(*((uint16_t*) &bytes[8])); }
@@ -852,6 +898,8 @@ public:
 
 class GetStatusUpdate:public LongMessage{
 public:
+    GetStatusUpdate():LongMessage(20){}
+    
     GetStatusUpdate(uint8_t *mess):LongMessage(mess,20){}
     
     int32_t GetPosition(){ return le32toh(*((int32_t*) &bytes[8])); }
@@ -866,6 +914,8 @@ public:
 
 class GetMotChanStatusUpdate:public LongMessage{
 public:
+    GetMotChanStatusUpdate():LongMessage(20){}
+    
     GetMotChanStatusUpdate(uint8_t *mess):LongMessage(mess,20){}
     
     int32_t GetPosition(){ return le32toh(*((int32_t*) &bytes[8])); }
@@ -885,6 +935,8 @@ public:
 
 class GetStatusBits:public LongMessage{
 public:
+    GetStatusBits():LongMessage(12){}
+    
     GetStatusBits(uint8_t *mess):LongMessage(mess,12){}
     
     uint32_t GetStatBits(){ return le32toh(*((uint32_t*) &bytes[8])); }
@@ -922,6 +974,8 @@ public:
 
 class GetTrigger:public MessageHeader{
 public:
+    GetTrigger():MessageHeader(){}
+    
     GetTrigger(uint8_t *mess):MessageHeader(mess){}
     
     uint8_t GetMode(){return GetSecondParam() ;}
