@@ -1490,10 +1490,20 @@ int WaitC(std::vector<string> args){
             printf("Invalid number of seconds\n");
             return INVALID_CALL;
         }
+        
+        sigset_t mask;
+	struct timespec timeout;
+        sigemptyset (&mask);
+	sigaddset (&mask, SIGTSTP);
+        timeout.tv_sec = 1;
+	timeout.tv_nsec = 0;
+        if (sigprocmask(SIG_BLOCK, &mask, NULL) != 0) fprintf(stderr, "Failed to block signal for handling\n");
+        printf("Started wait, press ctrl+z to force end of wait\n");
         for (int i = 0; i < seconds; i++){
+            if (sigtimedwait(&mask, NULL, &timeout) == SIGTSTP) break;
             EmptyIncomingQueue();
-            sleep(1);
         }
+        if (sigprocmask(SIG_UNBLOCK, &mask, NULL) != 0) fprintf(stderr, "Failed to block signal for handling\n");
     }
     else {
         printf("Unknown argument\n");
