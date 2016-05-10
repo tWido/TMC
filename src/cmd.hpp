@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <termio.h>
+#include <termios.h>
 
 typedef int (*helper)(std::vector<string>);
 typedef std::unordered_map<std::string,helper> call_map;
@@ -150,7 +150,7 @@ int HelpC(std::vector<string> args){
 
 int OpenDeviceC(std::vector<string> args){
     NULL_ARGS
-    if (args.size() > 3  || args.size() == 2) {
+    if (args.size() > 3  || args.size() == 1) {
         printf("Unexpected number of arguments, see -h for help\n");
         return INVALID_CALL;
     } 
@@ -1009,7 +1009,7 @@ int StartRelMoveC(std::vector<string> args){
         if (args.at(i).compare("-h") == 0){
             printf("Start relative move. Distance can be either specified or previously set by relmovep command.\n");
             printf("-i NUMBER           index of motor to start move, default is 1\n");
-            printf("-d VALUE            distance to move, if not specified parameter stored in device is used");
+            printf("-d VALUE            distance to move, if not specified parameter stored in device is used\n");
             return 0;
         }
         
@@ -1150,7 +1150,7 @@ int StartVelMoveC(std::vector<string> args){
         if (args.at(i).compare("-h") == 0){
             printf("Start move in specified direction. Velocity parameters can be set with velp call. Setting direction is mandatory.\n");
             printf("-i NUMBER           index of motor to start move, default is 1\n");
-            printf("-d VALUE            direction: 1 -> forward, 2 -> reverse, mandatory argument ");
+            printf("-d VALUE            direction: 1 -> forward, 2 -> reverse, mandatory argument\n");
             return 0;
         }
         
@@ -1164,7 +1164,7 @@ int StartVelMoveC(std::vector<string> args){
         return INVALID_CALL;
     }
     if (opened_device.bays == -1){
-        ret = device_calls::StartJogMove(direction, 0x50, index); 
+        ret = device_calls::StartSetVelocityMove(direction, 0x50, index); 
         switch (ret){
             case INVALID_CHANNEL: {printf("Not existing channel given\n"); return ERR_CALL;}
             case INVALID_PARAM_1: {printf("Not existing direction parameter given\n"); return ERR_CALL;}
@@ -1172,7 +1172,7 @@ int StartVelMoveC(std::vector<string> args){
     }
     else {
         index += 0x20;
-        ret = device_calls::StartJogMove(direction, index); 
+        ret = device_calls::StartSetVelocityMove(direction, index); 
         switch (ret){
             case INVALID_DEST:  {printf("Wrong address given\n"); return ERR_CALL;}
             case INVALID_PARAM_1: {printf("Not existing direction parameter given\n"); return ERR_CALL;}

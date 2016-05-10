@@ -389,8 +389,8 @@ public:
     GetVelocityParams(uint8_t *mess):LongMessage(mess, 20){}
     
     int32_t GetMinVel(){ return le32toh(*((int32_t*) &bytes[8])); }
-    int32_t GetMaxVel(){ return le32toh(*((int32_t*) &bytes[12])); }
-    int32_t GetAcceleration(){ return le32toh(*((int32_t*) &bytes[16])); }
+    int32_t GetMaxVel(){ return le32toh(*((int32_t*) &bytes[16])); }
+    int32_t GetAcceleration(){ return le32toh(*((int32_t*) &bytes[12])); }
 };
 
 class SetJogParams:public LongMessage{
