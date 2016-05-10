@@ -1536,10 +1536,12 @@ int WaitForStopC(std::vector<string> args){
             opened_device.motor[mess.GetMotorID()].status_status_bits = mess.GetStatBits();
             if ((mess.GetStatBits() & 0x00000010) == 0x00000010 || (mess.GetStatBits() & 0x00000020) == 0x00000020 || (mess.GetStatBits() & 0x00000040) == 0x00000040 || 
                     (mess.GetStatBits() & 0x00000080) == 0x00000080 || (mess.GetStatBits() & 0x00000200) == 0x00000200 ) continue;
-            else break;
+            else{ 
+                printf("Motor in stable position\n");
+                break;
+            }
         }
         if (sigprocmask(SIG_UNBLOCK, &mask, NULL) != 0) fprintf(stderr, "Failed to block signal for handling\n");
-        printf("Motor in stable position\n");
     }
     else {
         printf("Unknown argument\n");
