@@ -79,7 +79,10 @@ int main(int argc, char** argv) {
     signal(SIGINT, exit_signal);
     if (UI == 1) ret_code = run_cmd(1);
     if (UI == 2) run_gui();
-    if (UI == 3) ret_code = run_cmd(3);
+    if (UI == 3){
+        connected_device = new controller_device[1];
+        ret_code = run_cmd(3);
+    }
     
     if ( ret_code != 0 ) {
         FailExit(ret_code);

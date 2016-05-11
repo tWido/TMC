@@ -1608,10 +1608,12 @@ call_map calls = {
 
 
 int run_cmd(int mode){
-    struct termios term_settings;
-    if (tcgetattr(0, &term_settings) != 0) fprintf(stderr, "Failed to get terminal attributes\n");
-    term_settings.c_lflag |= ICANON;
-    if (tcsetattr(0, TCSANOW, &term_settings) !=0) fprintf(stderr, "Failed to set terminal attributes\n");
+    if (mode != 3){
+        struct termios term_settings;
+        if (tcgetattr(0, &term_settings) != 0) fprintf(stderr, "Failed to get terminal attributes\n");
+        term_settings.c_lflag |= ICANON;
+        if (tcsetattr(0, TCSANOW, &term_settings) !=0) fprintf(stderr, "Failed to set terminal attributes\n");
+    }
     fd_set in_set;
     struct timeval time;
     int ret;
