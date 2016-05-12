@@ -292,7 +292,6 @@ int LoadDeviceInfo( controller_device &device){
         }
         else return STOP;
     }
-    //free(info);
     
     device.channels = Channels(device.device_type);
     device.bays = Bays(device.device_type);
