@@ -2,7 +2,9 @@
 #include <iostream>
 #include "init.hpp"
 #include "cmd.hpp"
+#ifdef _GUI_            
 #include "gui.hpp"
+#endif
 
 using namespace std;
 
@@ -52,7 +54,9 @@ int main(int argc, char** argv) {
             printf("Options\n");
             printf("  -h, --help                    prints this help message and exit\n");
             printf("  -c, --command-line            starts with command line interface, default\n");
+            #ifdef _GUI_
             printf("  -g, --graphical               after initialization starts graphical interface\n");
+            #endif
             printf("  -v, --validate                validate syntax of commands; use with \"< FILE\" to validate control file\n");
             return 0;
         }
@@ -64,7 +68,9 @@ int main(int argc, char** argv) {
             printf("Options\n");
             printf("  -h, --help                    prints this help message and exit\n");
             printf("  -c, --command-line            starts with command line interface, default\n");
+            #ifdef _GUI_
             printf("  -g, --graphical               after initialization starts graphical interface\n");
+            #endif
             printf("  -v, --validate                validate syntax of commands; use with \"< FILE\" to validate control file \n");
             return 0;
         }
@@ -78,7 +84,9 @@ int main(int argc, char** argv) {
     }
     signal(SIGINT, exit_signal);
     if (UI == 1) ret_code = run_cmd(1);
+    #ifdef _GUI_
     if (UI == 2) run_gui();
+    #endif
     if (UI == 3){
         connected_device = new controller_device[1];
         ret_code = run_cmd(3);
