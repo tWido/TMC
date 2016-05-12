@@ -16,7 +16,8 @@ QTLIBS= -lQt5Widgets -lQt5Gui -lQt5Core -lGL
 
 QTINCLUDES= -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore 
 
-all: $(BUILD_DIR)/api.o $(BUILD_DIR)/main.o 
+
+all: $(BUILD_DIR)/api.o $(BUILD_DIR)/main.o
 	mkdir -p $(BUILD_DIR)/restrictions
 	$(CXX) $(BUILD_DIR)/api.o $(BUILD_DIR)/main.o $(CFLAGS) $(LIBS) $(LFLAGS) -o $(BUILD_DIR)/$(MAIN) -Wl,-rpath=./drivers/release/build
 	
