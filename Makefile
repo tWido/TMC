@@ -1,10 +1,12 @@
 CXX = g++
 
+PATH_PREFIX=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
 CFLAGS = -Wall -Wextra -g -std=c++11 -fPIE -O2 -pipe
 
 LIBS = -lpthread -lftd2xx
 
-LFLAGS = -L/home/wido/Git/bc-thorlabs/drivers/release/build
+LFLAGS = -L$(PATH_PREFIX)/drivers/release/build 
 
 MAIN = thorlabs_controller
 
@@ -19,11 +21,11 @@ QTINCLUDES= -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/Q
 
 all: $(BUILD_DIR)/api.o $(BUILD_DIR)/main.o
 	mkdir -p $(BUILD_DIR)/restrictions
-	$(CXX) $(BUILD_DIR)/api.o $(BUILD_DIR)/main.o $(CFLAGS) $(LIBS) $(LFLAGS) -o $(BUILD_DIR)/$(MAIN) -Wl,-rpath=./drivers/release/build
+	$(CXX) $(BUILD_DIR)/api.o $(BUILD_DIR)/main.o $(CFLAGS) $(LIBS) $(LFLAGS) -o $(BUILD_DIR)/$(MAIN) -Wl,-rpath=$(PATH_PREFIX)/drivers/release/build
 	
 gui: 	$(BUILD_DIR)/api.o $(BUILD_DIR)/gmain.o $(BUILD_DIR)/moc_gui.o $(BUILD_DIR)/gui.o
 	mkdir -p $(BUILD_DIR)/restrictions
-	$(CXX) $(BUILD_DIR)/api.o $(BUILD_DIR)/gmain.o $(BUILD_DIR)/moc_gui.o $(BUILD_DIR)/gui.o $(CFLAGS) $(LIBS) $(LFLAGS)  $(QTLIBS) $(QTINCLUDES) -o $(BUILD_DIR)/$(MAIN) -Wl,-rpath=./drivers/release/build 
+	$(CXX) $(BUILD_DIR)/api.o $(BUILD_DIR)/gmain.o $(BUILD_DIR)/moc_gui.o $(BUILD_DIR)/gui.o $(CFLAGS) $(LIBS) $(LFLAGS)  $(QTLIBS) $(QTINCLUDES) -o $(BUILD_DIR)/$(MAIN) -Wl,-rpath=$(PATH_PREFIX)/drivers/release/build 
 	
 clean:
 	rm bin/*.o
