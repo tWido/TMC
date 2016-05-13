@@ -503,7 +503,7 @@ int CheckParams( uint8_t dest, int chanID){
     return 0;
 };
 
-int CheckIncomingQueue(uint16_t *ret_msgID){
+int CheckIncomingQueue(uint16_t &ret_msgID){
     FT_STATUS ftStatus;
     unsigned int bytes;
     ftStatus = FT_GetQueueStatus(opened_device.handle, &bytes);
@@ -591,7 +591,7 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
             return 0;
         }
         default: {
-            *ret_msgID = msgID;
+            ret_msgID = msgID;
             free(buff);
             return OTHER_MESSAGE;
         } 
@@ -601,7 +601,7 @@ int CheckIncomingQueue(uint16_t *ret_msgID){
 int EmptyIncomingQueue(){
     while(true){
         uint16_t messID;
-        int ret = CheckIncomingQueue(&messID);
+        int ret = CheckIncomingQueue(messID);
         if (ret == EMPTY) return 0;
         if (ret == MOVED_HOME_STATUS || ret == MOVE_COMPLETED_STATUS || ret == MOVE_STOPPED_STATUS || ret == 0) continue; 
         switch(ret){
@@ -620,7 +620,7 @@ int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess ){
     int ret;
     uint16_t msgID;
     while(true){
-        ret = CheckIncomingQueue(&msgID);
+        ret = CheckIncomingQueue(msgID);
         if (ret == OTHER_MESSAGE){
             if (msgID == expected_msg) {
                 *((int16_t *) &mess[0]) =  htole16(msgID);

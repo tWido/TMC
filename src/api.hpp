@@ -68,7 +68,7 @@ extern int CheckParams( uint8_t dest, int chanID);
 
 extern int SendMessage(Message &message);
 
-extern int CheckIncomingQueue(uint16_t *ret_msgID);
+extern int CheckIncomingQueue(uint16_t &ret_msgID);
 
 extern int EmptyIncomingQueue();
 
