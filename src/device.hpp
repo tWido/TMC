@@ -13,7 +13,7 @@ typedef struct {
     int tick;
     uint8_t dest;
     int32_t status_position = 0;
-    int16_t status_velocity = 0;
+    uint16_t status_velocity = 0;
     int32_t status_enc_count = 0;
     uint16_t status_status_bits = 0;
     bool moving = false;
