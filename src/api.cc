@@ -444,7 +444,7 @@ functions_set all_set{
 
 #define READ_REST(x)  unsigned int bytes_red; ftStatus = FT_Read(opened_device.handle, &buff[2], x, &bytes_red); \
         if (ftStatus != FT_OK) {                                    \
-        fprintf(stderr,"FT_Error occured, error code :%d\n", ftStatus );    \
+        fprintf(stderr,"FT_Error occured, error code :%u\n", ftStatus );    \
         return FT_ERROR;                                            \
         }  
 
@@ -476,8 +476,8 @@ int SendMessage(Message &message){
         return 0;
     }
     else {
-        fprintf(stderr,"Sending message failed, error code : %d \n", wrStatus );
-        fprintf(stderr,"wrote : %d should write: %d \n", wrote, message.msize());
+        fprintf(stderr,"Sending message failed, error code : %u \n", wrStatus );
+        fprintf(stderr,"wrote : %u should write: %u \n", wrote, message.msize());
     }
     return FT_ERROR;
 }
@@ -508,7 +508,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
     unsigned int bytes;
     ftStatus = FT_GetQueueStatus(opened_device.handle, &bytes);
     if (ftStatus != FT_OK ) {
-        fprintf(stderr,"FT_Error occured, error code :%d\n", ftStatus );
+        fprintf(stderr,"FT_Error occurred, error code :%u\n", ftStatus );
         return FT_ERROR;
     }
     if (bytes == 0 ) return EMPTY;
@@ -516,7 +516,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
     unsigned int red;
     ftStatus = FT_Read(opened_device.handle, buff, 2, &red);          
     if (ftStatus != FT_OK) {
-        fprintf(stderr,"FT_Error occured, error code :%d\n", ftStatus );
+        fprintf(stderr,"FT_Error occurred, error code :%u\n", ftStatus );
         free(buff);
         return FT_ERROR;
     }
@@ -542,8 +542,8 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
             fprintf(stderr, "Device with serial %s encountered error\n", opened_device.SN);
             fprintf(stderr, "Detailed description of error \n ");
             uint16_t error_cause = response.GetMsgID();
-            if (error_cause != 0) printf("\tMessage causing error: %d\n ", error_cause);
-            fprintf(stderr, "\tThorlabs error code: %d \n", response.GetCode());
+            if (error_cause != 0) printf("\tMessage causing error: %hu\n ", error_cause);
+            fprintf(stderr, "\tThorlabs error code: %hu \n", response.GetCode());
             fprintf(stderr, "\tDescription: %s\n", response.GetDescription());
             free(buff);
             return DEVICE_ERROR;
@@ -552,7 +552,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
             READ_REST(4)
             MovedHome response(buff);
             opened_device.motor[response.GetMotorID()].homing=false;
-            printf("Motor with id %d moved to home position\n", response.GetMotorID() + 1);
+            printf("Motor with id %hhu moved to home position\n", response.GetMotorID() + 1);
             free(buff);
             return MOVED_HOME_STATUS;
         }
@@ -560,7 +560,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
             READ_REST(18) // 14 bytes for status updates
             MoveCompleted response(buff);
             opened_device.motor[response.GetMotorID()].homing=false;
-            printf("Motor with id %d completed move\n", response.GetMotorID() + 1);
+            printf("Motor with id %hhu completed move\n", response.GetMotorID() + 1);
             free(buff);
             return MOVE_COMPLETED_STATUS;
         }
@@ -568,7 +568,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
             READ_REST(18) // 14 bytes for status updates
             MoveStopped response(buff);
             opened_device.motor[response.GetMotorID()].homing=false;
-            printf("Motor with id %d stopped \n", response.GetMotorID() +1 );
+            printf("Motor with id %hhu stopped \n", response.GetMotorID() +1 );
             free(buff);
             return MOVE_STOPPED_STATUS;
         }
@@ -600,7 +600,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
 
 int EmptyIncomingQueue(){
     while(true){
-        uint16_t messID;
+        uint16_t messID = 0;
         int ret = CheckIncomingQueue(messID);
         if (ret == EMPTY) return 0;
         if (ret == MOVED_HOME_STATUS || ret == MOVE_COMPLETED_STATUS || ret == MOVE_STOPPED_STATUS || ret == 0) continue; 
@@ -627,7 +627,7 @@ int GetResponseMess(uint16_t expected_msg, int size, uint8_t *mess ){
                 unsigned int red;
                 FT_STATUS read_status = FT_Read(opened_device.handle, &mess[2], size-2, &red);
                 if ( read_status != FT_OK ) {
-                    fprintf(stderr, "FT_Error occured, error code :%d\n", read_status );
+                    fprintf(stderr, "FT_Error occurred, error code :%u\n", read_status );
                     return FT_ERROR;
                 }
                 return 0;

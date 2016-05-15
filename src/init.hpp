@@ -93,7 +93,7 @@ int addVidPid(){
             
             ftStatus = FT_SetVIDPID(vid, pid);
             if (ftStatus != FT_OK ) {
-                fprintf(stderr, "Setting found vendor ID and product ID failed, error: %d ", ftStatus );
+                fprintf(stderr, "Setting found vendor ID and product ID failed, FT_error: %u ", ftStatus );
                 closedir(usb_devs);
                 return FT_ERROR;
             }
@@ -117,7 +117,7 @@ int addVidPid(){
             fclose(read_file);
            
             SN.push_back(string(fread_buff));
-            printf("Found Thorlabs device vendor id: %d , product id: %d, serial: %s\n", vid, pid, fread_buff);
+            printf("Found Thorlabs device vendor id: %u , product id: %u, serial: %s\n", vid, pid, fread_buff);
         }
         else continue;
     }

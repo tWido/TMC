@@ -220,7 +220,7 @@ int DeviceInfoC(std::vector<string> args){
                 if (connected_device[i].bay_used[j]) printf("Unused\n");
                 else{
                     printf("Used\n");
-                    printf("  Destination address : %d\n",connected_device[i].motor[j].dest);
+                    printf("  Destination address : %hhu\n",connected_device[i].motor[j].dest);
                 }
             }
         }
@@ -232,8 +232,8 @@ int DeviceInfoC(std::vector<string> args){
             }
         }
         HwInfo info;
-        if (device_calls::GetHwInfo(info) != 0) printf("Error occured while receiving info from device\n");
-        printf("  Hardware version: %d\n", info.HwVersion());
+        if (device_calls::GetHwInfo(info) != 0) printf("Error occurred while receiving info from device\n");
+        printf("  Hardware version: %hu\n", info.HwVersion());
         printf("  Notes: %s\n", info.Notes().c_str());
     }
     
@@ -605,8 +605,8 @@ int JogParamC(std::vector<string> args){
         GET_MESSAGE(GetJogParams, device_calls::GetJogP)
         printf("Acceleration: %d\n",mess.GetAcceleration());
         printf("Maximum velocity: %d\n",mess.GetMaxVel());
-        printf("Mode: %d\n",mess.GetJogMode());
-        printf("Stop mode: %d\n",mess.GetStopMode());
+        printf("Mode: %hu\n",mess.GetJogMode());
+        printf("Stop mode: %hu\n",mess.GetStopMode());
         printf("Step size: %d\n",mess.GetStepSize());
     }
     if (operation == 1){
@@ -675,8 +675,8 @@ int PowerParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetPowerParams, device_calls::GetPowerUsed)
-        printf("Rest factor: %d\n",mess.GetRestFactor());
-        printf("Move factor: %d\n",mess.GetMoveFactor());
+        printf("Rest factor: %hu\n",mess.GetRestFactor());
+        printf("Move factor: %hu\n",mess.GetMoveFactor());
     }
     if (operation == 1){
         int ret;
@@ -1252,7 +1252,7 @@ int AccParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetBowIndex, device_calls::GetAccelerationProfile)
-        printf("Acceleration profile: %d\n",mess.BowIndex());
+        printf("Acceleration profile: %hu\n",mess.BowIndex());
     }
     if (operation == 1){
         int ret;
@@ -1312,7 +1312,7 @@ int LedParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetLedMode, device_calls::GetLedP)
-        printf("Mode actually set: %d\n",mess.GetMode());
+        printf("Mode actually set: %hu\n",mess.GetMode());
     }
     if (operation == 1){
         int ret;
@@ -1380,10 +1380,10 @@ int ButtonsParamC(std::vector<string> args){
     }
     if (operation == 0){
         GET_MESSAGE(GetButtonParams, device_calls::GetButtonsInfo)
-        printf("Mode actually set: %d\n", mess.GetMode());
+        printf("Mode actually set: %hu\n", mess.GetMode());
         printf("Position 1: %d\n", mess.GetPosition1());
         printf("Position 2: %d\n", mess.GetPosition2());
-        printf("Timeout: %d\n", mess.GetTimeout());
+        printf("Timeout: %hu\n", mess.GetTimeout());
     }
     if (operation == 1){
         int ret;
