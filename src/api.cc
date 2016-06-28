@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <errno.h>
+#include <assert.h> 
 
 //------------------ device globals definitions --------------------------------
 int devices_connected = 0;
@@ -551,6 +552,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
         case MOVE_HOMED:{
             READ_REST(4)
             MovedHome response(buff);
+            assert (response.GetMotorID() <= 3 );
             opened_device.motor[response.GetMotorID()].homing=false;
             printf("Motor with id %hhu moved to home position\n", response.GetMotorID() + 1);
             free(buff);
@@ -559,6 +561,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
         case MOVE_COMPLETED:{
             READ_REST(18) // 14 bytes for status updates
             MoveCompleted response(buff);
+            assert (response.GetMotorID() <= 3 );
             opened_device.motor[response.GetMotorID()].homing=false;
             printf("Motor with id %hhu completed move\n", response.GetMotorID() + 1);
             free(buff);
@@ -567,6 +570,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
         case MOVE_STOPPED:{
             READ_REST(18) // 14 bytes for status updates
             MoveStopped response(buff);
+            assert (response.GetMotorID() <= 3 );
             opened_device.motor[response.GetMotorID()].homing=false;
             printf("Motor with id %hhu stopped \n", response.GetMotorID() +1 );
             free(buff);
