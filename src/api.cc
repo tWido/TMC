@@ -552,7 +552,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
         case MOVE_HOMED:{
             READ_REST(4)
             MovedHome response(buff);
-            assert (response.GetMotorID() <= 3 );
+            assert (response.GetMotorID() < 3 );
             opened_device.motor[response.GetMotorID()].homing=false;
             printf("Motor with id %hhu moved to home position\n", response.GetMotorID() + 1);
             free(buff);
@@ -561,7 +561,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
         case MOVE_COMPLETED:{
             READ_REST(18) // 14 bytes for status updates
             MoveCompleted response(buff);
-            assert (response.GetMotorID() <= 3 );
+            assert (response.GetMotorID() < 3 );
             opened_device.motor[response.GetMotorID()].homing=false;
             printf("Motor with id %hhu completed move\n", response.GetMotorID() + 1);
             free(buff);
@@ -570,7 +570,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
         case MOVE_STOPPED:{
             READ_REST(18) // 14 bytes for status updates
             MoveStopped response(buff);
-            assert (response.GetMotorID() <= 3 );
+            assert (response.GetMotorID() < 3 );
             opened_device.motor[response.GetMotorID()].homing=false;
             printf("Motor with id %hhu stopped \n", response.GetMotorID() +1 );
             free(buff);
@@ -579,6 +579,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
         case GET_STATUSUPDATE:{
             READ_REST(18)
             GetStatusUpdate response(buff);
+            assert (response.GetMotorID() < 3 );
             opened_device.motor[response.GetMotorID()].status_enc_count = response.GetEncCount();
             opened_device.motor[response.GetMotorID()].status_position = response.GetPosition();
             opened_device.motor[response.GetMotorID()].status_status_bits = response.GetStatusBits();   
@@ -588,6 +589,7 @@ int CheckIncomingQueue(uint16_t &ret_msgID){
         case GET_DCSTATUSUPDATE:{
             READ_REST(18)
             GetMotChanStatusUpdate response(buff);
+            assert (response.GetMotorID() < 3 );
             opened_device.motor[response.GetMotorID()].status_velocity = response.GetVelocity();
             opened_device.motor[response.GetMotorID()].status_position = response.GetPosition();
             opened_device.motor[response.GetMotorID()].status_status_bits = response.GetStatusBits();
