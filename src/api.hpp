@@ -54,14 +54,6 @@ static uint8_t DefaultStopMode(){
 
 extern int OpenDevice(int index);
 
-//----------------- Input buffer monitoring thread --------------------------------
-
-extern int getInBuffDesc();
-
-extern int monInit();
-
-extern void monDestr();
-
 //----------------- Device communication functions ---------------------------------
 
 extern int CheckParams( uint8_t dest, int chanID);
