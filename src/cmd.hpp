@@ -11,7 +11,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <termios.h>
-#include <climits>
 
 typedef int (*helper)(std::vector<string>);
 typedef std::unordered_map<std::string,helper> call_map;
