@@ -43,8 +43,8 @@ $(BUILD_DIR)/moc_gui.o: ./src/moc_gui.cpp
 $(BUILD_DIR)/gui.o: ./src/gui.cpp ./src/gui.hpp
 	$(CXX) ./src/gui.cpp -c  $(CFLAGS) $(LIBS) $(LFLAGS) $(QTLIBS) $(QTINCLUDES) -o $(BUILD_DIR)/gui.o
 	
-$(BUILD_DIR)/main.o: ./src/main.cpp ./src/init.hpp ./src/cmd.hpp
+$(BUILD_DIR)/main.o: ./src/main.cpp ./src/init.cpp ./src/cmd.cpp
 	$(CXX) ./src/main.cpp -c $(CFLAGS) $(LIBS) $(LFLAGS) -o $(BUILD_DIR)/main.o
 	
-$(BUILD_DIR)/gmain.o: ./src/main.cpp ./src/init.hpp ./src/cmd.hpp
+$(BUILD_DIR)/gmain.o: ./src/main.cpp ./src/init.cpp ./src/cmd.cpp
 	$(CXX) ./src/main.cpp -c  $(CFLAGS) $(LIBS) $(LFLAGS) $(QTLIBS) $(QTINCLUDES) $(DEFINE_GUI) -o $(BUILD_DIR)/gmain.o 

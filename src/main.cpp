@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <iostream>
-#include "init.hpp"
-#include "cmd.hpp"
+#include "init.cpp"
+#include "cmd.cpp"
 #ifdef _GUI_            
 #include "gui.hpp"
 #endif
