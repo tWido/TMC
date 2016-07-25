@@ -90,8 +90,6 @@ extern int GetHwInfo(HwInfo &message, uint8_t dest = DefaultDest());
 
 extern int GetBayUsed(GetRackBayUsed &message, uint8_t bayID, uint8_t dest = DefaultDest());
 
-extern int GetHubUsed(GetHubBayUsed &message, uint8_t dest = DefaultDest());
-
 //-------------------------- Motor control calls ------------------------------
 
 extern int FlashProgYes(uint8_t dest = DefaultDest());
@@ -160,17 +158,14 @@ extern int GetAccelerationProfile(GetBowIndex &message ,uint8_t dest = DefaultDe
 
 extern int SetLedP(uint16_t mode, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16());
 
-
 extern int GetLedP(GetLedMode &message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8());
 
 extern int SetButtons(uint16_t mode, int32_t pos1, int32_t pos2, uint16_t timeout, int8_t dest = DefaultDest(), uint16_t channel = DefaultChanel16());
 
 extern int GetButtonsInfo(GetButtonParams &message ,uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8());
 
-// only requests for data, automatically stored in device info
 extern int ReqStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8());
 
-// only requests for data, automatically s
 extern int ReqDcStatus(uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8());
 
 extern int SendServerAlive(uint8_t dest = DefaultDest());
@@ -185,8 +180,6 @@ extern int CreateTrigger(uint8_t mode, uint8_t dest = DefaultDest(), uint8_t cha
 
 extern int GetMotorTrigger(GetTrigger &message, uint8_t dest = DefaultDest(), uint8_t channel = DefaultChanel8());
 
-
 } // namespace device_calls
-
 
 #endif 

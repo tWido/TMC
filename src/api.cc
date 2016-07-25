@@ -751,20 +751,6 @@ int device_calls::GetBayUsed(GetRackBayUsed &message, uint8_t bayID, uint8_t des
     return 0;
 }
 
-int device_calls::GetHubUsed(GetHubBayUsed &message, uint8_t dest){
-    CHECK_ADDR_PARAMS(dest, -1);
-    EMPTY_IN_QUEUE
-    ReqHubBayUsed mes(dest, SOURCE);
-    SendMessage(mes);
-    uint8_t *buff = (uint8_t *) malloc(HEADER_SIZE);
-    ret = GetResponseMess( HUB_GET_BAYUSED, HEADER_SIZE , buff);
-    message.SetData(buff);
-    free(buff);
-    if ( ret != 0) return ret;
-    EMPTY_IN_QUEUE
-    return 0;
-}
-
 int device_calls::FlashProgYes(uint8_t dest){
     CHECK_ADDR_PARAMS(dest, -1)
     EMPTY_IN_QUEUE
@@ -1171,5 +1157,3 @@ int OpenDevice(int index){
     device_calls::StartUpdateMess();
     return 0;
 };
-
-
