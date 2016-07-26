@@ -27,10 +27,14 @@ using namespace std;
 
 vector<string> SN;
 
+/**
+ * Finds vendor and product IDs. Needed to work properly.
+ * @return SYSTEM_ERROR on system call error, 0 on success
+ */
 int addVidPid(){
     char *p;
     FT_STATUS ftStatus;
-    string usb_path= "/sys/bus/usb/devices/";
+    string usb_path= "/sys/bus/usb/devices/";       //directory containing info on connected usb devices
     
     DIR *usb_devs = opendir(usb_path.c_str());
     if (usb_devs == NULL ) {
@@ -91,7 +95,7 @@ int addVidPid(){
             fclose(read_file);
             unsigned int pid = strtol(fread_buff, &p, 16);
             
-            ftStatus = FT_SetVIDPID(vid, pid);
+            ftStatus = FT_SetVIDPID(vid, pid);              //adds IDs to table used by FT library
             if (ftStatus != FT_OK ) {
                 fprintf(stderr, "Setting found vendor ID and product ID failed, FT_error: %u ", ftStatus );
                 closedir(usb_devs);
@@ -116,7 +120,7 @@ int addVidPid(){
             } 
             fclose(read_file);
            
-            SN.push_back(string(fread_buff));
+            SN.push_back(string(fread_buff));           //adds serials of found products
             printf("Found Thorlabs device vendor id: %u , product id: %u, serial: %s\n", vid, pid, fread_buff);
         }
         else continue;
@@ -126,6 +130,11 @@ int addVidPid(){
     return 0;
 }
 
+/**
+ * Removes specified module.
+ * @param module_name - string containing module name
+ * @return SYSTEM_ERROR on system error or lack of privileges, 0 on succes
+ */
 int RemoveModules(std::string module_name){
     std::ifstream proc_mod("/proc/modules");
     string line;
@@ -145,6 +154,11 @@ int RemoveModules(std::string module_name){
     return 0;
 }
 
+/**
+ * Sets restrictions to maximum of int, i.e. no restrictions used.
+ * @param device
+ * @param mot_id
+ */
 void LoadNone(controller_device &device, int mot_id){
     device.motor[mot_id].max_acc = INT_MAX;
     device.motor[mot_id].max_pos = INT_MAX;
@@ -152,6 +166,13 @@ void LoadNone(controller_device &device, int mot_id){
     return;
 }
 
+/**
+ * Sets restrictions for controller device. User is asked for file containing information 
+ * or to don't use any restrictions. 
+ * @param device - controller device
+ * @param device_name - device name
+ * @return always 0
+ */
 int LoadRestrictions(controller_device &device, std::string device_name){
     printf("Do you want to load restrictions for device %s, SN: %s? Y/N\n", device_name.c_str(), device.SN);
     std::string option;
@@ -215,6 +236,11 @@ int LoadRestrictions(controller_device &device, std::string device_name){
     return 0;
 }
 
+/**
+ * Returns internal numerical code for device name.
+ * @param name - alphanumeric string containing name
+ * @return device code on success, -1 if device name isn't recognized by program.
+ */
 int ToDevType(std::string name){
     FIND_DEV(BSC001)
     FIND_DEV(BSC002)
@@ -241,6 +267,12 @@ int ToDevType(std::string name){
     FIND_DEV(TBD001)
     return -1;
 }
+
+/**
+ * Return bays count for bay type of controller device.
+ * @param type - code of controller device
+ * @return bays count
+ */
 int Bays(int type){
     if (type == BBD101 || type == BBD201 || type == BSC201) return 1;
     if (type == BBD102 || type == BBD202 || type == BSC202) return 2;
@@ -248,6 +280,11 @@ int Bays(int type){
     return -1;
 }
 
+/**
+ * Return channels count for channel type of controller device.
+ * @param type - code of controller device
+ * @return channels count
+ */
 int Channels(int type){
     if ( type == BSC001 || type == BMS001 || type == BSC101 || type == OST001 || type == ODC001
       || type == TST001 || type == TDC001 || type == TBD001 ) return 1;
@@ -257,6 +294,12 @@ int Channels(int type){
     return -1;
 };
 
+/**
+ * Returns set of functions, that are valid for controller device. For devices that didn't have 
+ * specified functions set in documentation, set of all functions is used.
+ * @param devtype - code of device type
+ * @return functions_set 
+ */
 functions_set functionsSet(int devtype){
     if (devtype == TDC001) return tdc_set;
     if (devtype == TST001) return tst_set;
@@ -266,6 +309,11 @@ functions_set functionsSet(int devtype){
     return all_set;
 }
 
+/**
+ * Loads all information about devices.
+ * @param device - controller device
+ * @return STOP on finding unsupported device, 0 on success
+ */
 int LoadDeviceInfo( controller_device &device){
     device.dest = 0x11;
     int ret;
@@ -312,8 +360,12 @@ int LoadDeviceInfo( controller_device &device){
     return 0;
 }
 
-FT_DEVICE_LIST_INFO_NODE *ftdi_devs;
-
+/**
+ * Initialization of communication and device list. First of all checks modules
+ * and tries to remove the ones, blocking communication. Then finds all compatible
+ * devices, sets communication, gather additional information and initializes device list.
+ * @return 
+ */
 int init(){
     int ret;
     printf("Starting.\n");
@@ -338,26 +390,10 @@ int init(){
     connected_device = new controller_device[devices_connected];
     
     for (unsigned int i = 0; i< SN.size(); i++) connected_device[i].SN = strdup(SN.at(i).c_str());
-    FT_STATUS ft_status;
-    unsigned int num_ftdi_devices;
-    ft_status = FT_CreateDeviceInfoList(&num_ftdi_devices);
-    if (ft_status != FT_OK) {
-        fprintf(stderr, "Detecting devices failed\n");
-        return FT_ERROR;
-    }
-     
-    ftdi_devs = new FT_DEVICE_LIST_INFO_NODE[num_ftdi_devices];
-    ft_status = FT_GetDeviceInfoList( ftdi_devs, &num_ftdi_devices) ;  
-    if (ft_status != FT_OK) {
-        fprintf(stderr, "Detecting devices failed\n");
-        delete(ftdi_devs);
-        return FT_ERROR;
-    }
     
     //Find additional info to Thorlabs devices
     for (int j = 0; j<  devices_connected; j++){
-        if (OpenDevice(j) == FT_ERROR ) return FT_ERROR;
-        if (ft_status != FT_OK ) return FT_ERROR;                  
+        if (OpenDevice(j) == FT_ERROR ) return FT_ERROR;                                 
         ret = LoadDeviceInfo(connected_device[j]);
         if (ret != 0 ){ return ret; }                        
     }
@@ -366,8 +402,10 @@ int init(){
     return 0;
 }
 
+/**
+ * Frees allocated resources.
+ */
 void freeResources(){
-    delete ftdi_devs;
     if (opened_device_index != -1) device_calls::StopUpdateMess();
     for (int i = 0; i < devices_connected; i++){
         FT_Close(opened_device.handle);
