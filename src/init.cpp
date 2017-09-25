@@ -304,7 +304,7 @@ functions_set functionsSet(int devtype){
     if (devtype == TDC001) return tdc_set;
     if (devtype == TST001) return tst_set;
     if (devtype == BSC001 || devtype == BSC002 || devtype == BSC101 || devtype == BSC102 || devtype == BSC103 || devtype == BSC201 || devtype == BSC202 || devtype == BSC203) return bsc_set;
-    if (devtype == BBD101 || devtype == BBD102 || devtype == BBD103 || devtype == BBD201 || devtype == BBD202 || devtype == BBD203) return bbd_set;
+    if (devtype == BBD101 || devtype == BBD102 || devtype == BBD103 || devtype == BBD201 || devtype == BBD202 || devtype == BBD203  || devtype == TBD001) return bbd_set;
     printf("Unknown functions set. Do not request data that controller device can not provide. It will result in freezing program.\n");
     return all_set;
 }
